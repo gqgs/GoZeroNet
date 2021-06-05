@@ -1,7 +1,10 @@
 package file
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"io"
 	"log"
 	"net/http"
 
@@ -18,46 +21,58 @@ type Server struct {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
+	if s == nil {
+		return nil
+	}
 	return s.srv.Shutdown(ctx)
 }
 
-type requestPayload struct {
-	CMD    string
-	ReqID  int
-	Params string
-}
-
-type pingResponsePayload struct {
-	CMD  string
-	To   int
-	Body string
-}
-
-func pingHandler(w http.ResponseWriter, r requestPayload) {
-	data, err := msgpack.Marshal(&pingResponsePayload{
-		CMD:  "response",
-		To:   r.ReqID,
-		Body: "pong",
-	})
+func decode(reader io.Reader) (interface{}, error) {
+	// read only the necessary to decode the cmd
+	var buffer bytes.Buffer
+	decoder := msgpack.NewDecoder(io.TeeReader(reader, &buffer))
+	query, err := decoder.Query("cmd")
 	if err != nil {
-		log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return nil, err
+	}
+	if len(query) != 1 {
+		return nil, errors.New("file: bad cmd value")
 	}
 
-	w.Write(data)
+	cmd, ok := query[0].(string)
+	if !ok {
+		return nil, errors.New("file: bad cmd value")
+	}
+
+	// now reset and read the payload
+	decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
+
+	switch cmd {
+	case "ping":
+		var payload pingRequest
+		err := decoder.Decode(&payload)
+		return payload, err
+	case "handshake":
+		var payload handshakeRequest
+		err := decoder.Decode(&payload)
+		return payload, err
+	}
+
+	return nil, errors.New("file: invalid payload type")
 }
 
 func router(w http.ResponseWriter, r *http.Request) {
-	var payload requestPayload
-	if err := msgpack.NewDecoder(r.Body).Decode(&payload); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	i, err := decode(r.Body)
+	if err != nil {
+		log.Print(err)
 		return
 	}
 
-	switch payload.CMD {
-	case "ping":
-		pingHandler(w, payload)
+	switch v := i.(type) {
+	case pingRequest:
+		pingHandler(w, v)
+	case handshakeRequest:
+		handshakeHandler(w, v)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}

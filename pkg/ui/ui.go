@@ -11,6 +11,9 @@ type Server struct {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
+	if s.srv == nil {
+		return nil
+	}
 	return s.srv.Shutdown(ctx)
 }
 
