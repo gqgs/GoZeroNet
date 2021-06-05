@@ -27,24 +27,39 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.srv.Shutdown(ctx)
 }
 
-// reads only the necessary to decode the cmd
-func decodeCmd(decoder *msgpack.Decoder) (string, error) {
-	var buffer bytes.Buffer
-	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))
-	query, err := decoder.Query("cmd")
-	if err != nil {
-		return "", err
+func (s *Server) Listen() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", router)
+
+	srv := http.Server{
+		Addr:    ":43111",
+		Handler: mux,
 	}
-	if len(query) != 1 {
-		return "", errors.New("file: invalid cmd value")
+	s.srv = &srv
+
+	println("file server listening...")
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
+}
+
+func router(w http.ResponseWriter, r *http.Request) {
+	i, err := decode(r.Body)
+	if err != nil {
+		log.Print(err)
+		return
 	}
 
-	cmd, ok := query[0].(string)
-	if !ok {
-		return "", errors.New("file: invalid cmd value")
+	switch r := i.(type) {
+	case pingRequest:
+		pingHandler(w, r)
+	case handshakeRequest:
+		handshakeHandler(w, r)
+	case getFileRequest:
+		getFileHandler(w, r)
+	default:
+		w.WriteHeader(http.StatusNotFound)
 	}
-	decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
-	return cmd, nil
 }
 
 func decode(reader io.Reader) (interface{}, error) {
@@ -63,40 +78,31 @@ func decode(reader io.Reader) (interface{}, error) {
 		var payload handshakeRequest
 		err := decoder.Decode(&payload)
 		return payload, err
+	case "getFile":
+		var payload getFileRequest
+		err := decoder.Decode(&payload)
+		return payload, err
 	}
 
 	return nil, errors.New("file: invalid payload type")
 }
 
-func router(w http.ResponseWriter, r *http.Request) {
-	i, err := decode(r.Body)
+// reads only the necessary to decode the cmd
+func decodeCmd(decoder *msgpack.Decoder) (string, error) {
+	var buffer bytes.Buffer
+	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))
+	query, err := decoder.Query("cmd")
 	if err != nil {
-		log.Print(err)
-		return
+		return "", err
+	}
+	if len(query) != 1 {
+		return "", errors.New("file: invalid cmd value")
 	}
 
-	switch v := i.(type) {
-	case pingRequest:
-		pingHandler(w, v)
-	case handshakeRequest:
-		handshakeHandler(w, v)
-	default:
-		w.WriteHeader(http.StatusNotFound)
+	cmd, ok := query[0].(string)
+	if !ok {
+		return "", errors.New("file: invalid cmd value")
 	}
-}
-
-func (s *Server) Listen() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", router)
-
-	srv := http.Server{
-		Addr:    ":43111",
-		Handler: mux,
-	}
-	s.srv = &srv
-
-	println("file server listening...")
-	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
+	decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
+	return cmd, nil
 }

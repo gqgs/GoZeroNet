@@ -10,20 +10,14 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-func Test_Handshake(t *testing.T) {
+func Test_GetFile(t *testing.T) {
 	srv := Server{}
 	go srv.Listen()
 	defer srv.Shutdown(context.Background())
 
-	body := &handshakeRequest{
-		CMD:   "handshake",
+	body := &getFileRequest{
+		CMD:   "getFile",
 		ReqID: 1,
-		Params: handshakeParams{
-			Rev:            2092,
-			PortOpened:     false,
-			FileserverPort: 43111,
-			Protocol:       "v2",
-		},
 	}
 	encoded, err := msgpack.Marshal(body)
 	if err != nil {
@@ -41,12 +35,10 @@ func Test_Handshake(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	var decoded handshakeResponse
+	var decoded getFileResponse
 	assert.NoError(t, msgpack.NewDecoder(resp.Body).Decode(&decoded))
 	assert.Equal(t, "response", decoded.CMD)
 	assert.Equal(t, body.ReqID, decoded.To)
-	assert.Equal(t, 2092, decoded.Rev)
-	assert.Equal(t, false, decoded.PortOpened)
-	assert.Equal(t, 43111, decoded.FileserverPort)
-	assert.Equal(t, "v2", decoded.Protocol)
+	assert.Equal(t, "TODO", decoded.Body)
+	assert.Equal(t, "TODO", decoded.Location)
 }

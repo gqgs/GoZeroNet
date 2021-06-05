@@ -9,9 +9,9 @@ import (
 
 type (
 	handshakeRequest struct {
-		CMD             string          `msgpack:"cmd"`
-		ReqID           int             `msgpack:"req_id"`
-		HandshakeParams handshakeParams `msgpack:"params"`
+		CMD    string          `msgpack:"cmd"`
+		ReqID  int             `msgpack:"req_id"`
+		Params handshakeParams `msgpack:"params"`
 	}
 
 	handshakeParams struct {
