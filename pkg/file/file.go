@@ -27,25 +27,32 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.srv.Shutdown(ctx)
 }
 
-func decode(reader io.Reader) (interface{}, error) {
-	// read only the necessary to decode the cmd
+// reads only the necessary to decode the cmd
+func decodeCmd(decoder *msgpack.Decoder) (string, error) {
 	var buffer bytes.Buffer
-	decoder := msgpack.NewDecoder(io.TeeReader(reader, &buffer))
+	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))
 	query, err := decoder.Query("cmd")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if len(query) != 1 {
-		return nil, errors.New("file: bad cmd value")
+		return "", errors.New("file: invalid cmd value")
 	}
 
 	cmd, ok := query[0].(string)
 	if !ok {
-		return nil, errors.New("file: bad cmd value")
+		return "", errors.New("file: invalid cmd value")
 	}
-
-	// now reset and read the payload
 	decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
+	return cmd, nil
+}
+
+func decode(reader io.Reader) (interface{}, error) {
+	decoder := msgpack.NewDecoder(reader)
+	cmd, err := decodeCmd(decoder)
+	if err != nil {
+		return nil, err
+	}
 
 	switch cmd {
 	case "ping":
