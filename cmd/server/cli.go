@@ -10,19 +10,17 @@ func NewCommand() *cli.Command {
 		Name:  "server",
 		Usage: "Start file and UI servers",
 		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:  "file_server_port",
-				Value: config.FileServer.Port,
+			&cli.StringFlag{
+				Name:  "file_server_addr",
+				Value: config.FileServerAddr,
 			},
-			&cli.IntFlag{
-				Name:  "ui_server_port",
-				Value: config.UIServer.Port,
+			&cli.StringFlag{
+				Name:  "ui_server_addr",
+				Value: config.UIServerAddr,
 			},
 		},
 		Action: func(c *cli.Context) error {
-			config.FileServer.Port = c.Int("file_server_port")
-			config.UIServer.Port = c.Int("ui_server_port")
-			return serve(c.Context)
+			return serve(c.Context, c.String("file_server_addr"), c.String("ui_server_addr"))
 		},
 	}
 }

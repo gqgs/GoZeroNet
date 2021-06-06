@@ -19,12 +19,15 @@ import (
 // This follows the protocol at:
 // https://zeronet.io/docs/site_development/zeroframe_api_reference/
 
-func serve(ctx context.Context) error {
+func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	fileServer := file.NewServer()
-	uiServer := ui.NewServer()
+	fileServer, err := file.NewServer(fileServerAddr)
+	if err != nil {
+		return err
+	}
+	uiServer := ui.NewServer(uiServerAddr)
 
 	idleConnsClosed := make(chan struct{})
 	go func() {

@@ -52,7 +52,7 @@ func (s *server) handshakeHandler(w io.Writer, r handshakeRequest) error {
 		To:             r.ReqID,
 		Crypt:          "tls-rsa",
 		CryptSupported: []string{"tls-rsa"},
-		FileserverPort: config.FileServer.Port,
+		FileserverPort: s.Port(),
 		Protocol:       config.Protocol,
 		PortOpened:     config.PortOpened,
 		PeerID:         s.peerID,

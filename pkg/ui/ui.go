@@ -4,20 +4,21 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 )
 
 type server struct {
-	srv *http.Server
-	log log.Logger
+	srv  *http.Server
+	log  log.Logger
+	addr string
 }
 
-func NewServer() *server {
+func NewServer(addr string) *server {
 	mux := http.NewServeMux()
 	s := &server{
+		addr: addr,
 		srv: &http.Server{
-			Addr:    config.UIServer.Addr(),
+			Addr:    addr,
 			Handler: mux,
 		},
 		log: log.New("uiserver"),
@@ -34,7 +35,7 @@ func (s *server) Shutdown(ctx context.Context) error {
 }
 
 func (s *server) Listen(ctx context.Context) {
-	s.log.Infof("listening at %s", config.UIServer.Addr())
+	s.log.Infof("listening at %s", s.addr)
 	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 		s.log.Fatal(err)
 	}

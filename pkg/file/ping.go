@@ -37,7 +37,7 @@ func (s *server) pingHandler(w io.Writer, r pingRequest) error {
 }
 
 func (s *server) Ping(addr string) (*pingResponse, error) {
-	data, err := msgpack.Marshal(&pingRequest{
+	encoded, err := msgpack.Marshal(&pingRequest{
 		CMD:    "ping",
 		ReqID:  1,
 		Params: make(map[string]struct{}),
@@ -52,12 +52,11 @@ func (s *server) Ping(addr string) (*pingResponse, error) {
 	}
 	defer conn.Close()
 
-	if _, err = conn.Write(data); err != nil {
+	conn.SetDeadline(time.Now().Add(config.Deadline))
+
+	if _, err = conn.Write(encoded); err != nil {
 		return nil, err
 	}
-
-	// TODO: is this the best way?
-	conn.SetReadDeadline(time.Now().Add(config.ReadDeadline))
 
 	result := new(pingResponse)
 	return result, msgpack.NewDecoder(conn).Decode(result)

@@ -1,44 +1,34 @@
 package file
 
 import (
-	"bytes"
 	"context"
-	"net/http"
 	"testing"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/stretchr/testify/assert"
-	"github.com/vmihailenco/msgpack/v5"
 )
 
 func Test_Ping(t *testing.T) {
-	srv := NewServer()
+	srv, err := NewServer(config.RandomIPv4Addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go srv.Listen(ctx)
 
-	body := &pingRequest{
-		CMD:   "ping",
-		ReqID: 1,
-	}
-	encoded, err := msgpack.Marshal(body)
+	client, err := NewServer(config.RandomIPv4Addr)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest(http.MethodGet, testURL(), bytes.NewReader(encoded))
+	resp, err := client.Ping(srv.Addr())
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	var decoded pingResponse
-	assert.NoError(t, msgpack.NewDecoder(resp.Body).Decode(&decoded))
-	assert.Equal(t, "response", decoded.CMD)
-	assert.Equal(t, body.ReqID, decoded.To)
-	assert.Equal(t, "Pong!", decoded.Body)
+	assert.Equal(t, "response", resp.CMD)
+	assert.Equal(t, 1, resp.To)
+	assert.Equal(t, "Pong!", resp.Body)
 }

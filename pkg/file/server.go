@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -21,29 +23,28 @@ import (
 // Every message is encoded with MessagePack
 // Every request has 3 parameters: `cmd`, `req_id` and `params`
 type server struct {
+	l      net.Listener
 	peerID string
 	log    log.Logger
 }
 
-func NewServer() *server {
+func NewServer(addr string) (*server, error) {
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
 	id := random.PeerID()
 	return &server{
+		l:      l,
 		peerID: id,
 		log:    log.New("fileserver").WithField("peerid", id),
-	}
+	}, nil
 }
 
 func (s *server) Listen(ctx context.Context) {
-	// TODO: it would be safer to use a empty port here
-	// and let the lib choose the port since there is
-	// risk of collision with the current implementation.
-	l, err := net.Listen("tcp", config.FileServer.Addr())
-	if err != nil {
-		s.log.Fatal(err)
-	}
-	defer l.Close()
+	defer s.l.Close()
 
-	s.log.Infof("listening at %s", config.FileServer.Addr())
+	s.log.Infof("listening at %s", s.l.Addr().String())
 	for {
 		// TODO: should check if error implements net.Error interface
 		// and try again if the error is temporary
@@ -51,7 +52,7 @@ func (s *server) Listen(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		default:
-			conn, err := l.Accept()
+			conn, err := s.l.Accept()
 			if err != nil {
 				s.log.Error(err)
 				continue
@@ -61,9 +62,18 @@ func (s *server) Listen(ctx context.Context) {
 	}
 }
 
+func (s *server) Addr() string {
+	return s.l.Addr().String()
+}
+
+func (s *server) Port() int {
+	port, _ := strconv.Atoi(strings.Split(s.l.Addr().String(), "/")[1])
+	return port
+}
+
 func (s *server) handleConn(conn net.Conn) {
 	defer conn.Close()
-	conn.SetReadDeadline(time.Now().Add(config.ReadDeadline))
+	conn.SetDeadline(time.Now().Add(config.Deadline))
 	if err := s.route(conn, conn); err != nil {
 		s.log.Error(err)
 	}
