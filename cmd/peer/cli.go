@@ -10,7 +10,7 @@ func NewCommand() *cli.Command {
 			{
 				Name: "ping",
 				Action: func(c *cli.Context) error {
-					return ping(c.Context)
+					return ping(c.Context, c.String("peer"))
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{

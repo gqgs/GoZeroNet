@@ -1,6 +1,7 @@
 package file
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -31,4 +32,26 @@ func (s *server) pingHandler(w http.ResponseWriter, r pingRequest) {
 	}
 
 	w.Write(data)
+}
+
+func (s *server) Ping(addr string) (*pingResponse, error) {
+	data, err := msgpack.Marshal(&pingRequest{
+		CMD:   "ping",
+		ReqID: 1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodGet, "http://"+addr, bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	result := new(pingResponse)
+	return result, msgpack.NewDecoder(resp.Body).Decode(result)
 }
