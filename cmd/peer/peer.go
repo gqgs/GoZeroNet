@@ -8,12 +8,12 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/file"
 )
 
-func ping(ctx context.Context, peer string) error {
+func ping(ctx context.Context, addr string) error {
 	fileServer, err := file.NewServer(config.FileServerAddr)
 	if err != nil {
 		return err
 	}
-	resp, err := fileServer.Ping(peer)
+	resp, err := fileServer.Ping(addr)
 	fmt.Printf("%+v\n", resp)
 	return err
 }
