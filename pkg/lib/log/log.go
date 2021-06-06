@@ -28,7 +28,8 @@ type logger struct {
 }
 
 func (l logger) WithField(key string, value interface{}) Logger {
-	return l.WithField(key, value)
+	l.Entry = l.Entry.WithField(key, value)
+	return l
 }
 
 func New(scope string) Logger {
