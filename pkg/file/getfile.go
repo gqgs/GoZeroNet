@@ -29,7 +29,7 @@ type (
 	}
 )
 
-func getFileHandler(w http.ResponseWriter, r getFileRequest) {
+func (s *server) getFileHandler(w http.ResponseWriter, r getFileRequest) {
 	data, err := msgpack.Marshal(&getFileResponse{
 		CMD:      "response",
 		To:       r.ReqID,

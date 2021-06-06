@@ -11,7 +11,7 @@ import (
 )
 
 func Test_GetFile(t *testing.T) {
-	srv := Server{}
+	srv := NewServer()
 	go srv.Listen()
 	defer srv.Shutdown(context.Background())
 

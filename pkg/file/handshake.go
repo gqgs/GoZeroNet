@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
-	"github.com/gqgs/go-zeronet/pkg/lib/random"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -48,7 +47,7 @@ type (
 	}
 )
 
-func handshakeHandler(w http.ResponseWriter, r handshakeRequest) {
+func (s *server) handshakeHandler(w http.ResponseWriter, r handshakeRequest) {
 	data, err := msgpack.Marshal(&handshakeResponse{
 		CMD:            "response",
 		To:             r.ReqID,
@@ -57,7 +56,7 @@ func handshakeHandler(w http.ResponseWriter, r handshakeRequest) {
 		FileserverPort: config.FileServer.Port,
 		Protocol:       config.Protocol,
 		PortOpened:     config.PortOpened,
-		PeerID:         random.PeerID(),
+		PeerID:         s.peerID,
 		Rev:            config.Rev,
 		UseBinType:     config.UseBinType,
 		Version:        config.Version,

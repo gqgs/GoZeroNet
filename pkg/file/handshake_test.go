@@ -13,7 +13,7 @@ import (
 )
 
 func Test_Handshake(t *testing.T) {
-	srv := Server{}
+	srv := NewServer()
 	go srv.Listen()
 	defer srv.Shutdown(context.Background())
 
@@ -57,4 +57,5 @@ func Test_Handshake(t *testing.T) {
 	assert.Equal(t, body.Params.PortOpened, decoded.PortOpened)
 	assert.Equal(t, body.Params.FileserverPort, decoded.FileserverPort)
 	assert.Equal(t, body.Params.Protocol, decoded.Protocol)
+	assert.Equal(t, srv.peerID, decoded.PeerID)
 }

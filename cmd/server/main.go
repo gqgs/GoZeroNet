@@ -16,11 +16,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-type Server struct {
-	FileServer file.Server
-	UIServer   ui.Server
-}
-
 // The Python execution spawns two servers:
 // FileServer serving TCP at 0.0.0.0 and random port.
 // This follows the protocol at:
@@ -34,7 +29,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	fileServer := file.Server{}
+	fileServer := file.NewServer()
 	uiServer := ui.Server{}
 
 	idleConnsClosed := make(chan struct{})

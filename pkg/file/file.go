@@ -9,42 +9,48 @@ import (
 	"net/http"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-// Server implements the protocol specified at:
+// Implements the protocol specified at:
 // https://zeronet.io/docs/help_zeronet/network_protocol/
 //
 // Every message is encoded with MessagePack
 // Every request has 3 parameters: `cmd`, `req_id` and `params`
-type Server struct {
-	srv *http.Server
+type server struct {
+	srv    *http.Server
+	peerID string
 }
 
-func (s *Server) Shutdown(ctx context.Context) error {
+func NewServer() *server {
+	mux := http.NewServeMux()
+	s := &server{
+		srv: &http.Server{
+			Addr:    config.FileServer.Addr(),
+			Handler: mux,
+		},
+		peerID: random.PeerID(),
+	}
+	mux.Handle("/", s)
+	return s
+}
+
+func (s *server) Shutdown(ctx context.Context) error {
 	if s == nil {
 		return nil
 	}
 	return s.srv.Shutdown(ctx)
 }
 
-func (s *Server) Listen() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", router)
-
-	srv := http.Server{
-		Addr:    config.FileServer.Addr(),
-		Handler: mux,
-	}
-	s.srv = &srv
-
+func (s *server) Listen() {
 	println("file server listening...")
-	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }
 
-func router(w http.ResponseWriter, r *http.Request) {
+func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	i, err := decode(r.Body)
 	if err != nil {
 		log.Print(err)
@@ -53,11 +59,11 @@ func router(w http.ResponseWriter, r *http.Request) {
 
 	switch r := i.(type) {
 	case pingRequest:
-		pingHandler(w, r)
+		s.pingHandler(w, r)
 	case handshakeRequest:
-		handshakeHandler(w, r)
+		s.handshakeHandler(w, r)
 	case getFileRequest:
-		getFileHandler(w, r)
+		s.getFileHandler(w, r)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}

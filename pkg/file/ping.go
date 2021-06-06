@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func pingHandler(w http.ResponseWriter, r pingRequest) {
+func (s *server) pingHandler(w http.ResponseWriter, r pingRequest) {
 	data, err := msgpack.Marshal(&pingResponse{
 		CMD:  "response",
 		To:   r.ReqID,
