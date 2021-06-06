@@ -2,37 +2,44 @@ package ui
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/log"
 )
 
-type Server struct {
+type server struct {
 	srv *http.Server
+	log log.Logger
 }
 
-func (s *Server) Shutdown(ctx context.Context) error {
-	if s.srv == nil {
+func NewServer() *server {
+	mux := http.NewServeMux()
+	s := &server{
+		srv: &http.Server{
+			Addr:    config.UIServer.Addr(),
+			Handler: mux,
+		},
+		log: log.New("uiserver"),
+	}
+	mux.HandleFunc("/ping", s.Ping)
+	return s
+}
+
+func (s *server) Shutdown(ctx context.Context) error {
+	if s == nil {
 		return nil
 	}
 	return s.srv.Shutdown(ctx)
 }
 
-func (s *Server) Listen() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Pong!\n"))
-	})
-
-	srv := http.Server{
-		Addr:    config.UIServer.Addr(),
-		Handler: mux,
+func (s *server) Listen() {
+	s.log.Info("ui server listening...")
+	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
+		s.log.Fatal(err)
 	}
-	s.srv = &srv
+}
 
-	println("ui server listening...")
-	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
+func (s *server) Ping(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Pong!\n"))
 }

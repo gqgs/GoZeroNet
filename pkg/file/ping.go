@@ -1,7 +1,6 @@
 package file
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -26,7 +25,7 @@ func (s *server) pingHandler(w http.ResponseWriter, r pingRequest) {
 		Body: "Pong!",
 	})
 	if err != nil {
-		log.Print(err)
+		s.log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -30,7 +30,7 @@ func main() {
 	defer cancel()
 
 	fileServer := file.NewServer()
-	uiServer := ui.Server{}
+	uiServer := ui.NewServer()
 
 	idleConnsClosed := make(chan struct{})
 	go func() {

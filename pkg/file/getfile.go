@@ -1,7 +1,6 @@
 package file
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -38,7 +37,7 @@ func (s *server) getFileHandler(w http.ResponseWriter, r getFileRequest) {
 		Size:     42,
 	})
 	if err != nil {
-		log.Print(err)
+		s.log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

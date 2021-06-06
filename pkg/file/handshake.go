@@ -1,7 +1,6 @@
 package file
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -62,7 +61,7 @@ func (s *server) handshakeHandler(w http.ResponseWriter, r handshakeRequest) {
 		Version:        config.Version,
 	})
 	if err != nil {
-		log.Print(err)
+		s.log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

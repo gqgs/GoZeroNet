@@ -5,10 +5,10 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -21,6 +21,7 @@ import (
 type server struct {
 	srv    *http.Server
 	peerID string
+	log    log.Logger
 }
 
 func NewServer() *server {
@@ -31,6 +32,7 @@ func NewServer() *server {
 			Handler: mux,
 		},
 		peerID: random.PeerID(),
+		log:    log.New("fileserver"),
 	}
 	mux.Handle("/", s)
 	return s
@@ -44,16 +46,16 @@ func (s *server) Shutdown(ctx context.Context) error {
 }
 
 func (s *server) Listen() {
-	println("file server listening...")
+	s.log.Info("file server listening...")
 	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatal(err)
+		s.log.Fatal(err)
 	}
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	i, err := decode(r.Body)
 	if err != nil {
-		log.Print(err)
+		s.log.Error(err)
 		return
 	}
 
@@ -89,9 +91,9 @@ func decode(reader io.Reader) (interface{}, error) {
 		var payload getFileRequest
 		err := decoder.Decode(&payload)
 		return payload, err
+	default:
+		return nil, errors.New("file: invalid payload type")
 	}
-
-	return nil, errors.New("file: invalid payload type")
 }
 
 // reads only the necessary to decode the cmd
