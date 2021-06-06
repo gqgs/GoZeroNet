@@ -27,13 +27,14 @@ type server struct {
 
 func NewServer() *server {
 	mux := http.NewServeMux()
+	id := random.PeerID()
 	s := &server{
 		srv: &http.Server{
 			Addr:    config.FileServer.Addr(),
 			Handler: mux,
 		},
-		peerID: random.PeerID(),
-		log:    log.New("fileserver"),
+		peerID: id,
+		log:    log.New("fileserver").WithField("peerid", id),
 	}
 	mux.Handle("/", s)
 	return s

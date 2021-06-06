@@ -3,18 +3,12 @@ package server
 import (
 	"context"
 	"log"
-	"math/rand"
 	"os"
 	"os/signal"
-	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/file"
 	"github.com/gqgs/go-zeronet/pkg/ui"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // The Python execution spawns two servers:
 // FileServer serving TCP at 0.0.0.0 and random port.

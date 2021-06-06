@@ -1,6 +1,10 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
 const (
 	Rev        = 4556
@@ -11,6 +15,12 @@ const (
 	// instead of the deprecated raw type.
 	UseBinType = true
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+	// User ports [1024-49151)
+	FileServer.Port = rand.Intn(48127) + 1024
+}
 
 var (
 	FileServer = Server{
