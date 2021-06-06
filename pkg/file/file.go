@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -92,7 +93,7 @@ func decode(reader io.Reader) (interface{}, error) {
 		err := decoder.Decode(&payload)
 		return payload, err
 	default:
-		return nil, errors.New("file: invalid payload type")
+		return nil, fmt.Errorf("file: invalid payload type (%q)", cmd)
 	}
 }
 
