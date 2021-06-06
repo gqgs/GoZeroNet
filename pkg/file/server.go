@@ -43,8 +43,7 @@ func NewServer(addr string) (*server, error) {
 
 func (s *server) Listen(ctx context.Context) {
 	defer s.l.Close()
-
-	s.log.Infof("listening at %s", s.l.Addr().String())
+	s.log.Infof("listening at %s", s.Addr())
 	for {
 		// TODO: should check if error implements net.Error interface
 		// and try again if the error is temporary
@@ -67,7 +66,7 @@ func (s *server) Addr() string {
 }
 
 func (s *server) Port() int {
-	port, _ := strconv.Atoi(strings.Split(s.l.Addr().String(), "/")[1])
+	port, _ := strconv.Atoi(strings.Split(s.Addr(), "/")[1])
 	return port
 }
 
