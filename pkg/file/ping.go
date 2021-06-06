@@ -1,16 +1,18 @@
 package file
 
 import (
-	"bytes"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type (
 	pingRequest struct {
-		CMD   string `msgpack:"cmd"`
-		ReqID int    `msgpack:"req_id"`
+		CMD    string              `msgpack:"cmd"`
+		ReqID  int                 `msgpack:"req_id"`
+		Params map[string]struct{} `msgpack:"params"`
 	}
 	pingResponse struct {
 		CMD  string `msgpack:"cmd"`
@@ -36,22 +38,27 @@ func (s *server) pingHandler(w http.ResponseWriter, r pingRequest) {
 
 func (s *server) Ping(addr string) (*pingResponse, error) {
 	data, err := msgpack.Marshal(&pingRequest{
-		CMD:   "ping",
-		ReqID: 1,
+		CMD:    "ping",
+		ReqID:  1,
+		Params: make(map[string]struct{}),
 	})
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodGet, "http://"+addr, bytes.NewReader(data))
+
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
+	defer conn.Close()
+
+	if _, err = conn.Write(data); err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	// TODO: is this the best way?
+	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 
 	result := new(pingResponse)
-	return result, msgpack.NewDecoder(resp.Body).Decode(result)
+	return result, msgpack.NewDecoder(conn).Decode(result)
 }

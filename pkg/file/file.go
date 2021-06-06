@@ -55,6 +55,7 @@ func (s *server) Listen() {
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.log.Debug("new request")
 	i, err := decode(r.Body)
 	if err != nil {
 		s.log.Error(err)
