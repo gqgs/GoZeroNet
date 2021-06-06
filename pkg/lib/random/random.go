@@ -1,7 +1,8 @@
 package random
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"strings"
 )
 
@@ -9,6 +10,18 @@ type alphabet string
 
 const base62Alphabet alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 const hexAlphabet alphabet = "abcdef0123456789"
+
+// Returns a random byte contained in the alphabet.
+// This method panics if there is a problem generating an int
+// from reading crypto/rand.Reader.
+func (a alphabet) randomByte() byte {
+	max := big.NewInt(int64(len(a)))
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		panic(err)
+	}
+	return a[n.Int64()]
+}
 
 // Base62String returns a random base62 encoded string of size `length`
 func Base62String(length int) string {
@@ -24,7 +37,7 @@ func generateString(length int, alphabet alphabet) string {
 	builder := new(strings.Builder)
 	builder.Grow(length)
 	for i := 0; i < length; i++ {
-		builder.WriteByte(alphabet[rand.Intn(len(alphabet))])
+		builder.WriteByte(alphabet.randomByte())
 	}
 	return builder.String()
 }
