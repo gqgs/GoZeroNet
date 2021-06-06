@@ -32,20 +32,18 @@ func serve(ctx context.Context) error {
 		signal.Notify(sigint, os.Interrupt)
 		<-sigint
 
-		if err := fileServer.Shutdown(ctx); err != nil {
-			log.Printf("HTTP server Shutdown: %v", err)
-		}
-
 		if err := uiServer.Shutdown(ctx); err != nil {
 			log.Printf("HTTP server Shutdown: %v", err)
 		}
+
+		cancel()
 
 		idleConnsClosed <- struct{}{}
 		idleConnsClosed <- struct{}{}
 	}()
 
-	go fileServer.Listen()
-	go uiServer.Listen()
+	go fileServer.Listen(ctx)
+	go uiServer.Listen(ctx)
 
 	<-idleConnsClosed
 	<-idleConnsClosed

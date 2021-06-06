@@ -12,8 +12,9 @@ import (
 
 func Test_Ping(t *testing.T) {
 	srv := NewServer()
-	go srv.Listen()
-	defer srv.Shutdown(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go srv.Listen(ctx)
 
 	body := &pingRequest{
 		CMD:   "ping",

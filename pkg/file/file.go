@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/http"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -22,7 +21,6 @@ import (
 // Every message is encoded with MessagePack
 // Every request has 3 parameters: `cmd`, `req_id` and `params`
 type server struct {
-	srv    *http.Server
 	peerID string
 	log    log.Logger
 }
@@ -35,30 +33,31 @@ func NewServer() *server {
 	}
 }
 
-func (s *server) Shutdown(ctx context.Context) error {
-	if s == nil || s.srv == nil {
-		return nil
-	}
-	return s.srv.Shutdown(ctx)
-}
-
-func (s *server) Listen() {
-	s.log.Infof("listening at %s", config.FileServer.Addr())
-
+func (s *server) Listen(ctx context.Context) {
+	// TODO: it would be safer to use a empty port here
+	// and let the lib choose the port since there is
+	// risk of collision with the current implementation.
 	l, err := net.Listen("tcp", config.FileServer.Addr())
 	if err != nil {
 		s.log.Fatal(err)
 	}
+	defer l.Close()
 
+	s.log.Infof("listening at %s", config.FileServer.Addr())
 	for {
 		// TODO: should check if error implements net.Error interface
 		// and try again if the error is temporary
-		conn, err := l.Accept()
-		if err != nil {
-			s.log.Error(err)
-			continue
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			conn, err := l.Accept()
+			if err != nil {
+				s.log.Error(err)
+				continue
+			}
+			go s.handleConn(conn)
 		}
-		go s.handleConn(conn)
 	}
 }
 

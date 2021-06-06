@@ -27,13 +27,13 @@ func NewServer() *server {
 }
 
 func (s *server) Shutdown(ctx context.Context) error {
-	if s == nil {
+	if s == nil || s.srv == nil {
 		return nil
 	}
 	return s.srv.Shutdown(ctx)
 }
 
-func (s *server) Listen() {
+func (s *server) Listen(ctx context.Context) {
 	s.log.Infof("listening at %s", config.UIServer.Addr())
 	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 		s.log.Fatal(err)
