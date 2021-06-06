@@ -19,13 +19,24 @@ type Logger interface {
 	Warnf(format string, args ...interface{})
 	Debugf(format string, args ...interface{})
 	Tracef(format string, args ...interface{})
+
+	WithField(key string, value interface{}) Logger
+}
+
+type logger struct {
+	*logrus.Entry
+}
+
+func (l logger) WithField(key string, value interface{}) Logger {
+	return l.WithField(key, value)
 }
 
 func New(scope string) Logger {
-	logger := logrus.New()
-	logger.SetFormatter(&nested.Formatter{
+	l := logrus.New()
+	l.SetFormatter(&nested.Formatter{
+		FieldsOrder:     []string{"scope"},
 		TimestampFormat: "15:04:05",
 		HideKeys:        true,
 	})
-	return logger.WithField("scope", scope)
+	return &logger{l.WithField("scope", scope)}
 }
