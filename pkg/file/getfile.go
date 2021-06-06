@@ -1,7 +1,7 @@
 package file
 
 import (
-	"net/http"
+	"io"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -28,7 +28,7 @@ type (
 	}
 )
 
-func (s *server) getFileHandler(w http.ResponseWriter, r getFileRequest) {
+func (s *server) getFileHandler(w io.Writer, r getFileRequest) error {
 	data, err := msgpack.Marshal(&getFileResponse{
 		CMD:      "response",
 		To:       r.ReqID,
@@ -37,10 +37,9 @@ func (s *server) getFileHandler(w http.ResponseWriter, r getFileRequest) {
 		Size:     42,
 	})
 	if err != nil {
-		s.log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	w.Write(data)
+	_, err = w.Write(data)
+	return err
 }

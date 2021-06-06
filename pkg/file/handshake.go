@@ -1,7 +1,7 @@
 package file
 
 import (
-	"net/http"
+	"io"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 
@@ -46,7 +46,7 @@ type (
 	}
 )
 
-func (s *server) handshakeHandler(w http.ResponseWriter, r handshakeRequest) {
+func (s *server) handshakeHandler(w io.Writer, r handshakeRequest) error {
 	data, err := msgpack.Marshal(&handshakeResponse{
 		CMD:            "response",
 		To:             r.ReqID,
@@ -61,9 +61,8 @@ func (s *server) handshakeHandler(w http.ResponseWriter, r handshakeRequest) {
 		Version:        config.Version,
 	})
 	if err != nil {
-		s.log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
-	w.Write(data)
+	_, err = w.Write(data)
+	return err
 }

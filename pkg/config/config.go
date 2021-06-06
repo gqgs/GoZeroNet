@@ -13,7 +13,8 @@ const (
 	PortOpened = false
 	// UseBinType tells msgpack to use the bin type
 	// instead of the deprecated raw type.
-	UseBinType = true
+	UseBinType   = true
+	ReadDeadline = time.Second
 )
 
 func init() {

@@ -1,10 +1,11 @@
 package file
 
 import (
+	"io"
 	"net"
-	"net/http"
 	"time"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -21,19 +22,18 @@ type (
 	}
 )
 
-func (s *server) pingHandler(w http.ResponseWriter, r pingRequest) {
+func (s *server) pingHandler(w io.Writer, r pingRequest) error {
 	data, err := msgpack.Marshal(&pingResponse{
 		CMD:  "response",
 		To:   r.ReqID,
 		Body: "Pong!",
 	})
 	if err != nil {
-		s.log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	w.Write(data)
+	_, err = w.Write(data)
+	return err
 }
 
 func (s *server) Ping(addr string) (*pingResponse, error) {
@@ -57,7 +57,7 @@ func (s *server) Ping(addr string) (*pingResponse, error) {
 	}
 
 	// TODO: is this the best way?
-	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	conn.SetReadDeadline(time.Now().Add(config.ReadDeadline))
 
 	result := new(pingResponse)
 	return result, msgpack.NewDecoder(conn).Decode(result)

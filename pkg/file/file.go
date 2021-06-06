@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
@@ -26,22 +28,15 @@ type server struct {
 }
 
 func NewServer() *server {
-	mux := http.NewServeMux()
 	id := random.PeerID()
-	s := &server{
-		srv: &http.Server{
-			Addr:    config.FileServer.Addr(),
-			Handler: mux,
-		},
+	return &server{
 		peerID: id,
 		log:    log.New("fileserver").WithField("peerid", id),
 	}
-	mux.Handle("/", s)
-	return s
 }
 
 func (s *server) Shutdown(ctx context.Context) error {
-	if s == nil {
+	if s == nil || s.srv == nil {
 		return nil
 	}
 	return s.srv.Shutdown(ctx)
@@ -49,28 +44,48 @@ func (s *server) Shutdown(ctx context.Context) error {
 
 func (s *server) Listen() {
 	s.log.Infof("listening at %s", config.FileServer.Addr())
-	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
+
+	l, err := net.Listen("tcp", config.FileServer.Addr())
+	if err != nil {
 		s.log.Fatal(err)
+	}
+
+	for {
+		// TODO: should check if error implements net.Error interface
+		// and try again if the error is temporary
+		conn, err := l.Accept()
+		if err != nil {
+			s.log.Error(err)
+			continue
+		}
+		go s.handleConn(conn)
 	}
 }
 
-func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.log.Debug("new request")
-	i, err := decode(r.Body)
-	if err != nil {
+func (s *server) handleConn(conn net.Conn) {
+	defer conn.Close()
+	conn.SetReadDeadline(time.Now().Add(config.ReadDeadline))
+	if err := s.route(conn, conn); err != nil {
 		s.log.Error(err)
-		return
+	}
+}
+
+func (s *server) route(w io.Writer, r io.Reader) error {
+	s.log.Debug("new request")
+	i, err := decode(r)
+	if err != nil {
+		return err
 	}
 
-	switch r := i.(type) {
+	switch req := i.(type) {
 	case pingRequest:
-		s.pingHandler(w, r)
+		return s.pingHandler(w, req)
 	case handshakeRequest:
-		s.handshakeHandler(w, r)
+		return s.handshakeHandler(w, req)
 	case getFileRequest:
-		s.getFileHandler(w, r)
+		return s.getFileHandler(w, req)
 	default:
-		w.WriteHeader(http.StatusNotFound)
+		return errors.New("file: invalid command")
 	}
 }
 
