@@ -34,7 +34,7 @@ func (s *server) Shutdown(ctx context.Context) error {
 }
 
 func (s *server) Listen() {
-	s.log.Info("ui server listening...")
+	s.log.Infof("listening at %s", config.UIServer.Addr())
 	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 		s.log.Fatal(err)
 	}

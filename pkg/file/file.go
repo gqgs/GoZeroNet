@@ -47,7 +47,7 @@ func (s *server) Shutdown(ctx context.Context) error {
 }
 
 func (s *server) Listen() {
-	s.log.Info("file server listening...")
+	s.log.Infof("listening at %s", config.FileServer.Addr())
 	if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 		s.log.Fatal(err)
 	}
