@@ -26,7 +26,7 @@ func init() {
 // https://zeronet.io/docs/site_development/zeroframe_api_reference/
 
 func serve(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	fileServer := file.NewServer()
