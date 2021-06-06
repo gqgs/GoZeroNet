@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"net/http"
+
+	"github.com/gqgs/go-zeronet/pkg/config"
 )
 
 type Server struct {
@@ -20,11 +22,11 @@ func (s *Server) Shutdown(ctx context.Context) error {
 func (s *Server) Listen() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("pong\n"))
+		w.Write([]byte("Pong!\n"))
 	})
 
 	srv := http.Server{
-		Addr:    ":43110",
+		Addr:    config.UIServer.Addr(),
 		Handler: mux,
 	}
 	s.srv = &srv

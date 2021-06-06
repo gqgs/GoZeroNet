@@ -21,7 +21,7 @@ type Server struct {
 	UIServer   ui.Server
 }
 
-// The execution spawns two servers:
+// The Python execution spawns two servers:
 // FileServer serving TCP at 0.0.0.0 and random port.
 // This follows the protocol at:
 // https://zeronet.io/docs/help_zeronet/network_protocol/
@@ -31,14 +31,6 @@ type Server struct {
 // https://zeronet.io/docs/site_development/zeroframe_api_reference/
 
 func main() {
-	const port = 15441
-	const ip = "127.0.0.1"
-
-	// "Setting the Peer ID to "UT3530" tells trackers that you're using uTorrent v3.5.3"
-	// https://github.com/jaruba/PowderWeb/wiki/Guide#private-torrent-trackers
-
-	// peer_id := "-UT3530-" + random.Base62String(12)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

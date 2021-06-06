@@ -23,7 +23,7 @@ func pingHandler(w http.ResponseWriter, r pingRequest) {
 	data, err := msgpack.Marshal(&pingResponse{
 		CMD:  "response",
 		To:   r.ReqID,
-		Body: "pong",
+		Body: "Pong!",
 	})
 	if err != nil {
 		log.Print(err)

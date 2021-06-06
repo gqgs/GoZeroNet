@@ -24,7 +24,7 @@ func Test_Ping(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:43111/", bytes.NewReader(encoded))
+	req, err := http.NewRequest(http.MethodGet, testURL(), bytes.NewReader(encoded))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,5 +39,5 @@ func Test_Ping(t *testing.T) {
 	assert.NoError(t, msgpack.NewDecoder(resp.Body).Decode(&decoded))
 	assert.Equal(t, "response", decoded.CMD)
 	assert.Equal(t, body.ReqID, decoded.To)
-	assert.Equal(t, "pong", decoded.Body)
+	assert.Equal(t, "Pong!", decoded.Body)
 }

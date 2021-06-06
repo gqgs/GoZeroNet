@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/random"
+
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -15,7 +18,7 @@ type (
 	}
 
 	handshakeParams struct {
-		Crypt          *string  `msgpack:"crypt"`
+		Crypt          string   `msgpack:"crypt"`
 		CryptSupported []string `msgpack:"crypt_supported"`
 		FileserverPort int      `msgpack:"fileserver_port"`
 		Onion          string   `msgpack:"onion"`
@@ -24,13 +27,14 @@ type (
 		PeerID         string   `msgpack:"peer_id"`
 		Rev            int      `msgpack:"rev"`
 		TargetIP       string   `msgpack:"target_ip"`
+		UseBinType     bool     `msgpack:"use_bin_type"`
 		Version        string   `msgpack:"version"`
 	}
 
 	handshakeResponse struct {
 		CMD            string   `msgpack:"cmd"`
 		To             int      `msgpack:"to"`
-		Crypt          *string  `msgpack:"crypt"`
+		Crypt          string   `msgpack:"crypt"`
 		CryptSupported []string `msgpack:"crypt_supported"`
 		FileserverPort int      `msgpack:"fileserver_port"`
 		Onion          string   `msgpack:"onion"`
@@ -39,6 +43,7 @@ type (
 		PeerID         string   `msgpack:"peer_id"`
 		Rev            int      `msgpack:"rev"`
 		TargetIP       string   `msgpack:"target_ip"`
+		UseBinType     bool     `msgpack:"use_bin_type"`
 		Version        string   `msgpack:"version"`
 	}
 )
@@ -47,10 +52,15 @@ func handshakeHandler(w http.ResponseWriter, r handshakeRequest) {
 	data, err := msgpack.Marshal(&handshakeResponse{
 		CMD:            "response",
 		To:             r.ReqID,
-		Rev:            2092,
-		PortOpened:     false,
-		FileserverPort: 43111,
-		Protocol:       "v2",
+		Crypt:          "tls-rsa",
+		CryptSupported: []string{"tls-rsa"},
+		FileserverPort: config.FileServer.Port,
+		Protocol:       config.Protocol,
+		PortOpened:     config.PortOpened,
+		PeerID:         random.PeerID(),
+		Rev:            config.Rev,
+		UseBinType:     config.UseBinType,
+		Version:        config.Version,
 	})
 	if err != nil {
 		log.Print(err)

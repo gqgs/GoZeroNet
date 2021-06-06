@@ -28,3 +28,10 @@ func generateString(length int, alphabet alphabet) string {
 	}
 	return builder.String()
 }
+
+// PeerID returns an ID that can be used to identify connections.
+// "Setting the Peer ID to "UT3530" tells trackers that you're using uTorrent v3.5.3"
+// https://github.com/jaruba/PowderWeb/wiki/Guide#private-torrent-trackers
+func PeerID() string {
+	return "-UT3530-" + Base62String(12)
+}

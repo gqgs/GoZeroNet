@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -19,10 +21,15 @@ func Test_Handshake(t *testing.T) {
 		CMD:   "handshake",
 		ReqID: 1,
 		Params: handshakeParams{
-			Rev:            2092,
-			PortOpened:     false,
-			FileserverPort: 43111,
-			Protocol:       "v2",
+			Crypt:          "tls-rsa",
+			CryptSupported: []string{"tls-rsa"},
+			FileserverPort: config.FileServer.Port,
+			Protocol:       config.Protocol,
+			PortOpened:     config.PortOpened,
+			PeerID:         random.PeerID(),
+			Rev:            config.Rev,
+			UseBinType:     config.UseBinType,
+			Version:        config.Version,
 		},
 	}
 	encoded, err := msgpack.Marshal(body)
@@ -30,7 +37,7 @@ func Test_Handshake(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:43111/", bytes.NewReader(encoded))
+	req, err := http.NewRequest(http.MethodGet, testURL(), bytes.NewReader(encoded))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,8 +52,9 @@ func Test_Handshake(t *testing.T) {
 	assert.NoError(t, msgpack.NewDecoder(resp.Body).Decode(&decoded))
 	assert.Equal(t, "response", decoded.CMD)
 	assert.Equal(t, body.ReqID, decoded.To)
-	assert.Equal(t, 2092, decoded.Rev)
-	assert.Equal(t, false, decoded.PortOpened)
-	assert.Equal(t, 43111, decoded.FileserverPort)
-	assert.Equal(t, "v2", decoded.Protocol)
+	assert.Equal(t, body.Params.Rev, decoded.Rev)
+	assert.Equal(t, body.Params.Version, decoded.Version)
+	assert.Equal(t, body.Params.PortOpened, decoded.PortOpened)
+	assert.Equal(t, body.Params.FileserverPort, decoded.FileserverPort)
+	assert.Equal(t, body.Params.Protocol, decoded.Protocol)
 }

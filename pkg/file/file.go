@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -32,7 +33,7 @@ func (s *Server) Listen() {
 	mux.HandleFunc("/", router)
 
 	srv := http.Server{
-		Addr:    ":43111",
+		Addr:    config.FileServer.Addr(),
 		Handler: mux,
 	}
 	s.srv = &srv
