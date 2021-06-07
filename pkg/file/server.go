@@ -19,8 +19,8 @@ import (
 // Implements the protocol specified at:
 // https://zeronet.io/docs/help_zeronet/network_protocol/
 //
-// Every message is encoded with MessagePack
-// Every request has 3 parameters: `cmd`, `req_id` and `params`
+// Every message is encoded with MessagePack.
+// Every request has 3 parameters: `cmd`, `req_id` and `params`.
 type server struct {
 	l      net.Listener
 	log    log.Logger
@@ -35,7 +35,7 @@ func NewServer(addr string) (*server, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Can be different from `addr` if the port was chosen by the server
+	// Can be different from `addr` if the port was chosen by the server.
 	chosenAddr := l.Addr().String()
 	hostString, portString, _ := net.SplitHostPort(chosenAddr)
 	port, err := strconv.Atoi(portString)
@@ -59,7 +59,7 @@ func (s *server) Listen(ctx context.Context) {
 	s.log.Infof("listening at %s", s.addr)
 	for {
 		// TODO: should check if error implements net.Error interface
-		// and try again if the error is temporary
+		// and try again if the error is temporary.
 		select {
 		case <-ctx.Done():
 			return
@@ -131,7 +131,7 @@ func decode(reader io.Reader) (interface{}, error) {
 	}
 }
 
-// reads only the necessary to decode the cmd
+// Reads only the necessary to decode the cmd.
 func decodeCmd(decoder *msgpack.Decoder) (string, error) {
 	var buffer bytes.Buffer
 	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))

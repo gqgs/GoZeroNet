@@ -92,8 +92,8 @@ func (s *server) Handshake(addr string) (*handshakeResponse, error) {
 }
 
 func (s *server) handshakeHandler(w io.Writer, r handshakeRequest) error {
-	// TODO: This will panic if writer doesn't implement net.Conn
-	// find a better way to get the remote host here
+	// TODO: This will panic if the writer doesn't implement net.Conn.
+	// Find a better way to get the remote host here.
 	host, _, err := net.SplitHostPort(w.(net.Conn).RemoteAddr().String())
 	if err != nil {
 		return err

@@ -23,12 +23,12 @@ func (a alphabet) randomByte() byte {
 	return a[n.Int64()]
 }
 
-// Base62String returns a random base62 encoded string of size `length`
+// Base62String returns a random base62 encoded string of size `length`.
 func Base62String(length int) string {
 	return generateString(length, base62Alphabet)
 }
 
-// HexString returns a random hex encoded string of size `length`
+// HexString returns a random hex encoded string of size `length`.
 func HexString(length int) string {
 	return generateString(length, hexAlphabet)
 }
