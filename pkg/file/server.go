@@ -2,7 +2,6 @@ package file
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -54,23 +53,35 @@ func NewServer(addr string) (*server, error) {
 	}, nil
 }
 
-func (s *server) Listen(ctx context.Context) {
-	defer s.l.Close()
+func (s *server) Shutdown() error {
+	if s == nil || s.l == nil {
+		return nil
+	}
+	return s.l.Close()
+}
+
+func (s *server) Listen() {
 	s.log.Infof("listening at %s", s.addr)
 	for {
-		// TODO: should check if error implements net.Error interface
-		// and try again if the error is temporary.
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			conn, err := s.l.Accept()
-			if err != nil {
-				s.log.Error(err)
+		conn, err := s.l.Accept()
+		switch e := err.(type) {
+		case *net.OpError:
+			if e.Temporary() {
+				s.log.Warn(err)
 				continue
 			}
-			go s.handleConn(conn)
+			switch e.Err.Error() {
+			case "use of closed network connection":
+				return
+			}
+			s.log.Error(err)
+			return
+		case nil:
+		default:
+			s.log.Error(e)
+			continue
 		}
+		go s.handleConn(conn)
 	}
 }
 

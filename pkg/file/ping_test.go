@@ -1,7 +1,6 @@
 package file
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -13,10 +12,8 @@ func Test_Ping(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go srv.Listen(ctx)
+	defer srv.Shutdown()
+	go srv.Listen()
 
 	client, err := NewServer(config.RandomIPv4Addr)
 	if err != nil {
