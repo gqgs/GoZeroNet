@@ -113,6 +113,8 @@ func (s *server) route(w io.Writer, r io.Reader) error {
 	case getFileRequest:
 		return s.getFileHandler(w, req)
 	default:
+		// TODO: implement errorHandler.
+		// {"cmd": "response", "to": 1, "error": "Unknown cmd"}
 		return errors.New("file: invalid command")
 	}
 }

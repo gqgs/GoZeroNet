@@ -34,23 +34,19 @@ func NewCommand() *cli.Command {
 			{
 				Name: "getFile",
 				Action: func(c *cli.Context) error {
-					return getFile(c.Context)
+					return getFile(c.Context, c.String("addr"), c.String("site"), c.String("inner_path"))
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "addr",
 						Required: true,
 					},
-				},
-			},
-			{
-				Name: "cmd",
-				Action: func(c *cli.Context) error {
-					return cmd(c.Context)
-				},
-				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "addr",
+						Name:     "site",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     "inner_path",
 						Required: true,
 					},
 				},

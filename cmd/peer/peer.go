@@ -28,10 +28,12 @@ func handshake(ctx context.Context, addr string) error {
 	return err
 }
 
-func getFile(ctx context.Context) error {
-	panic("implement me")
-}
-
-func cmd(ctx context.Context) error {
-	panic("implement me")
+func getFile(ctx context.Context, addr, site, innerPath string) error {
+	fileServer, err := file.NewServer(config.FileServerAddr)
+	if err != nil {
+		return err
+	}
+	resp, err := fileServer.GetFile(addr, site, innerPath)
+	fmt.Printf("%+v\n", resp)
+	return err
 }
