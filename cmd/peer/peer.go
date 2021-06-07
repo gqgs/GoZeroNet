@@ -61,6 +61,6 @@ func getFile(addr, site, innerPath string) error {
 
 // Dumps v in a easy to read format
 func dump(v interface{}) {
-	d, _ := json.MarshalIndent(v, "", " ")
+	d, _ := json.Marshal(v)
 	println(string(d))
 }
