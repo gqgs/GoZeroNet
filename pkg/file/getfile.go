@@ -61,7 +61,7 @@ func (s *server) GetFile(addr, site, innerPath string) (*getFileResponse, error)
 }
 
 func (s *server) getFileHandler(w io.Writer, r getFileRequest) error {
-	// TODO: get values from storage.
+	// TODO: get values from storage + handle reputation
 	data, err := msgpack.Marshal(&getFileResponse{
 		CMD:      "response",
 		To:       r.ReqID,

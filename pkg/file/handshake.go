@@ -88,7 +88,6 @@ func (s *server) Handshake(addr string) (*handshakeResponse, error) {
 
 	result := new(handshakeResponse)
 	return result, msgpack.NewDecoder(conn).Decode(result)
-
 }
 
 func (s *server) handshakeHandler(w io.Writer, r handshakeRequest) error {
