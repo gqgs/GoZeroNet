@@ -2,6 +2,7 @@ package log
 
 import (
 	"os"
+	"strings"
 
 	nested "github.com/antonfisher/nested-logrus-formatter"
 	"github.com/sirupsen/logrus"
@@ -39,16 +40,15 @@ func New(scope string) Logger {
 	l.SetFormatter(&nested.Formatter{
 		FieldsOrder:     []string{"scope"},
 		TimestampFormat: "15:04:05",
-		HideKeys:        true,
 	})
-	switch os.Getenv("LOG_LEVEL") {
-	case "TRACE":
+	switch strings.ToLower(os.Getenv("LOG_LEVEL")) {
+	case "trace":
 		l.SetLevel(logrus.TraceLevel)
-	case "DEBUG":
+	case "debug":
 		l.SetLevel(logrus.DebugLevel)
-	case "INFO":
+	case "info":
 		l.SetLevel(logrus.InfoLevel)
-	case "WARN":
+	case "warn":
 		l.SetLevel(logrus.WarnLevel)
 	default:
 		l.SetLevel(logrus.InfoLevel)
