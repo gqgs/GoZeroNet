@@ -2,10 +2,7 @@ package file
 
 import (
 	"io"
-	"net"
-	"time"
 
-	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -31,7 +28,7 @@ type (
 	}
 )
 
-func (s *server) GetFile(addr, site, innerPath string) (*getFileResponse, error) {
+func GetFile(conn io.ReadWriter, site, innerPath string) (*getFileResponse, error) {
 	encoded, err := msgpack.Marshal(&getFileRequest{
 		CMD:   "getFile",
 		ReqID: 1,
@@ -44,14 +41,6 @@ func (s *server) GetFile(addr, site, innerPath string) (*getFileResponse, error)
 		return nil, err
 	}
 
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	conn.SetDeadline(time.Now().Add(config.Deadline))
-
 	if _, err = conn.Write(encoded); err != nil {
 		return nil, err
 	}
@@ -60,7 +49,7 @@ func (s *server) GetFile(addr, site, innerPath string) (*getFileResponse, error)
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func (s *server) getFileHandler(w io.Writer, r getFileRequest) error {
+func getFileHandler(w io.Writer, r getFileRequest) error {
 	// TODO: get values from storage + handle reputation
 	data, err := msgpack.Marshal(&getFileResponse{
 		CMD:      "response",

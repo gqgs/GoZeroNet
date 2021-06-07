@@ -42,14 +42,13 @@ func NewServer(addr string) (*server, error) {
 		return nil, err
 	}
 
-	id := random.PeerID()
 	return &server{
+		peerID: random.PeerID(),
 		addr:   chosenAddr,
 		port:   port,
 		host:   hostString,
 		l:      l,
-		peerID: id,
-		log:    log.New("fileserver").WithField("peerid", id),
+		log:    log.New("fileserver"),
 	}, nil
 }
 
@@ -93,8 +92,15 @@ func (s *server) handleConn(conn net.Conn) {
 
 	defer conn.Close()
 	conn.SetDeadline(time.Now().Add(config.Deadline))
-	if err := s.route(conn, conn); err != nil {
-		s.log.Error(err)
+
+	for {
+		if err := s.route(conn, conn); err != nil {
+			if errors.Is(err, io.EOF) {
+				return
+			}
+			s.log.Error(err)
+			return
+		}
 	}
 }
 
@@ -107,11 +113,11 @@ func (s *server) route(w io.Writer, r io.Reader) error {
 
 	switch req := i.(type) {
 	case pingRequest:
-		return s.pingHandler(w, req)
+		return pingHandler(w, req)
 	case handshakeRequest:
-		return s.handshakeHandler(w, req)
+		return handshakeHandler(w, req, s)
 	case getFileRequest:
-		return s.getFileHandler(w, req)
+		return getFileHandler(w, req)
 	default:
 		// TODO: implement errorHandler.
 		// {"cmd": "response", "to": 1, "error": "Unknown cmd"}

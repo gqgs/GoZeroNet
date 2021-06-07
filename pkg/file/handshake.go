@@ -3,10 +3,8 @@ package file
 import (
 	"io"
 	"net"
-	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
-
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -48,7 +46,7 @@ type (
 	}
 )
 
-func (s *server) Handshake(addr string) (*handshakeResponse, error) {
+func Handshake(conn io.ReadWriter, addr string, fileServer *server) (*handshakeResponse, error) {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -60,10 +58,10 @@ func (s *server) Handshake(addr string) (*handshakeResponse, error) {
 		Params: handshakeParams{
 			Crypt:          "tls-rsa",
 			CryptSupported: []string{"tls-rsa"},
-			FileserverPort: s.port,
+			FileserverPort: fileServer.port,
 			Protocol:       config.Protocol,
 			PortOpened:     config.PortOpened,
-			PeerID:         s.peerID,
+			PeerID:         fileServer.peerID,
 			Rev:            config.Rev,
 			UseBinType:     config.UseBinType,
 			Version:        config.Version,
@@ -74,14 +72,6 @@ func (s *server) Handshake(addr string) (*handshakeResponse, error) {
 		return nil, err
 	}
 
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	conn.SetDeadline(time.Now().Add(config.Deadline))
-
 	if _, err = conn.Write(encoded); err != nil {
 		return nil, err
 	}
@@ -90,7 +80,7 @@ func (s *server) Handshake(addr string) (*handshakeResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func (s *server) handshakeHandler(w io.Writer, r handshakeRequest) error {
+func handshakeHandler(w io.Writer, r handshakeRequest, fileServer *server) error {
 	// TODO: This will panic if the writer doesn't implement net.Conn.
 	// Find a better way to get the remote host here.
 	host, _, err := net.SplitHostPort(w.(net.Conn).RemoteAddr().String())
@@ -103,10 +93,10 @@ func (s *server) handshakeHandler(w io.Writer, r handshakeRequest) error {
 		To:             r.ReqID,
 		Crypt:          "tls-rsa",
 		CryptSupported: []string{"tls-rsa"},
-		FileserverPort: s.port,
+		FileserverPort: fileServer.port,
 		Protocol:       config.Protocol,
 		PortOpened:     config.PortOpened,
-		PeerID:         s.peerID,
+		PeerID:         fileServer.peerID,
 		Rev:            config.Rev,
 		UseBinType:     config.UseBinType,
 		Version:        config.Version,

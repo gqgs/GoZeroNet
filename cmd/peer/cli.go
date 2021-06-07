@@ -10,7 +10,7 @@ func NewCommand() *cli.Command {
 			{
 				Name: "ping",
 				Action: func(c *cli.Context) error {
-					return ping(c.Context, c.String("addr"))
+					return ping(c.String("addr"))
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
@@ -22,7 +22,7 @@ func NewCommand() *cli.Command {
 			{
 				Name: "handshake",
 				Action: func(c *cli.Context) error {
-					return handshake(c.Context, c.String("addr"))
+					return handshake(c.String("addr"))
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
@@ -34,7 +34,7 @@ func NewCommand() *cli.Command {
 			{
 				Name: "getFile",
 				Action: func(c *cli.Context) error {
-					return getFile(c.Context, c.String("addr"), c.String("site"), c.String("inner_path"))
+					return getFile(c.String("addr"), c.String("site"), c.String("inner_path"))
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{

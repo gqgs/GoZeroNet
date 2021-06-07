@@ -1,39 +1,60 @@
 package peer
 
 import (
-	"context"
 	"encoding/json"
+	"math/rand"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/file"
 )
 
-func ping(ctx context.Context, addr string) error {
-	fileServer, err := file.NewServer(config.FileServerAddr)
+func ping(addr string) error {
+	conn, err := file.NewConnection(addr)
 	if err != nil {
 		return err
 	}
-	resp, err := fileServer.Ping(addr)
+	defer conn.Close()
+
+	for i := 0; i < 5; i++ {
+		resp, err := file.Ping(conn)
+		if err != nil {
+			return err
+		}
+		dump(resp)
+	}
+
+	return nil
+}
+
+func handshake(addr string) error {
+	rand.Seed(time.Now().UnixNano())
+
+	fileServer, err := file.NewServer(config.RandomIPv4Addr)
+	if err != nil {
+		return err
+	}
+	defer fileServer.Shutdown()
+
+	conn, err := file.NewConnection(addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	resp, err := file.Handshake(conn, addr, fileServer)
 	dump(resp)
 	return err
 }
 
-func handshake(ctx context.Context, addr string) error {
-	fileServer, err := file.NewServer(config.FileServerAddr)
+func getFile(addr, site, innerPath string) error {
+	conn, err := file.NewConnection(addr)
 	if err != nil {
 		return err
 	}
-	resp, err := fileServer.Handshake(addr)
-	dump(resp)
-	return err
-}
+	defer conn.Close()
 
-func getFile(ctx context.Context, addr, site, innerPath string) error {
-	fileServer, err := file.NewServer(config.FileServerAddr)
-	if err != nil {
-		return err
-	}
-	resp, err := fileServer.GetFile(addr, site, innerPath)
+	resp, err := file.GetFile(conn, site, innerPath)
 	dump(resp)
 	return err
 }

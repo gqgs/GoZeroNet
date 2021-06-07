@@ -15,12 +15,19 @@ func Test_Handshake(t *testing.T) {
 	defer srv.Shutdown()
 	go srv.Listen()
 
-	client, err := NewServer(config.RandomIPv4Addr)
+	clientFileServer, err := NewServer(config.RandomIPv4Addr)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer clientFileServer.Shutdown()
 
-	resp, err := client.Handshake(srv.addr)
+	conn, err := NewConnection(srv.addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+
+	resp, err := Handshake(conn, srv.addr, clientFileServer)
 	if err != nil {
 		t.Fatal(err)
 	}

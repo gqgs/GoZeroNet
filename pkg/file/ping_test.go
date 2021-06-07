@@ -15,12 +15,13 @@ func Test_Ping(t *testing.T) {
 	defer srv.Shutdown()
 	go srv.Listen()
 
-	client, err := NewServer(config.RandomIPv4Addr)
+	conn, err := NewConnection(srv.addr)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer conn.Close()
 
-	resp, err := client.Ping(srv.addr)
+	resp, err := Ping(conn)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -15,16 +15,15 @@ func Test_GetFile(t *testing.T) {
 	defer srv.Shutdown()
 	go srv.Listen()
 
-	client, err := NewServer(config.RandomIPv4Addr)
+	conn, err := NewConnection(srv.addr)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer conn.Close()
 
-	const (
-		site      = "site"
-		innerPath = "innerPath"
-	)
-	resp, err := client.GetFile(srv.addr, site, innerPath)
+	const site = "site"
+	const innerPath = "innerPath"
+	resp, err := GetFile(conn, site, innerPath)
 	if err != nil {
 		t.Fatal(err)
 	}
