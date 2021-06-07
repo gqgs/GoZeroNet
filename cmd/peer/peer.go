@@ -18,6 +18,16 @@ func ping(ctx context.Context, addr string) error {
 	return err
 }
 
+func handshake(ctx context.Context, addr string) error {
+	fileServer, err := file.NewServer(config.FileServerAddr)
+	if err != nil {
+		return err
+	}
+	resp, err := fileServer.Handshake(addr)
+	fmt.Printf("%+v\n", resp)
+	return err
+}
+
 func getFile(ctx context.Context) error {
 	panic("implement me")
 }

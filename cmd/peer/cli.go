@@ -20,6 +20,18 @@ func NewCommand() *cli.Command {
 				},
 			},
 			{
+				Name: "handshake",
+				Action: func(c *cli.Context) error {
+					return handshake(c.Context, c.String("addr"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "addr",
+						Required: true,
+					},
+				},
+			},
+			{
 				Name: "getFile",
 				Action: func(c *cli.Context) error {
 					return getFile(c.Context)

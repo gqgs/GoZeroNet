@@ -8,7 +8,7 @@ const (
 	Rev        = 4556
 	Version    = "0.8.0"
 	Protocol   = "v2"
-	PortOpened = false
+	PortOpened = true
 	// UseBinType tells msgpack to use the bin type
 	// instead of the deprecated raw type.
 	UseBinType     = true

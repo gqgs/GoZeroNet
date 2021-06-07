@@ -23,7 +23,7 @@ func Test_Ping(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := client.Ping(srv.Addr())
+	resp, err := client.Ping(srv.addr)
 	if err != nil {
 		t.Fatal(err)
 	}

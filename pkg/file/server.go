@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -24,8 +23,11 @@ import (
 // Every request has 3 parameters: `cmd`, `req_id` and `params`
 type server struct {
 	l      net.Listener
-	peerID string
 	log    log.Logger
+	peerID string
+	addr   string // host:port
+	host   string
+	port   int
 }
 
 func NewServer(addr string) (*server, error) {
@@ -33,8 +35,19 @@ func NewServer(addr string) (*server, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Can be different from `addr` if the port was chosen by the server
+	chosenAddr := l.Addr().String()
+	hostString, portString, _ := net.SplitHostPort(chosenAddr)
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		return nil, err
+	}
+
 	id := random.PeerID()
 	return &server{
+		addr:   chosenAddr,
+		port:   port,
+		host:   hostString,
 		l:      l,
 		peerID: id,
 		log:    log.New("fileserver").WithField("peerid", id),
@@ -43,7 +56,7 @@ func NewServer(addr string) (*server, error) {
 
 func (s *server) Listen(ctx context.Context) {
 	defer s.l.Close()
-	s.log.Infof("listening at %s", s.Addr())
+	s.log.Infof("listening at %s", s.addr)
 	for {
 		// TODO: should check if error implements net.Error interface
 		// and try again if the error is temporary
@@ -61,16 +74,12 @@ func (s *server) Listen(ctx context.Context) {
 	}
 }
 
-func (s *server) Addr() string {
-	return s.l.Addr().String()
-}
-
-func (s *server) Port() int {
-	port, _ := strconv.Atoi(strings.Split(s.Addr(), "/")[1])
-	return port
-}
-
 func (s *server) handleConn(conn net.Conn) {
+	s.log.
+		WithField("local", conn.LocalAddr()).
+		WithField("remote", conn.RemoteAddr().String()).
+		Debug("new connection")
+
 	defer conn.Close()
 	conn.SetDeadline(time.Now().Add(config.Deadline))
 	if err := s.route(conn, conn); err != nil {
