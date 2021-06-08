@@ -1,7 +1,7 @@
 package fileserver
 
 import (
-	"io"
+	"net"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -28,7 +28,7 @@ type (
 	}
 )
 
-func GetFile(conn io.ReadWriter, site, innerPath string) (*getFileResponse, error) {
+func GetFile(conn net.Conn, site, innerPath string) (*getFileResponse, error) {
 	encoded, err := msgpack.Marshal(&getFileRequest{
 		CMD:   "getFile",
 		ReqID: 1,
@@ -49,7 +49,7 @@ func GetFile(conn io.ReadWriter, site, innerPath string) (*getFileResponse, erro
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func getFileHandler(w io.Writer, r getFileRequest) error {
+func getFileHandler(conn net.Conn, r getFileRequest) error {
 	// TODO: get values from storage + handle reputation
 	data, err := msgpack.Marshal(&getFileResponse{
 		CMD:      "response",
@@ -62,6 +62,6 @@ func getFileHandler(w io.Writer, r getFileRequest) error {
 		return err
 	}
 
-	_, err = w.Write(data)
+	_, err = conn.Write(data)
 	return err
 }

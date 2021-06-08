@@ -94,7 +94,7 @@ func (s *server) handleConn(conn net.Conn) {
 	conn.SetDeadline(time.Now().Add(config.Deadline))
 
 	for {
-		if err := s.route(conn, conn); err != nil {
+		if err := s.route(conn); err != nil {
 			if errors.Is(err, io.EOF) {
 				return
 			}
@@ -104,22 +104,22 @@ func (s *server) handleConn(conn net.Conn) {
 	}
 }
 
-func (s *server) route(w io.Writer, r io.Reader) error {
+func (s *server) route(conn net.Conn) error {
 	s.log.Debug("new request")
-	i, err := decode(r)
+	i, err := decode(conn)
 	if err != nil {
 		return err
 	}
 
 	switch req := i.(type) {
 	case pingRequest:
-		return pingHandler(w, req)
+		return pingHandler(conn, req)
 	case handshakeRequest:
-		return handshakeHandler(w, req, s)
+		return handshakeHandler(conn, req, s)
 	case getFileRequest:
-		return getFileHandler(w, req)
+		return getFileHandler(conn, req)
 	case unknownRequest:
-		return unknownHandler(w, req)
+		return unknownHandler(conn, req)
 	default:
 		return errors.New("file: invalid command")
 	}

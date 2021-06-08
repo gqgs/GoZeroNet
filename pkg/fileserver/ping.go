@@ -1,7 +1,7 @@
 package fileserver
 
 import (
-	"io"
+	"net"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func Ping(conn io.ReadWriter) (*pingResponse, error) {
+func Ping(conn net.Conn) (*pingResponse, error) {
 	encoded, err := msgpack.Marshal(&pingRequest{
 		CMD:    "ping",
 		ReqID:  1,
@@ -37,7 +37,7 @@ func Ping(conn io.ReadWriter) (*pingResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func pingHandler(w io.Writer, r pingRequest) error {
+func pingHandler(conn net.Conn, r pingRequest) error {
 	data, err := msgpack.Marshal(&pingResponse{
 		CMD:  "response",
 		To:   r.ReqID,
@@ -47,6 +47,6 @@ func pingHandler(w io.Writer, r pingRequest) error {
 		return err
 	}
 
-	_, err = w.Write(data)
+	_, err = conn.Write(data)
 	return err
 }

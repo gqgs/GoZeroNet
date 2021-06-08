@@ -1,7 +1,6 @@
 package fileserver
 
 import (
-	"io"
 	"net"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -46,7 +45,7 @@ type (
 	}
 )
 
-func Handshake(conn io.ReadWriter, addr string, fileServer *server) (*handshakeResponse, error) {
+func Handshake(conn net.Conn, addr string, fileServer *server) (*handshakeResponse, error) {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -80,10 +79,8 @@ func Handshake(conn io.ReadWriter, addr string, fileServer *server) (*handshakeR
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func handshakeHandler(w io.Writer, r handshakeRequest, fileServer *server) error {
-	// TODO: This will panic if the writer doesn't implement net.Conn.
-	// Find a better way to get the remote host here.
-	host, _, err := net.SplitHostPort(w.(net.Conn).RemoteAddr().String())
+func handshakeHandler(conn net.Conn, r handshakeRequest, fileServer *server) error {
+	host, _, err := net.SplitHostPort(conn.RemoteAddr().String())
 	if err != nil {
 		return err
 	}
@@ -105,6 +102,6 @@ func handshakeHandler(w io.Writer, r handshakeRequest, fileServer *server) error
 	if err != nil {
 		return err
 	}
-	_, err = w.Write(encoded)
+	_, err = conn.Write(encoded)
 	return err
 }

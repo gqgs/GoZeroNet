@@ -1,7 +1,7 @@
 package fileserver
 
 import (
-	"io"
+	"net"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -16,7 +16,7 @@ type unknownResponse struct {
 	Error string `msgpack:"error"`
 }
 
-func unknownHandler(w io.Writer, r unknownRequest) error {
+func unknownHandler(conn net.Conn, r unknownRequest) error {
 	data, err := msgpack.Marshal(&unknownResponse{
 		CMD:   "response",
 		To:    r.ReqID,
@@ -26,6 +26,6 @@ func unknownHandler(w io.Writer, r unknownRequest) error {
 		return err
 	}
 
-	_, err = w.Write(data)
+	_, err = conn.Write(data)
 	return err
 }

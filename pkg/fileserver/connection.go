@@ -15,7 +15,7 @@ type conn struct {
 // Creates and returns a new connection to the address.
 // If the returned error is nil the client must close the
 // connection after using it.
-func NewConnection(addr string) (*conn, error) {
+func NewConnection(addr string) (net.Conn, error) {
 	netConn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
