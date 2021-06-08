@@ -51,7 +51,7 @@ func New(scope string) Logger {
 	case "warn":
 		l.SetLevel(logrus.WarnLevel)
 	default:
-		l.SetLevel(logrus.InfoLevel)
+		l.SetLevel(logrus.DebugLevel)
 	}
 	return &logger{l.WithField("scope", scope)}
 }

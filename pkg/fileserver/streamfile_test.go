@@ -1,13 +1,14 @@
 package fileserver
 
 import (
+	"io"
 	"testing"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetFile(t *testing.T) {
+func Test_StreamFile(t *testing.T) {
 	srv, err := NewServer(config.RandomIPv4Addr)
 	if err != nil {
 		t.Fatal(err)
@@ -23,11 +24,18 @@ func Test_GetFile(t *testing.T) {
 
 	const site = "site"
 	const innerPath = "innerPath"
-	resp, err := GetFile(conn, site, innerPath, 0, 0)
+
+	resp, stream, err := StreamFile(conn, site, innerPath, 0, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file, err := io.ReadAll(stream)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, "response", resp.CMD)
 	assert.Equal(t, 1, resp.To)
+	assert.Len(t, file, resp.StreamBytes)
 }

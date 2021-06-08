@@ -120,6 +120,8 @@ func (s *server) route(conn net.Conn) error {
 		return getFileHandler(conn, req)
 	case unknownRequest:
 		return unknownHandler(conn, req)
+	case streamFileRequest:
+		return streamFileHandler(conn, req)
 	default:
 		return errors.New("file: invalid command")
 	}
@@ -143,6 +145,10 @@ func decode(reader io.Reader) (interface{}, error) {
 		return payload, err
 	case "getFile":
 		var payload getFileRequest
+		err := decoder.Decode(&payload)
+		return payload, err
+	case "streamFile":
+		var payload streamFileRequest
 		err := decoder.Decode(&payload)
 		return payload, err
 	default:

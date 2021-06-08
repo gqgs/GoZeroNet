@@ -16,7 +16,7 @@ type (
 		Site      string `msgpack:"site"`
 		InnerPath string `msgpack:"inner_path"`
 		Location  int    `msgpack:"location"` // offset location for range requests
-		FileSize  int    `msgpack:"file_size"`
+		FileSize  int    `msgpack:"file_size,omitempty"`
 	}
 
 	getFileResponse struct {
@@ -28,13 +28,15 @@ type (
 	}
 )
 
-func GetFile(conn net.Conn, site, innerPath string) (*getFileResponse, error) {
+func GetFile(conn net.Conn, site, innerPath string, location, size int) (*getFileResponse, error) {
 	encoded, err := msgpack.Marshal(&getFileRequest{
 		CMD:   "getFile",
 		ReqID: 1,
 		Params: getFileParams{
 			Site:      site,
 			InnerPath: innerPath,
+			Location:  location,
+			FileSize:  size,
 		},
 	})
 	if err != nil {

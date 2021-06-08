@@ -3,6 +3,7 @@ package peer
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"time"
 
@@ -48,15 +49,37 @@ func handshake(addr string) error {
 	return err
 }
 
-func getFile(addr, site, innerPath string) error {
+func getFile(addr, site, innerPath string, location, size int) error {
 	conn, err := fileserver.NewConnection(addr)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	resp, err := fileserver.GetFile(conn, site, innerPath)
+	resp, err := fileserver.GetFile(conn, site, innerPath, location, size)
 	jsonDump(resp)
+	return err
+}
+
+func streamFile(addr, site, innerPath string, location, size int) error {
+	conn, err := fileserver.NewConnection(addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	resp, stream, err := fileserver.StreamFile(conn, site, innerPath, location, size)
+	if err != nil {
+		return err
+	}
+	jsonDump(resp)
+
+	file, err := io.ReadAll(stream)
+	jsonDump(struct {
+		File []byte
+	}{
+		File: file,
+	})
 	return err
 }
 
