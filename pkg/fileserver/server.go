@@ -111,17 +111,19 @@ func (s *server) route(conn net.Conn) error {
 		return err
 	}
 
-	switch req := i.(type) {
+	switch r := i.(type) {
 	case pingRequest:
-		return pingHandler(conn, req)
+		return pingHandler(conn, r)
 	case handshakeRequest:
-		return handshakeHandler(conn, req, s)
+		return handshakeHandler(conn, r, s)
 	case getFileRequest:
-		return getFileHandler(conn, req)
-	case unknownRequest:
-		return unknownHandler(conn, req)
+		return getFileHandler(conn, r)
 	case streamFileRequest:
-		return streamFileHandler(conn, req)
+		return streamFileHandler(conn, r)
+	case checkPortRequest:
+		return checkPortHandler(conn, r, s)
+	case unknownRequest:
+		return unknownHandler(conn, r)
 	default:
 		return errors.New("file: invalid command")
 	}
@@ -149,6 +151,10 @@ func decode(reader io.Reader) (interface{}, error) {
 		return payload, err
 	case "streamFile":
 		var payload streamFileRequest
+		err := decoder.Decode(&payload)
+		return payload, err
+	case "checkport":
+		var payload checkPortRequest
 		err := decoder.Decode(&payload)
 		return payload, err
 	default:

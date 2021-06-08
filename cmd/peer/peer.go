@@ -83,6 +83,18 @@ func streamFile(addr, site, innerPath string, location, size int) error {
 	return err
 }
 
+func checkPort(addr string, port int) error {
+	conn, err := fileserver.NewConnection(addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	resp, err := fileserver.CheckPort(conn, port)
+	jsonDump(resp)
+	return err
+}
+
 func jsonDump(v interface{}) {
 	d, _ := json.Marshal(v)
 	fmt.Println(string(d))

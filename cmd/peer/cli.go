@@ -95,6 +95,22 @@ func NewCommand() *cli.Command {
 					},
 				},
 			},
+			{
+				Name: "checkPort",
+				Action: func(c *cli.Context) error {
+					return checkPort(c.String("addr"), c.Int("port"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "addr",
+						Required: true,
+					},
+					&cli.IntFlag{
+						Name:     "port",
+						Required: true,
+					},
+				},
+			},
 		},
 	}
 }
