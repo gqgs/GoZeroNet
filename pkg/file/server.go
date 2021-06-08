@@ -3,7 +3,6 @@ package file
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
+	"github.com/spf13/cast"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -118,21 +118,21 @@ func (s *server) route(w io.Writer, r io.Reader) error {
 		return handshakeHandler(w, req, s)
 	case getFileRequest:
 		return getFileHandler(w, req)
+	case unknownRequest:
+		return unknownHandler(w, req)
 	default:
-		// TODO: implement errorHandler.
-		// {"cmd": "response", "to": 1, "error": "Unknown cmd"}
 		return errors.New("file: invalid command")
 	}
 }
 
 func decode(reader io.Reader) (interface{}, error) {
 	decoder := msgpack.NewDecoder(reader)
-	cmd, err := decodeCmd(decoder)
+	cmd, err := decodeKey(decoder, "cmd")
 	if err != nil {
 		return nil, err
 	}
 
-	switch cmd {
+	switch cast.ToString(cmd) {
 	case "ping":
 		var payload pingRequest
 		err := decoder.Decode(&payload)
@@ -146,26 +146,27 @@ func decode(reader io.Reader) (interface{}, error) {
 		err := decoder.Decode(&payload)
 		return payload, err
 	default:
-		return nil, fmt.Errorf("file: invalid payload type (%q)", cmd)
+		reqID, err := decodeKey(decoder, "req_id")
+		if err != nil {
+			return nil, err
+		}
+		return unknownRequest{
+			ReqID: cast.ToInt(reqID),
+		}, nil
 	}
 }
 
-// Reads only the necessary to decode the cmd.
-func decodeCmd(decoder *msgpack.Decoder) (string, error) {
+// Reads only the necessary to decode the key.
+func decodeKey(decoder *msgpack.Decoder, key string) (interface{}, error) {
 	var buffer bytes.Buffer
 	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))
-	query, err := decoder.Query("cmd")
+	query, err := decoder.Query(key)
 	if err != nil {
 		return "", err
 	}
 	if len(query) != 1 {
 		return "", errors.New("file: invalid cmd value")
 	}
-
-	cmd, ok := query[0].(string)
-	if !ok {
-		return "", errors.New("file: invalid cmd value")
-	}
 	decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
-	return cmd, nil
+	return query[0], nil
 }
