@@ -2,6 +2,7 @@ package peer
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -21,7 +22,7 @@ func ping(addr string) error {
 		if err != nil {
 			return err
 		}
-		dump(resp)
+		jsonDump(resp)
 	}
 
 	return nil
@@ -43,7 +44,7 @@ func handshake(addr string) error {
 	defer conn.Close()
 
 	resp, err := file.Handshake(conn, addr, fileServer)
-	dump(resp)
+	jsonDump(resp)
 	return err
 }
 
@@ -55,12 +56,11 @@ func getFile(addr, site, innerPath string) error {
 	defer conn.Close()
 
 	resp, err := file.GetFile(conn, site, innerPath)
-	dump(resp)
+	jsonDump(resp)
 	return err
 }
 
-// Dumps v in a easy to read format
-func dump(v interface{}) {
+func jsonDump(v interface{}) {
 	d, _ := json.Marshal(v)
-	println(string(d))
+	fmt.Println(string(d))
 }
