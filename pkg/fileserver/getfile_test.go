@@ -1,4 +1,4 @@
-package file
+package fileserver
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Ping(t *testing.T) {
+func Test_GetFile(t *testing.T) {
 	srv, err := NewServer(config.RandomIPv4Addr)
 	if err != nil {
 		t.Fatal(err)
@@ -21,12 +21,13 @@ func Test_Ping(t *testing.T) {
 	}
 	defer conn.Close()
 
-	resp, err := Ping(conn)
+	const site = "site"
+	const innerPath = "innerPath"
+	resp, err := GetFile(conn, site, innerPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, "response", resp.CMD)
 	assert.Equal(t, 1, resp.To)
-	assert.Equal(t, "Pong!", resp.Body)
 }

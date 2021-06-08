@@ -7,18 +7,18 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
-	"github.com/gqgs/go-zeronet/pkg/file"
+	"github.com/gqgs/go-zeronet/pkg/fileserver"
 )
 
 func ping(addr string) error {
-	conn, err := file.NewConnection(addr)
+	conn, err := fileserver.NewConnection(addr)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
 	for i := 0; i < 5; i++ {
-		resp, err := file.Ping(conn)
+		resp, err := fileserver.Ping(conn)
 		if err != nil {
 			return err
 		}
@@ -31,31 +31,31 @@ func ping(addr string) error {
 func handshake(addr string) error {
 	rand.Seed(time.Now().UnixNano())
 
-	fileServer, err := file.NewServer(config.RandomIPv4Addr)
+	srv, err := fileserver.NewServer(config.RandomIPv4Addr)
 	if err != nil {
 		return err
 	}
-	defer fileServer.Shutdown()
+	defer srv.Shutdown()
 
-	conn, err := file.NewConnection(addr)
+	conn, err := fileserver.NewConnection(addr)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	resp, err := file.Handshake(conn, addr, fileServer)
+	resp, err := fileserver.Handshake(conn, addr, srv)
 	jsonDump(resp)
 	return err
 }
 
 func getFile(addr, site, innerPath string) error {
-	conn, err := file.NewConnection(addr)
+	conn, err := fileserver.NewConnection(addr)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	resp, err := file.GetFile(conn, site, innerPath)
+	resp, err := fileserver.GetFile(conn, site, innerPath)
 	jsonDump(resp)
 	return err
 }

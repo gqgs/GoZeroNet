@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/gqgs/go-zeronet/pkg/file"
+	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/ui"
 )
 
@@ -23,7 +23,7 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	fileServer, err := file.NewServer(fileServerAddr)
+	fileServer, err := fileserver.NewServer(fileServerAddr)
 	if err != nil {
 		return err
 	}
