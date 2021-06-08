@@ -7,7 +7,7 @@ import (
 	"os/signal"
 
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
-	"github.com/gqgs/go-zeronet/pkg/ui"
+	"github.com/gqgs/go-zeronet/pkg/uiserver"
 )
 
 // The Python execution spawns two servers:
@@ -27,7 +27,7 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	if err != nil {
 		return err
 	}
-	uiServer := ui.NewServer(uiServerAddr)
+	uiServer := uiserver.NewServer(uiServerAddr)
 
 	idleConnsClosed := make(chan struct{})
 	go func() {
