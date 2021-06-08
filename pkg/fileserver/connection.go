@@ -8,8 +8,6 @@ import (
 
 type conn struct {
 	net.Conn
-	log  log.Logger
-	addr string
 }
 
 // Creates and returns a new connection to the address.
@@ -23,7 +21,33 @@ func NewConnection(addr string) (net.Conn, error) {
 
 	return &conn{
 		Conn: netConn,
-		log:  log.New("connection"),
-		addr: addr,
 	}, nil
+}
+
+func NewDebugConnection(addr string) (net.Conn, error) {
+	conn, err := NewConnection(addr)
+	if err != nil {
+		return nil, err
+	}
+	return debugConn{
+		Conn: conn,
+		log:  log.New("connection"),
+	}, nil
+}
+
+type debugConn struct {
+	net.Conn
+	log log.Logger
+}
+
+func (c debugConn) Write(b []byte) (n int, err error) {
+	n, err = c.Conn.Write(b)
+	c.log.WithField("op", "Write").Debug(n, string(b))
+	return
+}
+
+func (c debugConn) Read(b []byte) (n int, err error) {
+	n, err = c.Conn.Read(b)
+	c.log.WithField("op", "Read").Debug(n, string(b))
+	return
 }
