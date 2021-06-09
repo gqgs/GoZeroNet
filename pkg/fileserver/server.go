@@ -124,6 +124,8 @@ func (s *server) route(conn net.Conn) error {
 		return checkPortHandler(conn, decoder, s)
 	case "pex":
 		return pexHandler(conn, decoder)
+	case "listModified":
+		return listModifiedHandler(conn, decoder)
 	default:
 		return unknownHandler(conn, decoder)
 	}

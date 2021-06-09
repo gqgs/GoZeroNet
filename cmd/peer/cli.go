@@ -1,6 +1,8 @@
 package peer
 
-import "github.com/urfave/cli/v2"
+import (
+	"github.com/urfave/cli/v2"
+)
 
 func NewCommand() *cli.Command {
 	return &cli.Command{
@@ -106,6 +108,21 @@ func NewCommand() *cli.Command {
 					&cli.IntFlag{
 						Name:  "need",
 						Value: 5,
+					},
+				},
+			},
+			{
+				Name: "listModified",
+				Action: func(c *cli.Context) error {
+					return listModified(c.String("addr"), c.String("site"), c.Int("since"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "site",
+						Required: true,
+					},
+					&cli.IntFlag{
+						Name: "since",
 					},
 				},
 			},

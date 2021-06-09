@@ -104,6 +104,18 @@ func pex(addr, site string, need int) error {
 	return err
 }
 
+func listModified(addr, site string, since int) error {
+	conn, err := connection.NewConnection(addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	resp, err := fileserver.ListModified(conn, site, since)
+	jsonDump(resp)
+	return err
+}
+
 func jsonDump(v interface{}) {
 	d, _ := json.Marshal(v)
 	fmt.Println(string(d))
