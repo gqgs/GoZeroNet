@@ -6,29 +6,23 @@ func NewCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "peer",
 		Usage: "Show peer commands",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "addr",
+				Required: true,
+			},
+		},
 		Subcommands: []*cli.Command{
 			{
 				Name: "ping",
 				Action: func(c *cli.Context) error {
 					return ping(c.String("addr"))
 				},
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "addr",
-						Required: true,
-					},
-				},
 			},
 			{
 				Name: "handshake",
 				Action: func(c *cli.Context) error {
 					return handshake(c.String("addr"))
-				},
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "addr",
-						Required: true,
-					},
 				},
 			},
 			{
@@ -44,10 +38,6 @@ func NewCommand() *cli.Command {
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "addr",
-						Required: true,
-					},
-					&cli.StringFlag{
 						Name:     "site",
 						Required: true,
 					},
@@ -55,10 +45,10 @@ func NewCommand() *cli.Command {
 						Name:     "inner_path",
 						Required: true,
 					},
-					&cli.StringFlag{
+					&cli.IntFlag{
 						Name: "location",
 					},
-					&cli.StringFlag{
+					&cli.IntFlag{
 						Name: "size",
 					},
 				},
@@ -76,10 +66,6 @@ func NewCommand() *cli.Command {
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "addr",
-						Required: true,
-					},
-					&cli.StringFlag{
 						Name:     "site",
 						Required: true,
 					},
@@ -87,10 +73,10 @@ func NewCommand() *cli.Command {
 						Name:     "inner_path",
 						Required: true,
 					},
-					&cli.StringFlag{
+					&cli.IntFlag{
 						Name: "location",
 					},
-					&cli.StringFlag{
+					&cli.IntFlag{
 						Name: "size",
 					},
 				},
@@ -101,10 +87,6 @@ func NewCommand() *cli.Command {
 					return checkPort(c.String("addr"), c.Int("port"))
 				},
 				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "addr",
-						Required: true,
-					},
 					&cli.IntFlag{
 						Name:     "port",
 						Required: true,
@@ -117,10 +99,6 @@ func NewCommand() *cli.Command {
 					return pex(c.String("addr"), c.String("site"), c.Int("need"))
 				},
 				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "addr",
-						Required: true,
-					},
 					&cli.StringFlag{
 						Name:     "site",
 						Required: true,
