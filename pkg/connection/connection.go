@@ -2,6 +2,7 @@ package connection
 
 import (
 	"net"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
@@ -19,6 +20,8 @@ func NewConnection(addr string) (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	netConn.SetDeadline(time.Now().Add(config.ConnectionDeadline))
 
 	if config.Debug {
 		return debugConn{

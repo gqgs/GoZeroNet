@@ -91,7 +91,7 @@ func (s *server) handleConn(conn net.Conn) {
 		Debug("new connection")
 
 	defer conn.Close()
-	conn.SetDeadline(time.Now().Add(config.Deadline))
+	conn.SetDeadline(time.Now().Add(config.FileServerDeadline))
 
 	for {
 		if err := s.route(conn); err != nil {
