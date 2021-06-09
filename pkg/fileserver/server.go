@@ -129,6 +129,7 @@ func (s *server) route(conn net.Conn) error {
 	case "update":
 		return updateHandler(conn, decoder)
 	default:
+		s.log.WithField("cmd", cmd).Warn("unknown request")
 		return unknownHandler(conn, decoder)
 	}
 }
