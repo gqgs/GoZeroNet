@@ -126,6 +126,22 @@ func NewCommand() *cli.Command {
 					},
 				},
 			},
+			{
+				Name: "update",
+				Action: func(c *cli.Context) error {
+					return update(c.String("addr"), c.String("site"), c.String("inner_path"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "site",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     "inner_path",
+						Required: true,
+					},
+				},
+			},
 		},
 	}
 }

@@ -116,6 +116,18 @@ func listModified(addr, site string, since int) error {
 	return err
 }
 
+func update(addr, site, innerPath string) error {
+	conn, err := connection.NewConnection(addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	resp, err := fileserver.Update(conn, site, innerPath)
+	jsonDump(resp)
+	return err
+}
+
 func jsonDump(v interface{}) {
 	d, _ := json.Marshal(v)
 	fmt.Println(string(d))

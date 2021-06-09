@@ -126,6 +126,8 @@ func (s *server) route(conn net.Conn) error {
 		return pexHandler(conn, decoder)
 	case "listModified":
 		return listModifiedHandler(conn, decoder)
+	case "update":
+		return updateHandler(conn, decoder)
 	default:
 		return unknownHandler(conn, decoder)
 	}
