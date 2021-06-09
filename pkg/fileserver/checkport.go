@@ -21,6 +21,7 @@ type (
 		To         int    `msgpack:"to"`
 		Status     string `msgpack:"status"`
 		IPExternal string `msgpack:"ip_external"`
+		Error      string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 

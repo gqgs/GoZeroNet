@@ -24,6 +24,7 @@ type (
 		To         int      `msgpack:"to"`
 		Peers      [][]byte `msgpack:"peers"`
 		PeersOnion [][]byte `msgpack:"peers_onion"`
+		Error      string   `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 

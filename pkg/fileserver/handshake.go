@@ -42,6 +42,7 @@ type (
 		TargetIP       string   `msgpack:"target_ip"`
 		UseBinType     bool     `msgpack:"use_bin_type"`
 		Version        string   `msgpack:"version"`
+		Error          string   `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 

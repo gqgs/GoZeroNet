@@ -13,9 +13,10 @@ type (
 		Params map[string]struct{} `msgpack:"params"`
 	}
 	pingResponse struct {
-		CMD  string `msgpack:"cmd"`
-		To   int    `msgpack:"to"`
-		Body string `msgpack:"body"`
+		CMD   string `msgpack:"cmd"`
+		To    int    `msgpack:"to"`
+		Body  string `msgpack:"body"`
+		Error string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 

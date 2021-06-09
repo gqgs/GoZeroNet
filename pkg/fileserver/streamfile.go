@@ -24,6 +24,7 @@ type (
 		CMD         string `msgpack:"cmd"`
 		To          int    `msgpack:"to"`
 		StreamBytes int    `msgpack:"stream_bytes"`
+		Error       string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 

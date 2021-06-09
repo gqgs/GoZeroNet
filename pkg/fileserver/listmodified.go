@@ -21,6 +21,7 @@ type (
 		CMD           string         `msgpack:"cmd"`
 		To            int            `msgpack:"to"`
 		ModifiedFiles map[string]int `msgpack:"modified_files"`
+		Error         string         `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 

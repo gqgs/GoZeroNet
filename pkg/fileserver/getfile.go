@@ -25,6 +25,7 @@ type (
 		Body     []byte `msgpack:"body"`
 		Location int    `msgpack:"location"` // offset location of the last byte sent
 		Size     int    `msgpack:"size"`
+		Error    string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 
