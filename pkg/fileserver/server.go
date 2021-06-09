@@ -105,71 +105,38 @@ func (s *server) handleConn(conn net.Conn) {
 }
 
 func (s *server) route(conn net.Conn) error {
-	s.log.Debug("new request")
-	i, err := decode(conn)
+	decoder := msgpack.NewDecoder(conn)
+	cmd, err := decodeKey(decoder, "cmd")
 	if err != nil {
 		return err
 	}
 
-	switch r := i.(type) {
-	case pingRequest:
-		return pingHandler(conn, r)
-	case handshakeRequest:
-		return handshakeHandler(conn, r, s)
-	case getFileRequest:
-		return getFileHandler(conn, r)
-	case streamFileRequest:
-		return streamFileHandler(conn, r)
-	case checkPortRequest:
-		return checkPortHandler(conn, r, s)
-	case unknownRequest:
-		return unknownHandler(conn, r)
-	default:
-		return errors.New("file: invalid command")
-	}
-}
-
-func decode(reader io.Reader) (interface{}, error) {
-	decoder := msgpack.NewDecoder(reader)
-	cmd, err := decodeKey(decoder, "cmd")
-	if err != nil {
-		return nil, err
-	}
-
 	switch cast.ToString(cmd) {
 	case "ping":
-		var payload pingRequest
-		err := decoder.Decode(&payload)
-		return payload, err
+		return pingHandler(conn, decoder)
 	case "handshake":
-		var payload handshakeRequest
-		err := decoder.Decode(&payload)
-		return payload, err
+		return handshakeHandler(conn, decoder, s)
 	case "getFile":
-		var payload getFileRequest
-		err := decoder.Decode(&payload)
-		return payload, err
+		return getFileHandler(conn, decoder)
 	case "streamFile":
-		var payload streamFileRequest
-		err := decoder.Decode(&payload)
-		return payload, err
+		return streamFileHandler(conn, decoder)
 	case "checkport":
-		var payload checkPortRequest
-		err := decoder.Decode(&payload)
-		return payload, err
+		return checkPortHandler(conn, decoder, s)
+	case "pex":
+		return pexHandler(conn, decoder)
 	default:
-		reqID, err := decodeKey(decoder, "req_id")
-		if err != nil {
-			return nil, err
-		}
-		return unknownRequest{
-			ReqID: cast.ToInt(reqID),
-		}, nil
+		return unknownHandler(conn, decoder)
 	}
 }
 
-// Reads only the necessary to decode the key.
-func decodeKey(decoder *msgpack.Decoder, key string) (interface{}, error) {
+type requestDecoder interface {
+	Reset(io.Reader)
+	Decode(v interface{}) error
+	Buffered() io.Reader
+	Query(query string) ([]interface{}, error)
+}
+
+func decodeKey(decoder requestDecoder, key string) (interface{}, error) {
 	var buffer bytes.Buffer
 	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))
 	query, err := decoder.Query(key)

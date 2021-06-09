@@ -95,6 +95,18 @@ func checkPort(addr string, port int) error {
 	return err
 }
 
+func pex(addr, site string, need int) error {
+	conn, err := fileserver.NewConnection(addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	resp, err := fileserver.Pex(conn, site, need)
+	jsonDump(resp)
+	return err
+}
+
 func jsonDump(v interface{}) {
 	d, _ := json.Marshal(v)
 	fmt.Println(string(d))

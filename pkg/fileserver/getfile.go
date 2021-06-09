@@ -51,9 +51,14 @@ func GetFile(conn net.Conn, site, innerPath string, location, size int) (*getFil
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func getFileHandler(conn net.Conn, r getFileRequest) error {
+func getFileHandler(conn net.Conn, decoder requestDecoder) error {
 	// TODO: get values from storage + handle reputation.
 	// Max 512 bytes sent in a request
+	var r getFileRequest
+	if err := decoder.Decode(&r); err != nil {
+		return err
+	}
+
 	data, err := msgpack.Marshal(&getFileResponse{
 		CMD:      "response",
 		To:       r.ReqID,

@@ -37,7 +37,11 @@ func Ping(conn net.Conn) (*pingResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func pingHandler(conn net.Conn, r pingRequest) error {
+func pingHandler(conn net.Conn, decoder requestDecoder) error {
+	var r pingRequest
+	if err := decoder.Decode(&r); err != nil {
+		return err
+	}
 	data, err := msgpack.Marshal(&pingResponse{
 		CMD:  "response",
 		To:   r.ReqID,

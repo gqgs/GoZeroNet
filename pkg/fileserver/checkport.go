@@ -44,7 +44,12 @@ func CheckPort(conn net.Conn, port int) (*checkPortResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func checkPortHandler(conn net.Conn, r checkPortRequest, server *server) error {
+func checkPortHandler(conn net.Conn, decoder requestDecoder, server *server) error {
+	var r checkPortRequest
+	if err := decoder.Decode(&r); err != nil {
+		return err
+	}
+
 	status := "closed"
 	if r.Params.Port == server.port {
 		status = "open"

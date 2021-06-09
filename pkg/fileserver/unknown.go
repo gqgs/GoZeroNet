@@ -3,12 +3,9 @@ package fileserver
 import (
 	"net"
 
+	"github.com/spf13/cast"
 	"github.com/vmihailenco/msgpack/v5"
 )
-
-type unknownRequest struct {
-	ReqID int `msgpack:"req_id"`
-}
 
 type unknownResponse struct {
 	CMD   string `msgpack:"cmd"`
@@ -16,10 +13,15 @@ type unknownResponse struct {
 	Error string `msgpack:"error"`
 }
 
-func unknownHandler(conn net.Conn, r unknownRequest) error {
+func unknownHandler(conn net.Conn, decoder requestDecoder) error {
+	reqID, err := decodeKey(decoder, "req_id")
+	if err != nil {
+		return err
+	}
+
 	data, err := msgpack.Marshal(&unknownResponse{
 		CMD:   "response",
-		To:    r.ReqID,
+		To:    cast.ToInt(reqID),
 		Error: "Unknown cmd",
 	})
 	if err != nil {

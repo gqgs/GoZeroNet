@@ -79,7 +79,12 @@ func Handshake(conn net.Conn, addr string, fileServer *server) (*handshakeRespon
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func handshakeHandler(conn net.Conn, r handshakeRequest, fileServer *server) error {
+func handshakeHandler(conn net.Conn, decoder requestDecoder, fileServer *server) error {
+	var r handshakeRequest
+	if err := decoder.Decode(&r); err != nil {
+		return err
+	}
+
 	host, _, err := net.SplitHostPort(conn.RemoteAddr().String())
 	if err != nil {
 		return err

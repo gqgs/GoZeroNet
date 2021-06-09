@@ -111,6 +111,26 @@ func NewCommand() *cli.Command {
 					},
 				},
 			},
+			{
+				Name: "pex",
+				Action: func(c *cli.Context) error {
+					return pex(c.String("addr"), c.String("site"), c.Int("need"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "addr",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     "site",
+						Required: true,
+					},
+					&cli.IntFlag{
+						Name:  "need",
+						Value: 5,
+					},
+				},
+			},
 		},
 	}
 }

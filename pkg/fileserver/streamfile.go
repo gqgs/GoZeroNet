@@ -58,8 +58,13 @@ func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*str
 	return result, io.LimitReader(reader, int64(result.StreamBytes)), nil
 }
 
-func streamFileHandler(conn net.Conn, r streamFileRequest) error {
+func streamFileHandler(conn net.Conn, decoder requestDecoder) error {
 	// TODO: get values from storage + handle reputation + write to stream
+	var r streamFileRequest
+	if err := decoder.Decode(&r); err != nil {
+		return err
+	}
+
 	file := []byte("hello wolrd")
 
 	encoded, err := msgpack.Marshal(&streamFileResponse{
