@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/gqgs/go-zeronet/cmd/db"
 	"github.com/gqgs/go-zeronet/cmd/peer"
@@ -11,6 +13,8 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	app := &cli.App{
 		Commands: []*cli.Command{
 			server.NewCommand(),

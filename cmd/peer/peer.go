@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
-	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/connection"
@@ -31,8 +29,6 @@ func ping(addr string) error {
 }
 
 func handshake(addr string) error {
-	rand.Seed(time.Now().UnixNano())
-
 	srv, err := fileserver.NewServer(config.RandomIPv4Addr)
 	if err != nil {
 		return err
