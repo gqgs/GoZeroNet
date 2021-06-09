@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -16,7 +17,7 @@ func Test_Unknown(t *testing.T) {
 	defer srv.Shutdown()
 	go srv.Listen()
 
-	conn, err := NewConnection(srv.addr)
+	conn, err := connection.NewConnection(srv.addr)
 	if err != nil {
 		t.Fatal(err)
 	}

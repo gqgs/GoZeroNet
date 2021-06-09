@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +22,7 @@ func Test_Handshake(t *testing.T) {
 	}
 	defer clientFileServer.Shutdown()
 
-	conn, err := NewConnection(srv.addr)
+	conn, err := connection.NewConnection(srv.addr)
 	if err != nil {
 		t.Fatal(err)
 	}

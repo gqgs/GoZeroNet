@@ -1,8 +1,9 @@
-package fileserver
+package connection
 
 import (
 	"net"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 )
 
@@ -19,19 +20,15 @@ func NewConnection(addr string) (net.Conn, error) {
 		return nil, err
 	}
 
+	if config.Debug {
+		return debugConn{
+			Conn: netConn,
+			log:  log.New("connection"),
+		}, nil
+	}
+
 	return &conn{
 		Conn: netConn,
-	}, nil
-}
-
-func NewDebugConnection(addr string) (net.Conn, error) {
-	conn, err := NewConnection(addr)
-	if err != nil {
-		return nil, err
-	}
-	return debugConn{
-		Conn: conn,
-		log:  log.New("connection"),
 	}, nil
 }
 

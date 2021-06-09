@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"strings"
 	"time"
 )
 
@@ -16,4 +18,9 @@ const (
 	FileServerAddr = "127.0.0.1:"
 	UIServerAddr   = "127.0.0.1:43111"
 	RandomIPv4Addr = "127.0.0.1:"
+)
+
+var (
+	Debug = strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug") ||
+		strings.EqualFold(os.Getenv("LOG_LEVEL"), "trace")
 )

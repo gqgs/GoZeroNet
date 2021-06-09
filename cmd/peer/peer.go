@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 )
 
 func ping(addr string) error {
-	conn, err := fileserver.NewConnection(addr)
+	conn, err := connection.NewConnection(addr)
 	if err != nil {
 		return err
 	}
@@ -38,7 +39,7 @@ func handshake(addr string) error {
 	}
 	defer srv.Shutdown()
 
-	conn, err := fileserver.NewConnection(addr)
+	conn, err := connection.NewConnection(addr)
 	if err != nil {
 		return err
 	}
@@ -50,7 +51,7 @@ func handshake(addr string) error {
 }
 
 func getFile(addr, site, innerPath string, location, size int) error {
-	conn, err := fileserver.NewConnection(addr)
+	conn, err := connection.NewConnection(addr)
 	if err != nil {
 		return err
 	}
@@ -62,7 +63,7 @@ func getFile(addr, site, innerPath string, location, size int) error {
 }
 
 func streamFile(addr, site, innerPath string, location, size int) error {
-	conn, err := fileserver.NewConnection(addr)
+	conn, err := connection.NewConnection(addr)
 	if err != nil {
 		return err
 	}
@@ -84,7 +85,7 @@ func streamFile(addr, site, innerPath string, location, size int) error {
 }
 
 func checkPort(addr string, port int) error {
-	conn, err := fileserver.NewConnection(addr)
+	conn, err := connection.NewConnection(addr)
 	if err != nil {
 		return err
 	}
@@ -96,7 +97,7 @@ func checkPort(addr string, port int) error {
 }
 
 func pex(addr, site string, need int) error {
-	conn, err := fileserver.NewConnection(addr)
+	conn, err := connection.NewConnection(addr)
 	if err != nil {
 		return err
 	}
