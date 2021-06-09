@@ -52,7 +52,8 @@ func GetFile(conn net.Conn, site, innerPath string, location, size int) (*getFil
 }
 
 func getFileHandler(conn net.Conn, r getFileRequest) error {
-	// TODO: get values from storage + handle reputation
+	// TODO: get values from storage + handle reputation.
+	// Max 512 bytes sent in a request
 	data, err := msgpack.Marshal(&getFileResponse{
 		CMD:      "response",
 		To:       r.ReqID,
