@@ -87,7 +87,7 @@ func (s *server) Listen() {
 func (s *server) handleConn(conn net.Conn) {
 	s.log.
 		WithField("local", conn.LocalAddr()).
-		WithField("remote", conn.RemoteAddr().String()).
+		WithField("remote", conn.RemoteAddr()).
 		Debug("new connection")
 
 	defer conn.Close()
