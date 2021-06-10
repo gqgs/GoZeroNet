@@ -8,6 +8,8 @@ import (
 	"path"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/content"
+	"github.com/gqgs/go-zeronet/pkg/template"
 )
 
 type Site struct {
@@ -39,6 +41,18 @@ type Site struct {
 	WrapperKey                string            `json:"wrapper_key"`
 }
 
+func (s Site) DecodeJSON(filename string, v interface{}) error {
+	innerPath := path.Join(config.DataDir, s.addr, filename)
+	file, err := os.Open(innerPath)
+	if err != nil {
+		// TODO: download file
+		return err
+	}
+	defer file.Close()
+
+	return json.NewDecoder(file).Decode(v)
+}
+
 func (s Site) ReadFile(filename string, dst io.Writer) error {
 	innerPath := path.Join(config.DataDir, s.addr, filename)
 	file, err := os.Open(innerPath)
@@ -53,12 +67,62 @@ func (s Site) ReadFile(filename string, dst io.Writer) error {
 }
 
 type SiteManager interface {
+	RenderIndex(site, indexFilename string, dst io.Writer) error
 	ReadFile(site, filename string, dst io.Writer) error
 }
 
 type siteManager struct {
 	// Address -> Site info
 	sites map[string]*Site
+}
+
+func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) error {
+	s, ok := m.sites[site]
+	if !ok {
+		// TODO: download site
+		return errors.New("site not found")
+	}
+
+	// var innerContent strings.Builder
+	// if err := s.ReadFile(indexFilename, &innerContent); err != nil {
+	// 	return err
+	// }
+
+	var siteContent content.Content
+	if err := s.DecodeJSON("content.json", &siteContent); err != nil {
+		return err
+	}
+
+	vars := struct {
+		ServerURL                string
+		InnerPath                string
+		FileURL                  string // TODO: escape?
+		FileInnerPath            string // TODO: escape?
+		Address                  string
+		Title                    string // TODO: escape?
+		BodyStyle                string
+		MetaTags                 string
+		QueryString              string // TODO: escape?
+		WrapperKey               string
+		AjaxKey                  string
+		WrapperNonce             string
+		PostMessageNonceSecurity string
+		Permissions              string
+		ShowLoadingScreen        bool
+		SandboxPermissions       string
+		Rev                      int
+		Lang                     string
+		HomePage                 string
+		ThemeClass               string
+		ScriptNonce              string
+	}{
+		Address: site,
+		Title:   siteContent.Title,
+		Rev:     config.Rev,
+		Lang:    config.Language,
+	}
+
+	return template.Wrapper.ExecuteHTML(dst, vars)
 }
 
 func (m *siteManager) ReadFile(site, filename string, dst io.Writer) error {

@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/gqgs/go-zeronet/cmd/site"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uiserver"
 )
 

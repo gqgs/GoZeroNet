@@ -21,6 +21,7 @@ const (
 	UIServerAddr       = "127.0.0.1:43111"
 	RandomIPv4Addr     = "127.0.0.1:"
 	DataDir            = "./data/"
+	Language           = "en"
 )
 
 var (
