@@ -67,6 +67,7 @@ func (s Site) ReadFile(filename string, dst io.Writer) error {
 }
 
 type SiteManager interface {
+	Site(addr string) Site
 	RenderIndex(site, indexFilename string, dst io.Writer) error
 	ReadFile(site, filename string, dst io.Writer) error
 }
@@ -74,6 +75,11 @@ type SiteManager interface {
 type siteManager struct {
 	// Address -> Site info
 	sites map[string]*Site
+}
+
+func (m *siteManager) Site(addr string) Site {
+	site := m.sites[addr]
+	return *site
 }
 
 func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) error {
@@ -120,6 +126,7 @@ func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) err
 		Title:   siteContent.Title,
 		Rev:     config.Rev,
 		Lang:    config.Language,
+		FileURL: "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D/index.html",
 	}
 
 	return template.Wrapper.ExecuteHTML(dst, vars)

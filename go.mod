@@ -6,6 +6,7 @@ require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/fasthttp/websocket v1.4.3
 	github.com/go-chi/chi v1.5.4
+	github.com/mailru/easyjson v0.7.7
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.6.1

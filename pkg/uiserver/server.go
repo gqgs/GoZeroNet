@@ -57,14 +57,8 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 		s.log.Error(err)
 		return
 	}
-	for {
-		_, message, err := conn.ReadMessage()
-		if err != nil {
-			s.log.Error(err)
-			return
-		}
-		s.log.Info(string(message))
-	}
+
+	go newUIWebsocket(conn, s.siteManager).Serve()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
