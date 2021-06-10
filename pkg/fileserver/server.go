@@ -60,7 +60,7 @@ func (s *server) Shutdown() error {
 }
 
 func (s *server) Listen() {
-	s.log.Infof("listening at %s", s.addr)
+	s.log.Infof("listening at http://%s", s.addr)
 	for {
 		conn, err := s.l.Accept()
 		switch e := err.(type) {

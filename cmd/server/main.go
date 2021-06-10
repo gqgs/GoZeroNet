@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/gqgs/go-zeronet/cmd/site"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/uiserver"
 )
@@ -23,11 +24,16 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	siteManager, err := site.NewSiteManager()
+	if err != nil {
+		return err
+	}
+
 	fileServer, err := fileserver.NewServer(fileServerAddr)
 	if err != nil {
 		return err
 	}
-	uiServer := uiserver.NewServer(uiServerAddr)
+	uiServer := uiserver.NewServer(uiServerAddr, siteManager)
 
 	idleConnsClosed := make(chan struct{})
 	go func() {
