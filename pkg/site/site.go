@@ -89,11 +89,6 @@ func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) err
 		return errors.New("site not found")
 	}
 
-	// var innerContent strings.Builder
-	// if err := s.ReadFile(indexFilename, &innerContent); err != nil {
-	// 	return err
-	// }
-
 	var siteContent content.Content
 	if err := s.DecodeJSON("content.json", &siteContent); err != nil {
 		return err
@@ -112,8 +107,8 @@ func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) err
 		WrapperKey               string
 		AjaxKey                  string
 		WrapperNonce             string
-		PostMessageNonceSecurity string
-		Permissions              string
+		PostMessageNonceSecurity bool
+		Permissions              []string
 		ShowLoadingScreen        bool
 		SandboxPermissions       string
 		Rev                      int
@@ -122,11 +117,20 @@ func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) err
 		ThemeClass               string
 		ScriptNonce              string
 	}{
-		Address: site,
-		Title:   siteContent.Title,
-		Rev:     config.Rev,
-		Lang:    config.Language,
-		FileURL: "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D/index.html",
+		Address:                  site,
+		Title:                    siteContent.Title,
+		Rev:                      config.Rev,
+		Lang:                     config.Language,
+		FileURL:                  "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D/index.html",
+		FileInnerPath:            "index.html",
+		Permissions:              []string{"ADMIN"},
+		WrapperNonce:             "f9b6fc1fc24bd5e6ae7c3cd5761520466000d36e2e1f0f46d3d5c308a126bb56",
+		WrapperKey:               "e02c32aa7bf2625c81808ff55d98b58f93b6fba8cbda0702033cdd8cd5463d27",
+		AjaxKey:                  "bcf959ce5ac90fa70e1ac2499b19de92e031aa9cd87c6ade6ca4a7ed91b7b002",
+		ScriptNonce:              "iiz9PAl7yqImqqntjJ67TuyWvdk8GMUJ3rHc2mOSc0OkddjqaOHxhOpKjJ9xIIUJ",
+		QueryString:              "?wrapper_nonce=f9b6fc1fc24bd5e6ae7c3cd5761520466000d36e2e1f0f46d3d5c308a126bb56",
+		PostMessageNonceSecurity: false,
+		ShowLoadingScreen:        false,
 	}
 
 	return template.Wrapper.ExecuteHTML(dst, vars)

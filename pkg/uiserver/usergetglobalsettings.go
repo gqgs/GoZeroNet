@@ -1,23 +1,22 @@
 package uiserver
 
-//go:generate go run github.com/mailru/easyjson/easyjson -all
-
 type (
-	UserGetGlobalSettingsResponse struct {
+	userGetGlobalSettingsResponse struct {
 		CMD    string                      `json:"cmd"`
 		ID     int                         `json:"id"`
 		To     int                         `json:"to"`
-		Result UserGetGlobalSettingsResult `json:"result"`
+		Result userGetGlobalSettingsResult `json:"result"`
 	}
 
-	UserGetGlobalSettingsResult map[string]string
+	userGetGlobalSettingsResult map[string]string
 )
 
-func (w *uiWebsocket) UserGetGlobalSettings(message []byte, id int) {
-	err := w.conn.WriteJSON(UserGetGlobalSettingsResponse{
+func (w *uiWebsocket) userGetGlobalSettings(message []byte, id int) {
+	err := w.conn.WriteJSON(userGetGlobalSettingsResponse{
 		CMD:    "response",
 		To:     id,
-		Result: make(UserGetGlobalSettingsResult),
+		ID:     w.reqID,
+		Result: make(userGetGlobalSettingsResult),
 	})
 	w.log.IfError(err)
 }

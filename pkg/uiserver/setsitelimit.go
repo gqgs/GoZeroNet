@@ -1,29 +1,30 @@
 package uiserver
 
 type (
-	sizeLimitRequest struct {
+	siteLimitRequest struct {
 		CMD    string          `json:"cmd"`
 		ID     int             `json:"id"`
-		Params sizeLimitParams `json:"params"`
+		Params siteLimitParams `json:"params"`
 	}
-	sizeLimitParams struct {
+	siteLimitParams struct {
 		Channels []string `json:"channels"`
 	}
 
-	sizeLimitResponse struct {
+	siteLimitResponse struct {
 		CMD    string          `json:"cmd"`
 		ID     int             `json:"id"`
 		To     int             `json:"to"`
-		Result sizeLimitResult `json:"result"`
+		Result siteLimitResult `json:"result"`
 	}
 
-	sizeLimitResult string
+	siteLimitResult string
 )
 
 func (w *uiWebsocket) siteLimit(message []byte, id int) {
-	err := w.conn.WriteJSON(sizeLimitResponse{
+	err := w.conn.WriteJSON(siteLimitResponse{
 		CMD:    "response",
 		To:     id,
+		ID:     w.reqID,
 		Result: "ok",
 	})
 	w.log.IfError(err)

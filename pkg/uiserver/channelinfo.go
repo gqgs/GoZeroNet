@@ -1,28 +1,29 @@
 package uiserver
 
 type (
-	ChannelInfoRequest struct {
+	channelInfoRequest struct {
 		CMD    string            `json:"cmd"`
 		ID     int               `json:"id"`
-		Params ChannelInfoParams `json:"params"`
+		Params channelInfoParams `json:"params"`
 	}
-	ChannelInfoParams struct {
+	channelInfoParams struct {
 		Channels []string `json:"channels"`
 	}
 
-	ChannelInfoResponse struct {
+	channelInfoResponse struct {
 		CMD    string            `json:"cmd"`
 		ID     int               `json:"id"`
 		To     int               `json:"to"`
-		Result ChannelInfoResult `json:"result"`
+		Result channelInfoResult `json:"result"`
 	}
 
-	ChannelInfoResult string
+	channelInfoResult string
 )
 
 func (w *uiWebsocket) channelInfo(message []byte, id int) {
-	err := w.conn.WriteJSON(ChannelInfoResponse{
+	err := w.conn.WriteJSON(channelInfoResponse{
 		CMD:    "response",
+		ID:     w.reqID,
 		To:     id,
 		Result: "ok",
 	})

@@ -15,6 +15,7 @@ type uiWebsocket struct {
 	conn        *websocket.Conn
 	log         log.Logger
 	siteManager site.SiteManager
+	reqID       int
 }
 
 func newUIWebsocket(conn *websocket.Conn, siteManager site.SiteManager) *uiWebsocket {
@@ -37,6 +38,7 @@ func (w *uiWebsocket) Serve() {
 			w.log.Error(err)
 			return
 		}
+		w.reqID++
 
 		cmd, err := decodeCmd(message)
 		if err != nil {
@@ -47,7 +49,7 @@ func (w *uiWebsocket) Serve() {
 
 		switch cmd.CMD {
 		case "userGetGlobalSettings":
-			w.UserGetGlobalSettings(message, cmd.ID)
+			w.userGetGlobalSettings(message, cmd.ID)
 			continue
 		case "channelJoin":
 			w.channelInfo(message, cmd.ID)
@@ -58,10 +60,37 @@ func (w *uiWebsocket) Serve() {
 		case "siteSetLimit":
 			w.siteLimit(message, cmd.ID)
 			continue
+		case "optionalLimitStats":
+			w.optionalLimitStats(message, cmd.ID)
+			continue
+		case "userGetSettings":
+			w.userGetSettings(message, cmd.ID)
+			continue
+		case "serverInfo":
+			w.serverInfo(message, cmd.ID)
+			continue
+		case "serverErrors":
+			w.serverErrors(message, cmd.ID)
+			continue
+		case "announcerStats":
+			w.announcerStats(message, cmd.ID)
+			continue
+		case "siteList":
+			w.siteList(message, cmd.ID)
+			continue
+		case "channelJoinAllsite":
+			w.channelJoinAllsite(message, cmd.ID)
+			continue
+		case "feedQuery":
+			w.feedQuery(message, cmd.ID)
+			continue
+		case "filterIncludeList":
+			w.filterIncludeList(message, cmd.ID)
+			continue
 		}
 
-		w.log.Info(cmd, err)
-		w.log.Info(string(message))
+		w.log.WithField("cmd", cmd).Warn("unknown cmd")
+		w.log.Warn(string(message))
 	}
 }
 
