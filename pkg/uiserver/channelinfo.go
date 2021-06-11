@@ -20,12 +20,11 @@ type (
 	channelInfoResult string
 )
 
-func (w *uiWebsocket) channelInfo(message []byte, id int) {
-	err := w.conn.WriteJSON(channelInfoResponse{
+func (w *uiWebsocket) channelInfo(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(channelInfoResponse{
 		CMD:    "response",
 		ID:     w.reqID,
-		To:     id,
+		To:     message.ID,
 		Result: "ok",
 	})
-	w.log.IfError(err)
 }

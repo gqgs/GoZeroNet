@@ -23,15 +23,14 @@ type (
 	}
 )
 
-func (w *uiWebsocket) optionalLimitStats(message []byte, id int) {
-	err := w.conn.WriteJSON(optionalLimitStatsResponse{
+func (w *uiWebsocket) optionalLimitStats(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(optionalLimitStatsResponse{
 		CMD: "response",
 		ID:  w.reqID,
-		To:  id,
+		To:  message.ID,
 		Result: optionalLimitStatsResult{
 			Free:  540246016,
 			Limit: "10%",
 		},
 	})
-	w.log.IfError(err)
 }

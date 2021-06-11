@@ -18,12 +18,11 @@ type (
 	}
 )
 
-func (w *uiWebsocket) siteInfo(message []byte, id int) {
-	err := w.conn.WriteJSON(siteInfoResponse{
+func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(siteInfoResponse{
 		CMD:    "response",
-		To:     id,
+		To:     message.ID,
 		ID:     w.reqID,
 		Result: site.GetInfo(w.siteManager),
 	})
-	w.log.IfError(err)
 }

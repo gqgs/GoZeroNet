@@ -28,15 +28,14 @@ type (
 	}
 )
 
-func (w *uiWebsocket) feedQuery(message []byte, id int) {
-	err := w.conn.WriteJSON(feedQueryResponse{
+func (w *uiWebsocket) feedQuery(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(feedQueryResponse{
 		CMD: "response",
 		ID:  w.reqID,
-		To:  id,
+		To:  message.ID,
 		Result: feedQueryResult{
 			Rows:  make([]string, 0),
 			Stats: make([]string, 0),
 		},
 	})
-	w.log.IfError(err)
 }

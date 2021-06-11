@@ -11,12 +11,11 @@ type (
 	userGetGlobalSettingsResult map[string]string
 )
 
-func (w *uiWebsocket) userGetGlobalSettings(message []byte, id int) {
-	err := w.conn.WriteJSON(userGetGlobalSettingsResponse{
+func (w *uiWebsocket) userGetGlobalSettings(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(userGetGlobalSettingsResponse{
 		CMD:    "response",
-		To:     id,
+		To:     message.ID,
 		ID:     w.reqID,
 		Result: make(userGetGlobalSettingsResult),
 	})
-	w.log.IfError(err)
 }

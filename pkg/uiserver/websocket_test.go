@@ -2,7 +2,7 @@ package uiserver
 
 import "testing"
 
-func Test_decodeCmd(t *testing.T) {
+func Test_decode(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    []byte
@@ -20,16 +20,16 @@ func Test_decodeCmd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := decodeCmd(tt.data)
+			got, err := decode(tt.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("decodeCmd() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("decode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got.CMD != tt.wantCmd {
-				t.Errorf("decodeCmd() = %v, want %v", got, tt.wantCmd)
+				t.Errorf("decode() = %v, want %v", got, tt.wantCmd)
 			}
 			if got.ID != tt.wantID {
-				t.Errorf("decodeCmd() = %v, want %v", got, tt.wantID)
+				t.Errorf("decode() = %v, want %v", got, tt.wantID)
 			}
 		})
 	}

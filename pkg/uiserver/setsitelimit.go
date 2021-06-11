@@ -20,12 +20,11 @@ type (
 	siteLimitResult string
 )
 
-func (w *uiWebsocket) siteLimit(message []byte, id int) {
-	err := w.conn.WriteJSON(siteLimitResponse{
+func (w *uiWebsocket) siteLimit(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(siteLimitResponse{
 		CMD:    "response",
-		To:     id,
+		To:     message.ID,
 		ID:     w.reqID,
 		Result: "ok",
 	})
-	w.log.IfError(err)
 }

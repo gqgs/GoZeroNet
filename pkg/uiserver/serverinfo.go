@@ -19,12 +19,11 @@ type (
 	}
 )
 
-func (w *uiWebsocket) serverInfo(message []byte, id int) {
-	err := w.conn.WriteJSON(serverInfoResponse{
+func (w *uiWebsocket) serverInfo(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(serverInfoResponse{
 		CMD:    "response",
 		ID:     w.reqID,
-		To:     id,
+		To:     message.ID,
 		Result: info.ServerInfo(),
 	})
-	w.log.IfError(err)
 }

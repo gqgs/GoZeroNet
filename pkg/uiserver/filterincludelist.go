@@ -22,12 +22,11 @@ type (
 	filterIncludeListResult []string
 )
 
-func (w *uiWebsocket) filterIncludeList(message []byte, id int) {
-	err := w.conn.WriteJSON(filterIncludeListResponse{
+func (w *uiWebsocket) filterIncludeList(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(filterIncludeListResponse{
 		CMD:    "response",
 		ID:     w.reqID,
-		To:     id,
+		To:     message.ID,
 		Result: make(filterIncludeListResult, 0),
 	})
-	w.log.IfError(err)
 }

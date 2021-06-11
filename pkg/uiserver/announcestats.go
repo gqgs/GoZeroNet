@@ -21,12 +21,11 @@ type (
 	announcerStatsResult map[string]announcer.Stats
 )
 
-func (w *uiWebsocket) announcerStats(message []byte, id int) {
-	err := w.conn.WriteJSON(announcerStatsResponse{
+func (w *uiWebsocket) announcerStats(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(announcerStatsResponse{
 		CMD:    "response",
 		ID:     w.reqID,
-		To:     id,
+		To:     message.ID,
 		Result: announcer.GetStats(),
 	})
-	w.log.IfError(err)
 }

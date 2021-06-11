@@ -23,12 +23,11 @@ type (
 	siteListResult string
 )
 
-func (w *uiWebsocket) siteList(message []byte, id int) {
-	err := w.conn.WriteJSON(siteListResponse{
+func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(siteListResponse{
 		CMD:    "response",
 		ID:     w.reqID,
-		To:     id,
+		To:     message.ID,
 		Result: []site.Info{site.GetInfo(w.siteManager)},
 	})
-	w.log.IfError(err)
 }

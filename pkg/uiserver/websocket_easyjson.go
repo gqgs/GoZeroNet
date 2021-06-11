@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonC8566e17DecodeGithubComGqgsGoZeronetPkgUiserver(in *jlexer.Lexer, out *Cmd) {
+func easyjsonC8566e17DecodeGithubComGqgsGoZeronetPkgUiserver(in *jlexer.Lexer, out *Message) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -40,6 +40,8 @@ func easyjsonC8566e17DecodeGithubComGqgsGoZeronetPkgUiserver(in *jlexer.Lexer, o
 			out.ID = int(in.Int())
 		case "cmd":
 			out.CMD = string(in.String())
+		case "wrapper_nonce":
+			out.WrapperNonce = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -50,7 +52,7 @@ func easyjsonC8566e17DecodeGithubComGqgsGoZeronetPkgUiserver(in *jlexer.Lexer, o
 		in.Consumed()
 	}
 }
-func easyjsonC8566e17EncodeGithubComGqgsGoZeronetPkgUiserver(out *jwriter.Writer, in Cmd) {
+func easyjsonC8566e17EncodeGithubComGqgsGoZeronetPkgUiserver(out *jwriter.Writer, in Message) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -64,29 +66,34 @@ func easyjsonC8566e17EncodeGithubComGqgsGoZeronetPkgUiserver(out *jwriter.Writer
 		out.RawString(prefix)
 		out.String(string(in.CMD))
 	}
+	{
+		const prefix string = ",\"wrapper_nonce\":"
+		out.RawString(prefix)
+		out.String(string(in.WrapperNonce))
+	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v Cmd) MarshalJSON() ([]byte, error) {
+func (v Message) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjsonC8566e17EncodeGithubComGqgsGoZeronetPkgUiserver(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v Cmd) MarshalEasyJSON(w *jwriter.Writer) {
+func (v Message) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjsonC8566e17EncodeGithubComGqgsGoZeronetPkgUiserver(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *Cmd) UnmarshalJSON(data []byte) error {
+func (v *Message) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjsonC8566e17DecodeGithubComGqgsGoZeronetPkgUiserver(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Cmd) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *Message) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonC8566e17DecodeGithubComGqgsGoZeronetPkgUiserver(l, v)
 }

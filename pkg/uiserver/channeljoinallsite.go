@@ -21,12 +21,11 @@ type (
 	channelJoinAllsiteResult string
 )
 
-func (w *uiWebsocket) channelJoinAllsite(message []byte, id int) {
-	err := w.conn.WriteJSON(channelJoinAllsiteResponse{
+func (w *uiWebsocket) channelJoinAllsite(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(channelJoinAllsiteResponse{
 		CMD:    "response",
 		ID:     w.reqID,
-		To:     id,
+		To:     message.ID,
 		Result: "ok",
 	})
-	w.log.IfError(err)
 }

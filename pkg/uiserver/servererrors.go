@@ -19,12 +19,11 @@ type (
 	serverErrorsResult []string
 )
 
-func (w *uiWebsocket) serverErrors(message []byte, id int) {
-	err := w.conn.WriteJSON(serverErrorsResponse{
+func (w *uiWebsocket) serverErrors(rawMessage []byte, message Message) error {
+	return w.conn.WriteJSON(serverErrorsResponse{
 		CMD:    "response",
 		ID:     w.reqID,
-		To:     id,
+		To:     message.ID,
 		Result: make(serverErrorsResult, 0),
 	})
-	w.log.IfError(err)
 }

@@ -7,8 +7,13 @@ import (
 	textTemplate "text/template"
 )
 
-var text *textTemplate.Template
-var html *htmlTemplate.Template
+var (
+	text *textTemplate.Template
+	html *htmlTemplate.Template
+
+	//go:embed template/*.tmpl
+	fs embed.FS
+)
 
 type tmpl string
 
@@ -22,16 +27,13 @@ func (t tmpl) ExecuteText(w io.Writer, data interface{}) error {
 	return text.ExecuteTemplate(w, string(t), data)
 }
 
-//go:embed *.tmpl
-var fs embed.FS
-
 func init() {
 	var err error
-	text, err = textTemplate.ParseFS(fs, "*.tmpl")
+	text, err = textTemplate.ParseFS(fs, "template/*.tmpl")
 	if err != nil {
 		panic(err)
 	}
-	html, err = htmlTemplate.ParseFS(fs, "*.tmpl")
+	html, err = htmlTemplate.ParseFS(fs, "template/*.tmpl")
 	if err != nil {
 		panic(err)
 	}
