@@ -117,20 +117,22 @@ func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) err
 		ThemeClass               string
 		ScriptNonce              string
 	}{
-		Address:                  site,
-		Title:                    siteContent.Title,
-		Rev:                      config.Rev,
-		Lang:                     config.Language,
-		FileURL:                  "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D/index.html",
-		FileInnerPath:            "index.html",
-		Permissions:              []string{"ADMIN"},
-		WrapperNonce:             "f9b6fc1fc24bd5e6ae7c3cd5761520466000d36e2e1f0f46d3d5c308a126bb56",
-		WrapperKey:               "e02c32aa7bf2625c81808ff55d98b58f93b6fba8cbda0702033cdd8cd5463d27",
-		AjaxKey:                  "bcf959ce5ac90fa70e1ac2499b19de92e031aa9cd87c6ade6ca4a7ed91b7b002",
-		ScriptNonce:              "iiz9PAl7yqImqqntjJ67TuyWvdk8GMUJ3rHc2mOSc0OkddjqaOHxhOpKjJ9xIIUJ",
+		Address:       site,
+		Title:         siteContent.Title,
+		Rev:           config.Rev,
+		Lang:          config.Language,
+		FileURL:       "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D/index.html",
+		FileInnerPath: "index.html",
+		Permissions:   []string{"ADMIN"},
+		WrapperNonce:  "f9b6fc1fc24bd5e6ae7c3cd5761520466000d36e2e1f0f46d3d5c308a126bb56",
+		WrapperKey:    "e02c32aa7bf2625c81808ff55d98b58f93b6fba8cbda0702033cdd8cd5463d27",
+		// AjaxKey:                  "bcf959ce5ac90fa70e1ac2499b19de92e031aa9cd87c6ade6ca4a7ed91b7b002",
+		// ScriptNonce:              "iiz9PAl7yqImqqntjJ67TuyWvdk8GMUJ3rHc2mOSc0OkddjqaOHxhOpKjJ9xIIUJ",
 		QueryString:              "?wrapper_nonce=f9b6fc1fc24bd5e6ae7c3cd5761520466000d36e2e1f0f46d3d5c308a126bb56",
 		PostMessageNonceSecurity: false,
 		ShowLoadingScreen:        false,
+		ThemeClass:               "theme-light",
+		BodyStyle:                "background-color: #F2F4F6",
 	}
 
 	return template.Wrapper.ExecuteHTML(dst, vars)

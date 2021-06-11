@@ -93,6 +93,12 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.HasSuffix(innerPath, "all.css") {
+		w.Header().Add("Content-Type", "text/css")
+	} else if strings.HasSuffix(innerPath, "all.js") {
+		w.Header().Add("Content-Type", "application/javascript")
+	}
+
 	if err := s.siteManager.ReadFile(site, innerPath, w); err != nil {
 		s.log.WithField("site", site).WithField("innerPath", innerPath).Warn(err)
 		http.Error(w, "not found", http.StatusNotFound)
