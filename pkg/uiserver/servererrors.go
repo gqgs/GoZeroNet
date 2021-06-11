@@ -1,9 +1,11 @@
 package uiserver
 
+import "sync/atomic"
+
 type (
 	serverErrorsRequest struct {
 		CMD          string             `json:"cmd"`
-		ID           int                `json:"id"`
+		ID           int64              `json:"id"`
 		Params       serverErrorsParams `json:"params"`
 		WrapperNonce string             `json:"wrapper_nonce"`
 	}
@@ -11,8 +13,8 @@ type (
 
 	serverErrorsResponse struct {
 		CMD    string             `json:"cmd"`
-		ID     int                `json:"id"`
-		To     int                `json:"to"`
+		ID     int64              `json:"id"`
+		To     int64              `json:"to"`
 		Result serverErrorsResult `json:"result"`
 	}
 
@@ -22,7 +24,7 @@ type (
 func (w *uiWebsocket) serverErrors(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(serverErrorsResponse{
 		CMD:    "response",
-		ID:     w.reqID,
+		ID:     atomic.AddInt64(&w.reqID, 1),
 		To:     message.ID,
 		Result: make(serverErrorsResult, 0),
 	})

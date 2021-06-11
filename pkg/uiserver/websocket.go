@@ -3,24 +3,27 @@ package uiserver
 import (
 	"errors"
 
-	"github.com/fasthttp/websocket"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
+	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/mailru/easyjson"
 )
 
 //go:generate go run github.com/mailru/easyjson/easyjson -all
 
-//easyjson:skip
-type uiWebsocket struct {
-	// mu   sync.Mutex
-	conn        *websocket.Conn
-	log         log.Logger
-	siteManager site.SiteManager
-	reqID       int
+type websocketWriter interface {
+	WriteJSON(v interface{}) error
 }
 
-func newUIWebsocket(conn *websocket.Conn, siteManager site.SiteManager) *uiWebsocket {
+//easyjson:skip
+type uiWebsocket struct {
+	conn        websocket.Conn
+	log         log.Logger
+	siteManager site.SiteManager
+	reqID       int64
+}
+
+func newUIWebsocket(conn websocket.Conn, siteManager site.SiteManager) *uiWebsocket {
 	return &uiWebsocket{
 		conn:        conn,
 		siteManager: siteManager,
@@ -29,7 +32,7 @@ func newUIWebsocket(conn *websocket.Conn, siteManager site.SiteManager) *uiWebso
 }
 
 type Message struct {
-	ID           int    `json:"id"`
+	ID           int64  `json:"id"`
 	CMD          string `json:"cmd"`
 	WrapperNonce string `json:"wrapper_nonce"`
 }
@@ -41,17 +44,18 @@ func (w *uiWebsocket) Serve() {
 			w.log.Error(err)
 			return
 		}
-		w.reqID++
+		go w.handleMessage(rawMessage)
+	}
+}
 
-		message, err := decode(rawMessage)
-		if err != nil {
-			w.log.WithField("err", err).Warn("cmd decode error")
-			continue
-		}
+func (w *uiWebsocket) handleMessage(rawMessage []byte) {
+	message, err := decode(rawMessage)
+	if err != nil {
+		w.log.WithField("err", err).Warn("cmd decode error")
+	}
 
-		if err := w.route(rawMessage, message); err != nil {
-			w.log.WithField("rawMessage", rawMessage).Error(err)
-		}
+	if err := w.route(rawMessage, message); err != nil {
+		w.log.WithField("rawMessage", rawMessage).Error(err)
 	}
 }
 

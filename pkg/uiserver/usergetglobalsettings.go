@@ -1,10 +1,12 @@
 package uiserver
 
+import "sync/atomic"
+
 type (
 	userGetGlobalSettingsResponse struct {
 		CMD    string                      `json:"cmd"`
-		ID     int                         `json:"id"`
-		To     int                         `json:"to"`
+		ID     int64                       `json:"id"`
+		To     int64                       `json:"to"`
 		Result userGetGlobalSettingsResult `json:"result"`
 	}
 
@@ -15,7 +17,7 @@ func (w *uiWebsocket) userGetGlobalSettings(rawMessage []byte, message Message) 
 	return w.conn.WriteJSON(userGetGlobalSettingsResponse{
 		CMD:    "response",
 		To:     message.ID,
-		ID:     w.reqID,
+		ID:     atomic.AddInt64(&w.reqID, 1),
 		Result: make(userGetGlobalSettingsResult),
 	})
 }

@@ -37,7 +37,7 @@ func easyjsonC8566e17DecodeGithubComGqgsGoZeronetPkgUiserver(in *jlexer.Lexer, o
 		}
 		switch key {
 		case "id":
-			out.ID = int(in.Int())
+			out.ID = int64(in.Int64())
 		case "cmd":
 			out.CMD = string(in.String())
 		case "wrapper_nonce":
@@ -59,7 +59,7 @@ func easyjsonC8566e17EncodeGithubComGqgsGoZeronetPkgUiserver(out *jwriter.Writer
 	{
 		const prefix string = ",\"id\":"
 		out.RawString(prefix[1:])
-		out.Int(int(in.ID))
+		out.Int64(int64(in.ID))
 	}
 	{
 		const prefix string = ",\"cmd\":"

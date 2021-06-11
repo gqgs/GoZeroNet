@@ -1,11 +1,15 @@
 package uiserver
 
-import "github.com/gqgs/go-zeronet/pkg/info"
+import (
+	"sync/atomic"
+
+	"github.com/gqgs/go-zeronet/pkg/info"
+)
 
 type (
 	serverInfoRequest struct {
 		CMD          string           `json:"cmd"`
-		ID           int              `json:"id"`
+		ID           int64            `json:"id"`
 		Params       serverInfoParams `json:"params"`
 		WrapperNonce string           `json:"wrapper_nonce"`
 	}
@@ -13,8 +17,8 @@ type (
 
 	serverInfoResponse struct {
 		CMD    string      `json:"cmd"`
-		ID     int         `json:"id"`
-		To     int         `json:"to"`
+		ID     int64       `json:"id"`
+		To     int64       `json:"to"`
 		Result info.Server `json:"result"`
 	}
 )
@@ -22,7 +26,7 @@ type (
 func (w *uiWebsocket) serverInfo(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(serverInfoResponse{
 		CMD:    "response",
-		ID:     w.reqID,
+		ID:     atomic.AddInt64(&w.reqID, 1),
 		To:     message.ID,
 		Result: info.ServerInfo(),
 	})

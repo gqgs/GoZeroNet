@@ -7,7 +7,7 @@ func Test_decode(t *testing.T) {
 		name    string
 		data    []byte
 		wantCmd string
-		wantID  int
+		wantID  int64
 		wantErr bool
 	}{
 		{

@@ -3,7 +3,7 @@ package uiserver
 type (
 	optionalLimitStatsRequest struct {
 		CMD          string                   `json:"cmd"`
-		ID           int                      `json:"id"`
+		ID           int64                    `json:"id"`
 		Params       optionalLimitStatsParams `json:"params"`
 		WrapperNonce string                   `json:"wrapper_nonce"`
 	}
@@ -11,8 +11,8 @@ type (
 
 	optionalLimitStatsResponse struct {
 		CMD    string                   `json:"cmd"`
-		ID     int                      `json:"id"`
-		To     int                      `json:"to"`
+		ID     int64                    `json:"id"`
+		To     int64                    `json:"to"`
 		Result optionalLimitStatsResult `json:"result"`
 	}
 

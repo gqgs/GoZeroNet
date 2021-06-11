@@ -1,9 +1,11 @@
 package uiserver
 
+import "sync/atomic"
+
 type (
 	feedQueryRequest struct {
 		CMD          string          `json:"cmd"`
-		ID           int             `json:"id"`
+		ID           int64           `json:"id"`
 		Params       feedQueryParams `json:"params"`
 		WrapperNonce string          `json:"wrapper_nonce"`
 	}
@@ -14,8 +16,8 @@ type (
 
 	feedQueryResponse struct {
 		CMD    string          `json:"cmd"`
-		ID     int             `json:"id"`
-		To     int             `json:"to"`
+		ID     int64           `json:"id"`
+		To     int64           `json:"to"`
 		Result feedQueryResult `json:"result"`
 	}
 
@@ -31,7 +33,7 @@ type (
 func (w *uiWebsocket) feedQuery(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(feedQueryResponse{
 		CMD: "response",
-		ID:  w.reqID,
+		ID:  atomic.AddInt64(&w.reqID, 1),
 		To:  message.ID,
 		Result: feedQueryResult{
 			Rows:  make([]string, 0),

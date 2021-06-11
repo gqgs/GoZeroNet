@@ -1,9 +1,11 @@
 package uiserver
 
+import "sync/atomic"
+
 type (
 	siteLimitRequest struct {
 		CMD    string          `json:"cmd"`
-		ID     int             `json:"id"`
+		ID     int64           `json:"id"`
 		Params siteLimitParams `json:"params"`
 	}
 	siteLimitParams struct {
@@ -12,8 +14,8 @@ type (
 
 	siteLimitResponse struct {
 		CMD    string          `json:"cmd"`
-		ID     int             `json:"id"`
-		To     int             `json:"to"`
+		ID     int64           `json:"id"`
+		To     int64           `json:"to"`
 		Result siteLimitResult `json:"result"`
 	}
 
@@ -24,7 +26,7 @@ func (w *uiWebsocket) siteLimit(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(siteLimitResponse{
 		CMD:    "response",
 		To:     message.ID,
-		ID:     w.reqID,
+		ID:     atomic.AddInt64(&w.reqID, 1),
 		Result: "ok",
 	})
 }

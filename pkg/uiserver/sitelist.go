@@ -1,11 +1,15 @@
 package uiserver
 
-import "github.com/gqgs/go-zeronet/pkg/site"
+import (
+	"sync/atomic"
+
+	"github.com/gqgs/go-zeronet/pkg/site"
+)
 
 type (
 	siteListRequest struct {
 		CMD          string         `json:"cmd"`
-		ID           int            `json:"id"`
+		ID           int64          `json:"id"`
 		Params       siteListParams `json:"params"`
 		WrapperNonce string         `json:"wrapper_nonce"`
 	}
@@ -15,8 +19,8 @@ type (
 
 	siteListResponse struct {
 		CMD    string      `json:"cmd"`
-		ID     int         `json:"id"`
-		To     int         `json:"to"`
+		ID     int64       `json:"id"`
+		To     int64       `json:"to"`
 		Result []site.Info `json:"result"`
 	}
 
@@ -26,7 +30,7 @@ type (
 func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(siteListResponse{
 		CMD:    "response",
-		ID:     w.reqID,
+		ID:     atomic.AddInt64(&w.reqID, 1),
 		To:     message.ID,
 		Result: []site.Info{site.GetInfo(w.siteManager)},
 	})

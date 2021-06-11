@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/fasthttp/websocket"
 	"github.com/go-chi/chi"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
+	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uimedia"
 )
@@ -46,13 +46,8 @@ func NewServer(addr string, siteManager site.SiteManager) *server {
 	return s
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
 func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
 		s.log.Error(err)
 		return
