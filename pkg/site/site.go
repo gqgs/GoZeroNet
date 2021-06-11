@@ -53,9 +53,9 @@ func (s Site) DecodeJSON(filename string, v interface{}) error {
 	return json.NewDecoder(file).Decode(v)
 }
 
-func (s Site) ReadFile(filename string, dst io.Writer) error {
-	innerPath := path.Join(config.DataDir, s.addr, filename)
-	file, err := os.Open(innerPath)
+func (s Site) ReadFile(innerPath string, dst io.Writer) error {
+	path := path.Join(config.DataDir, s.addr, innerPath)
+	file, err := os.Open(path)
 	if err != nil {
 		// TODO: download file
 		return err
@@ -69,7 +69,7 @@ func (s Site) ReadFile(filename string, dst io.Writer) error {
 type SiteManager interface {
 	Site(addr string) Site
 	RenderIndex(site, indexFilename string, dst io.Writer) error
-	ReadFile(site, filename string, dst io.Writer) error
+	ReadFile(site, innerPath string, dst io.Writer) error
 }
 
 type siteManager struct {
@@ -132,14 +132,14 @@ func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) err
 	return template.Wrapper.ExecuteHTML(dst, vars)
 }
 
-func (m *siteManager) ReadFile(site, filename string, dst io.Writer) error {
+func (m *siteManager) ReadFile(site, innerPath string, dst io.Writer) error {
 	s, ok := m.sites[site]
 	if !ok {
 		// TODO: download site
 		return errors.New("site not found")
 	}
 
-	return s.ReadFile(filename, dst)
+	return s.ReadFile(innerPath, dst)
 }
 
 func NewSiteManager() (*siteManager, error) {

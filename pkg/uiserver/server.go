@@ -3,6 +3,7 @@ package uiserver
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/fasthttp/websocket"
 	"github.com/go-chi/chi"
@@ -37,8 +38,7 @@ func NewServer(addr string, siteManager site.SiteManager) *server {
 	r.Get("/uimedia/img/{file}", uimediaHandler)
 	r.Get("/uimedia/lib/{file}", uimediaHandler)
 	r.Route("/{site:1[0-9A-Za-z]{31,33}}", func(r chi.Router) {
-		r.Get("/", s.siteHandler)
-		r.Get("/{file}", s.siteFileHandler)
+		r.Get("/*", s.siteHandler)
 	})
 	r.Route("/ZeroNet-Internal", func(r chi.Router) {
 		r.Get("/Websocket", s.websocketHandler)
@@ -82,17 +82,19 @@ func (s *server) Listen(ctx context.Context) {
 
 func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 	site := chi.URLParam(r, "site")
-	if err := s.siteManager.RenderIndex(site, "index.html", w); err != nil {
-		s.log.WithField("site", site).Warn(err)
-		http.Error(w, "not found", http.StatusNotFound)
-	}
-}
+	innerPath := strings.TrimPrefix(r.URL.Path, "/"+site)
+	innerPath = strings.TrimSuffix(innerPath, "/")
 
-func (s *server) siteFileHandler(w http.ResponseWriter, r *http.Request) {
-	site := chi.URLParam(r, "site")
-	file := chi.URLParam(r, "file")
-	if err := s.siteManager.ReadFile(site, file, w); err != nil {
-		s.log.WithField("site", site).WithField("file", file).Warn(err)
+	if innerPath == "" {
+		if err := s.siteManager.RenderIndex(site, "index.html", w); err != nil {
+			s.log.WithField("site", site).Warn(err)
+			http.Error(w, "not found", http.StatusNotFound)
+		}
+		return
+	}
+
+	if err := s.siteManager.ReadFile(site, innerPath, w); err != nil {
+		s.log.WithField("site", site).WithField("innerPath", innerPath).Warn(err)
 		http.Error(w, "not found", http.StatusNotFound)
 	}
 }
