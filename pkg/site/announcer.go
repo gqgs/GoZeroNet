@@ -177,7 +177,7 @@ func (s *Site) Announce() {
 	// In either case, update trackers.json and return the updates stats here
 }
 
-func (s Site) GetAnnouncerStats() map[string]*AnnouncerStats {
+func (s Site) AnnouncerStats() map[string]*AnnouncerStats {
 	s.Announce()
 	return s.trackers
 }
