@@ -3,8 +3,11 @@ package announcer
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -52,10 +55,12 @@ type requestResponse struct {
 }
 
 // https://www.bittorrent.org/beps/bep_0003.html
-func request(ctx context.Context, tracker string, params requestParams) error {
+// announceToTracker announces to `tracker` and returns a list of parsed peers in the swarm
+// TODO: add support for other protocols. For now it only supports HTTP trackers
+func announceToTracker(ctx context.Context, tracker string, params requestParams) ([]string, error) {
 	parsedURL, err := url.Parse(tracker)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	values := url.Values{}
@@ -64,37 +69,59 @@ func request(ctx context.Context, tracker string, params requestParams) error {
 	values.Set("port", strconv.Itoa(params.port))
 	values.Set("uploaded", "0")
 	values.Set("downloaded", "0")
+	// Hack for tracker compatibility
+	// https://github.com/HelloZeroNet/ZeroNet/issues/1248#issuecomment-364706403
 	values.Set("left", "431102370")
+	// TODO: compact is only advisory
+	// clients should support bencoded peers dict as well
 	values.Set("compact", "1")
 	values.Set("numwant", strconv.Itoa(params.numWant))
 	values.Set("event", "started")
 
 	requestURL := fmt.Sprintf("%s?%s", parsedURL, values.Encode())
 
-	fmt.Println("requestURL", requestURL)
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header = headers
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("status", resp.StatusCode)
-	decoded := new(requestResponse)
-	if err := bencode.NewDecoder(resp.Body).Decode(decoded); err != nil {
-		return err
+	parsed, err := parseTrackerResponse(resp.Body)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Printf("%#v %d\n", decoded, len(decoded.Peers))
 
-	// TODO: parse returned peers
+	return parsePeers(parsed.Peers)
+}
 
-	return nil
+func parseTrackerResponse(reader io.Reader) (*requestResponse, error) {
+	parsed := new(requestResponse)
+	return parsed, bencode.NewDecoder(reader).Decode(parsed)
+}
+
+// https://www.bittorrent.org/beps/bep_0023.html
+func parsePeers(peerList []byte) ([]string, error) {
+	if len(peerList)%6 != 0 {
+		return nil, errors.New("unexpected peer list size")
+	}
+
+	var ips []string
+	for i := 0; i < len(peerList); i += 6 {
+		ip, port := peerList[i:i+4], peerList[i+4:i+6]
+
+		peerID := net.IPv4(ip[0], ip[1], ip[2], ip[3])
+		peerPort := binary.BigEndian.Uint16(port)
+
+		ips = append(ips, fmt.Sprintf("%s:%d", peerID, peerPort))
+	}
+
+	return ips, nil
 }
 
 func GetStats(fileServerPort int) map[string]Stats {
@@ -111,11 +138,16 @@ func GetStats(fileServerPort int) map[string]Stats {
 	defer cancel()
 
 	// TODO: make parallel requests
+	// TODO: do something with peers
 	for _, tracker := range config.Trackers {
-		if err := request(ctx, tracker, params); err != nil {
+		if _, err := announceToTracker(ctx, tracker, params); err != nil {
 			fmt.Println(err)
 		}
 	}
+
+	// TODO: if trackers.json file exists annouce using the trackers defined there
+	// If it doesn't exist use bootstrap trackers in config.Trackers
+	// In either case, update trackers.json and return the updates stats here
 
 	return map[string]Stats{
 		"http://h4.trakx.nibba.trade:80/announce": {
