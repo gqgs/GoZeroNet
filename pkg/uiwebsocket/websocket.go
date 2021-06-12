@@ -1,51 +1,17 @@
-package uiserver
+package uiwebsocket
 
 import (
 	"errors"
 
-	"github.com/gqgs/go-zeronet/pkg/lib/log"
-	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
-	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/mailru/easyjson"
 )
 
 //go:generate go run github.com/mailru/easyjson/easyjson -all
 
-type websocketWriter interface {
-	WriteJSON(v interface{}) error
-}
-
-//easyjson:skip
-type uiWebsocket struct {
-	conn        websocket.Conn
-	log         log.Logger
-	siteManager site.SiteManager
-	reqID       int64
-}
-
-func newUIWebsocket(conn websocket.Conn, siteManager site.SiteManager) *uiWebsocket {
-	return &uiWebsocket{
-		conn:        conn,
-		siteManager: siteManager,
-		log:         log.New("uiwebsocket"),
-	}
-}
-
 type Message struct {
 	ID           int64  `json:"id"`
 	CMD          string `json:"cmd"`
 	WrapperNonce string `json:"wrapper_nonce"`
-}
-
-func (w *uiWebsocket) Serve() {
-	for {
-		_, rawMessage, err := w.conn.ReadMessage()
-		if err != nil {
-			w.log.Error(err)
-			return
-		}
-		go w.handleMessage(rawMessage)
-	}
 }
 
 func (w *uiWebsocket) handleMessage(rawMessage []byte) {

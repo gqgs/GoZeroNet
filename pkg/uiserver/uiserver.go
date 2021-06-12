@@ -10,6 +10,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uimedia"
+	"github.com/gqgs/go-zeronet/pkg/uiwebsocket"
 )
 
 type server struct {
@@ -53,7 +54,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go newUIWebsocket(conn, s.siteManager).Serve()
+	go uiwebsocket.NewUIWebsocket(conn, s.siteManager).Serve()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

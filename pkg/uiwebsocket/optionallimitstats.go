@@ -1,4 +1,4 @@
-package uiserver
+package uiwebsocket
 
 type (
 	optionalLimitStatsRequest struct {

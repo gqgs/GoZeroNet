@@ -1,4 +1,4 @@
-package uiserver
+package uiwebsocket
 
 import "testing"
 
