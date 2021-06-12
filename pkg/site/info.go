@@ -12,7 +12,7 @@ type Info struct {
 	Workers        int     `json:"workers"`
 	ContentUpdated float64 `json:"content_updated"`
 	Content        Content `json:"content"`
-	Settings       Site    `json:"settings"`
+	Settings       *Site   `json:"settings"`
 }
 
 type Content struct {

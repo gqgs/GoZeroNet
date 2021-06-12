@@ -1,4 +1,4 @@
-package announcer
+package site
 
 import (
 	"os"

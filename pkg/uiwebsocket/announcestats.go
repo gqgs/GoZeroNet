@@ -3,7 +3,7 @@ package uiwebsocket
 import (
 	"sync/atomic"
 
-	"github.com/gqgs/go-zeronet/pkg/announcer"
+	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
 type (
@@ -22,7 +22,7 @@ type (
 		Result announcerStatsResult `json:"result"`
 	}
 
-	announcerStatsResult map[string]announcer.Stats
+	announcerStatsResult map[string]*site.AnnouncerStats
 )
 
 func (w *uiWebsocket) announcerStats(rawMessage []byte, message Message) error {
@@ -30,6 +30,6 @@ func (w *uiWebsocket) announcerStats(rawMessage []byte, message Message) error {
 		CMD:    "response",
 		ID:     atomic.AddInt64(&w.reqID, 1),
 		To:     message.ID,
-		Result: announcer.GetStats(w.fileServer.Port()),
+		Result: w.site.GetAnnouncerStats(),
 	})
 }

@@ -17,8 +17,6 @@ const (
 
 	ConnectionDeadline = time.Second * 5
 	FileServerDeadline = time.Second
-	FileServerAddr     = "127.0.0.1:"
-	UIServerAddr       = "127.0.0.1:43111"
 	RandomIPv4Addr     = "127.0.0.1:"
 	DataDir            = "./data/"
 	Language           = "en"
@@ -32,4 +30,8 @@ var (
 	}
 	Debug = strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug") ||
 		strings.EqualFold(os.Getenv("LOG_LEVEL"), "trace")
+	FileServerAddr = "127.0.0.1:"
+	FileServerPort = 0
+	UIServerAddr   = "127.0.0.1:43111"
+	UIServerPort   = 0
 )

@@ -46,6 +46,8 @@ func NewServer(addr string) (*server, error) {
 		return nil, err
 	}
 
+	config.FileServerPort = port
+
 	return &server{
 		peerID: random.PeerID(),
 		addr:   chosenAddr,

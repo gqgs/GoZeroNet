@@ -51,13 +51,24 @@ func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.
 }
 
 func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.log.Error(err)
+		return
+	}
+	wrapperKey := r.Form.Get("wrapper_key")
+	site := s.siteManager.SiteByWrapperKey(wrapperKey)
+	if site == nil {
+		http.Error(w, "site not found", http.StatusNotFound)
+		return
+	}
+
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
 		s.log.Error(err)
 		return
 	}
 
-	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer).Serve()
+	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site).Serve()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

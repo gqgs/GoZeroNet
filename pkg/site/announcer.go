@@ -1,4 +1,4 @@
-package announcer
+package site
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 	"github.com/zeebo/bencode"
 )
 
-type Stats struct {
+type AnnouncerStats struct {
 	Status        string  `json:"status"`
 	NumRequest    int     `json:"num_request"`
 	NumSuccess    int     `json:"num_success"`
@@ -124,49 +124,60 @@ func parsePeers(peerList []byte) ([]string, error) {
 	return ips, nil
 }
 
-func GetStats(fileServerPort int) map[string]Stats {
+// Announce announces to trackers the new peer
+// TODO: where to get the peer ID?
+// TODO: debounce this function + also mutex
+func (s *Site) Announce() {
 	h := sha1.New()
-	io.WriteString(h, "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D")
+	io.WriteString(h, s.addr)
 	params := requestParams{
 		infoHash: h.Sum(nil),
 		peerID:   random.PeerID(),
-		port:     fileServerPort,
+		port:     config.FileServerPort,
 		numWant:  10,
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute))
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*30))
 	defer cancel()
 
-	// TODO: make parallel requests
-	// TODO: do something with peers
-	for _, tracker := range config.Trackers {
-		if _, err := announceToTracker(ctx, tracker, params); err != nil {
-			fmt.Println(err)
-		}
+	now := func() float64 {
+		// Convert to a representation similar to Python's time.time function:
+		// "Return the current time in seconds since the Epoch."
+		// "Fractions of a second may be present if the system clock provides them."
+		return float64(time.Now().UnixNano()) / 1e9
 	}
 
+	// TODO: make parallel requests
+	for _, tracker := range config.Trackers {
+		stats, exists := s.trackers[tracker]
+		if !exists {
+			stats = new(AnnouncerStats)
+		}
+		stats.NumRequest++
+		stats.TimeRequest = now()
+		peers, err := announceToTracker(ctx, tracker, params)
+		if err != nil {
+			stats.Status = "error"
+			stats.LastError = err.Error()
+			stats.TimeLastError = now()
+			stats.NumError++
+			s.trackers[tracker] = stats
+			continue
+		}
+		stats.NumSuccess++
+		stats.Status = "announced"
+		stats.TimeStatus = now()
+		s.trackers[tracker] = stats
+		for _, peer := range peers {
+			s.peers[peer] = struct{}{}
+		}
+	}
 	// TODO: if trackers.json file exists annouce using the trackers defined there
 	// If it doesn't exist use bootstrap trackers in config.Trackers
 	// In either case, update trackers.json and return the updates stats here
+}
 
-	return map[string]Stats{
-		"http://h4.trakx.nibba.trade:80/announce": {
-			Status:      "announced",
-			NumRequest:  10,
-			NumSuccess:  10,
-			NumError:    0,
-			TimeRequest: 1623398701.6069171,
-			TimeStatus:  1623398702.3022082,
-		},
-		"udp://104.238.198.186:8000": {
-			Status:        "error",
-			LastError:     "could not connect",
-			NumError:      7,
-			NumRequest:    10,
-			NumSuccess:    2,
-			TimeLastError: 1623398710.6333466,
-			TimeRequest:   1623398701.6066,
-			TimeStatus:    1623398710.6333451,
-		},
-	}
+func (s Site) GetAnnouncerStats() map[string]*AnnouncerStats {
+	s.Announce()
+	return s.trackers
 }

@@ -13,7 +13,10 @@ import (
 )
 
 type Site struct {
-	addr      string
+	addr     string
+	trackers map[string]*AnnouncerStats
+	peers    map[string]struct{}
+
 	Added     int    `json:"added"`
 	AjaxKey   string `json:"ajax_key"`
 	AuthKey   string `json:"auth_key"`
@@ -67,19 +70,25 @@ func (s Site) ReadFile(innerPath string, dst io.Writer) error {
 }
 
 type SiteManager interface {
-	Site(addr string) Site
+	Site(addr string) *Site
 	RenderIndex(site, indexFilename string, dst io.Writer) error
 	ReadFile(site, innerPath string, dst io.Writer) error
+	SiteByWrapperKey(wrapperKey string) *Site
 }
 
 type siteManager struct {
-	// Address -> Site info
+	// Address -> Site
 	sites map[string]*Site
+	// WrapperKey -> Site
+	wrapperKeyMap map[string]*Site
 }
 
-func (m *siteManager) Site(addr string) Site {
-	site := m.sites[addr]
-	return *site
+func (m *siteManager) Site(addr string) *Site {
+	return m.sites[addr]
+}
+
+func (m *siteManager) SiteByWrapperKey(wrapperKey string) *Site {
+	return m.wrapperKeyMap[wrapperKey]
 }
 
 func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) error {
@@ -157,15 +166,21 @@ func NewSiteManager() (*siteManager, error) {
 	defer sitesFile.Close()
 
 	sites := make(map[string]*Site)
+	wrapperKeyMap := make(map[string]*Site)
+
 	if err = json.NewDecoder(sitesFile).Decode(&sites); err != nil {
 		return nil, err
 	}
 
 	for addr, site := range sites {
 		site.addr = addr
+		site.trackers = make(map[string]*AnnouncerStats)
+		site.peers = make(map[string]struct{})
+		wrapperKeyMap[site.WrapperKey] = site
 	}
 
 	return &siteManager{
-		sites: sites,
+		sites:         sites,
+		wrapperKeyMap: wrapperKeyMap,
 	}, nil
 }

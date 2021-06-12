@@ -13,14 +13,16 @@ type uiWebsocket struct {
 	siteManager site.SiteManager
 	reqID       int64
 	fileServer  fileserver.Server
+	site        *site.Site
 }
 
-func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager, fileServer fileserver.Server) *uiWebsocket {
+func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager, fileServer fileserver.Server, site *site.Site) *uiWebsocket {
 	return &uiWebsocket{
 		conn:        conn,
 		siteManager: siteManager,
 		fileServer:  fileServer,
 		log:         log.New("uiwebsocket"),
+		site:        site,
 	}
 }
 

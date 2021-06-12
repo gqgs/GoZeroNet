@@ -21,7 +21,7 @@ func (w *uiWebsocket) handleMessage(rawMessage []byte) {
 	}
 
 	if err := w.route(rawMessage, message); err != nil {
-		w.log.WithField("rawMessage", rawMessage).Error(err)
+		w.log.WithField("rawMessage", string(rawMessage)).Error(err)
 	}
 }
 
