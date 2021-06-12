@@ -1,6 +1,7 @@
 package uiwebsocket
 
 import (
+	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
@@ -16,12 +17,14 @@ type uiWebsocket struct {
 	log         log.Logger
 	siteManager site.SiteManager
 	reqID       int64
+	fileServer  fileserver.Server
 }
 
-func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager) *uiWebsocket {
+func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager, fileServer fileserver.Server) *uiWebsocket {
 	return &uiWebsocket{
 		conn:        conn,
 		siteManager: siteManager,
+		fileServer:  fileServer,
 		log:         log.New("uiwebsocket"),
 	}
 }

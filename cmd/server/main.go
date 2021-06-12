@@ -33,7 +33,7 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	if err != nil {
 		return err
 	}
-	uiServer := uiserver.NewServer(uiServerAddr, siteManager)
+	uiServer := uiserver.NewServer(uiServerAddr, siteManager, fileServer)
 
 	idleConnsClosed := make(chan struct{})
 	go func() {

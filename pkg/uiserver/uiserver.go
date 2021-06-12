@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
+	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
@@ -18,9 +19,10 @@ type server struct {
 	log         log.Logger
 	addr        string
 	siteManager site.SiteManager
+	fileServer  fileserver.Server
 }
 
-func NewServer(addr string, siteManager site.SiteManager) *server {
+func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.Server) *server {
 	r := chi.NewRouter()
 
 	s := &server{
@@ -31,6 +33,7 @@ func NewServer(addr string, siteManager site.SiteManager) *server {
 		},
 		log:         log.New("uiserver"),
 		siteManager: siteManager,
+		fileServer:  fileServer,
 	}
 
 	uimediaHandler := http.FileServer(http.FS(uimedia.FS)).ServeHTTP
@@ -54,7 +57,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go uiwebsocket.NewUIWebsocket(conn, s.siteManager).Serve()
+	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer).Serve()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

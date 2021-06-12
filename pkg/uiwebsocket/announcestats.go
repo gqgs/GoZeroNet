@@ -30,6 +30,6 @@ func (w *uiWebsocket) announcerStats(rawMessage []byte, message Message) error {
 		CMD:    "response",
 		ID:     atomic.AddInt64(&w.reqID, 1),
 		To:     message.ID,
-		Result: announcer.GetStats(),
+		Result: announcer.GetStats(w.fileServer.Port()),
 	})
 }

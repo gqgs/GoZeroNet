@@ -12,4 +12,5 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/vmihailenco/msgpack/v5 v5.3.4
+	github.com/zeebo/bencode v1.0.0
 )

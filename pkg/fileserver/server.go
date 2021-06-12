@@ -29,6 +29,10 @@ type server struct {
 	port   int
 }
 
+type Server interface {
+	Port() int
+}
+
 func NewServer(addr string) (*server, error) {
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -50,6 +54,10 @@ func NewServer(addr string) (*server, error) {
 		l:      l,
 		log:    log.New("fileserver"),
 	}, nil
+}
+
+func (s *server) Port() int {
+	return s.port
 }
 
 func (s *server) Shutdown() error {

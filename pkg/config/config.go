@@ -25,6 +25,11 @@ const (
 )
 
 var (
+	Trackers = []string{
+		"http://h4.trakx.nibba.trade:80/announce",  // US/VA
+		"http://open.acgnxtracker.com:80/announce", // DE
+		"http://tracker.bt4g.com:2095/announce",    // Cloudflare
+	}
 	Debug = strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug") ||
 		strings.EqualFold(os.Getenv("LOG_LEVEL"), "trace")
 )

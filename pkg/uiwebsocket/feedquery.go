@@ -10,8 +10,8 @@ type (
 		WrapperNonce string          `json:"wrapper_nonce"`
 	}
 	feedQueryParams struct {
-		DayLimit int `json:"day_limit`
-		Limit    int `json:"int`
+		DayLimit int `json:"day_limit"`
+		Limit    int `json:"int"`
 	}
 
 	feedQueryResponse struct {
