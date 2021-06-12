@@ -7,11 +7,6 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
-type websocketWriter interface {
-	WriteJSON(v interface{}) error
-}
-
-//easyjson:skip
 type uiWebsocket struct {
 	conn        websocket.Conn
 	log         log.Logger
