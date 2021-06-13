@@ -24,11 +24,13 @@ func (newsFeedPlugin) Handles(cmd string) bool {
 	}
 }
 
-func (p newsFeedPlugin) Handle(w pluginWriter, cmd string, id int64, message []byte) error {
+func (p newsFeedPlugin) Handle(w pluginWriter, cmd string, to, id int64, message []byte) error {
 	switch cmd {
 	case "feedQuery":
 		return p.feedQuery(w, id, message)
 	default:
+		reply := fmt.Sprintf(`{"error": "cmd not implemented, "to": %d, "id", %d}`, to, id)
+		w.Write([]byte(reply))
 		return fmt.Errorf("TODO: implement me: %s", cmd)
 	}
 }

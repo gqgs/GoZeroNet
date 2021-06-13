@@ -26,11 +26,13 @@ func (optionalManager) Handles(cmd string) bool {
 	}
 }
 
-func (o optionalManager) Handle(w pluginWriter, cmd string, id int64, message []byte) error {
+func (o optionalManager) Handle(w pluginWriter, cmd string, to, id int64, message []byte) error {
 	switch cmd {
 	case "optionalLimitStats":
 		return o.optionalLimitStats(w, id, message)
 	default:
+		reply := fmt.Sprintf(`{"error": "cmd not implemented, "to": %d, "id", %d}`, to, id)
+		w.Write([]byte(reply))
 		return fmt.Errorf("TODO: implement me: %s", cmd)
 	}
 }

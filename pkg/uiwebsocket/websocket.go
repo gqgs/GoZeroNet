@@ -53,7 +53,7 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 
 	for _, plugin := range w.plugins {
 		if plugin.Handles(message.CMD) {
-			return plugin.Handle(w.conn, message.CMD, w.ID(), rawMessage)
+			return plugin.Handle(w.conn, message.CMD, message.ID, w.ID(), rawMessage)
 		}
 	}
 	return errors.New("unknown cmd")
