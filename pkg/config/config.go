@@ -15,11 +15,15 @@ const (
 	// instead of the deprecated raw type.
 	UseBinType = true
 
+	DefaultFileServerAddr = "127.0.0.1:0"
+	DefaultUIServerAddr   = "127.0.0.1:43111"
+
 	ConnectionDeadline = time.Second * 5
 	FileServerDeadline = time.Second
 	RandomIPv4Addr     = "127.0.0.1:"
 	DataDir            = "./data/"
 	Language           = "en"
+	UpdateSite         = "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf"
 )
 
 var (
@@ -28,10 +32,12 @@ var (
 		"http://open.acgnxtracker.com:80/announce", // DE
 		"http://tracker.bt4g.com:2095/announce",    // Cloudflare
 	}
+
 	Debug = strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug") ||
 		strings.EqualFold(os.Getenv("LOG_LEVEL"), "trace")
-	FileServerAddr = "127.0.0.1:"
+
+	FileServerHost = "127.0.0.1"
 	FileServerPort = 0
-	UIServerAddr   = "127.0.0.1:43111"
-	UIServerPort   = 0
+	UIServerHost   = "127.0.0.1"
+	UIServerPort   = 43111
 )

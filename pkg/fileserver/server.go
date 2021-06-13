@@ -29,9 +29,7 @@ type server struct {
 	port   int
 }
 
-type Server interface {
-	Port() int
-}
+type Server interface{}
 
 func NewServer(addr string) (*server, error) {
 	l, err := net.Listen("tcp", addr)
@@ -40,26 +38,23 @@ func NewServer(addr string) (*server, error) {
 	}
 	// Can be different from `addr` if the port was chosen by the server.
 	chosenAddr := l.Addr().String()
-	hostString, portString, _ := net.SplitHostPort(chosenAddr)
+	host, portString, _ := net.SplitHostPort(chosenAddr)
 	port, err := strconv.Atoi(portString)
 	if err != nil {
 		return nil, err
 	}
 
+	config.FileServerHost = host
 	config.FileServerPort = port
 
 	return &server{
 		peerID: random.PeerID(),
 		addr:   chosenAddr,
 		port:   port,
-		host:   hostString,
+		host:   host,
 		l:      l,
 		log:    log.New("fileserver"),
 	}, nil
-}
-
-func (s *server) Port() int {
-	return s.port
 }
 
 func (s *server) Shutdown() error {

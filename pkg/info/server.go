@@ -1,6 +1,10 @@
 package info
 
-import "github.com/gqgs/go-zeronet/pkg/config"
+import (
+	"runtime"
+
+	"github.com/gqgs/go-zeronet/pkg/config"
+)
 
 type Server struct {
 	IPExternal bool `json:"ip_external"`
@@ -28,22 +32,20 @@ type Server struct {
 	} `json:"plugins_rev"`
 	UserSettings struct {
 	} `json:"user_settings"`
-	Updatesite    string `json:"updatesite"`
-	DistType      string `json:"dist_type"`
-	LibVerifyBest string `json:"lib_verify_best"`
+	Updatesite string `json:"updatesite"`
+	DistType   string `json:"dist_type"`
 }
 
-func ServerInfo() Server {
-	return Server{
-		Updatesite:     "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf",
-		DistType:       "bundle_linux64",
-		LibVerifyBest:  "libsecp256k1",
-		UIIP:           "127.0.0.1",
-		UIPort:         43111, // TODO: get it from uiserver
-		TorEnabled:     false,
-		FileserverIP:   "*",
-		FileserverPort: 45183, // TODO: get it from fileserver
-		Platform:       "linux",
+func ServerInfo(admin bool) Server {
+	s := Server{
+		UIIP:              config.UIServerHost,
+		UIPort:            config.UIServerPort,
+		TorEnabled:        false, // TODO: check if Tor is enabled
+		TorStatus:         "Disabled",
+		TorHasMeekBridges: false,
+		FileserverIP:      "*",
+		FileserverPort:    config.FileServerPort,
+		Platform:          runtime.GOOS,
 		PortOpened: struct {
 			Ipv4 bool `json:"ipv4"`
 			Ipv6 bool `json:"ipv6"`
@@ -51,12 +53,20 @@ func ServerInfo() Server {
 			Ipv4: true,
 			Ipv6: false,
 		},
-		IPExternal: true,
-		Version:    config.Version,
-		Rev:        config.Rev,
-		Debug:      false,
-		Offline:    false,
-		Language:   config.Language,
-		Plugins:    make([]string, 0),
+		Timecorrection: 0,
+		IPExternal:     true,
+		Version:        config.Version,
+		Rev:            config.Rev,
+		Debug:          config.Debug,
+		Offline:        false,
+		Language:       config.Language,
+		Plugins:        make([]string, 0), // TODO: return enabled plugins
 	}
+
+	if admin {
+		s.Updatesite = config.UpdateSite
+		s.DistType = "source"
+	}
+
+	return s
 }

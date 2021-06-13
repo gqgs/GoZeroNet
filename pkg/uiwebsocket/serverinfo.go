@@ -26,6 +26,6 @@ func (w *uiWebsocket) serverInfo(rawMessage []byte, message Message) error {
 		CMD:    "response",
 		ID:     w.ID(),
 		To:     message.ID,
-		Result: info.ServerInfo(),
+		Result: info.ServerInfo(false),
 	})
 }

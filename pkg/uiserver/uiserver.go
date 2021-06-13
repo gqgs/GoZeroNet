@@ -2,10 +2,13 @@ package uiserver
 
 import (
 	"context"
+	"net"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi"
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -24,8 +27,17 @@ type server struct {
 	pubsubManager pubsub.Manager
 }
 
-func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.Server, pubsubManager pubsub.Manager) *server {
+func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.Server, pubsubManager pubsub.Manager) (*server, error) {
 	r := chi.NewRouter()
+
+	host, portString, _ := net.SplitHostPort(addr)
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		return nil, err
+	}
+
+	config.UIServerHost = host
+	config.UIServerPort = port
 
 	s := &server{
 		addr: addr,
@@ -50,7 +62,7 @@ func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.
 	r.Route("/ZeroNet-Internal", func(r chi.Router) {
 		r.Get("/Websocket", s.websocketHandler)
 	})
-	return s
+	return s, nil
 }
 
 func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
