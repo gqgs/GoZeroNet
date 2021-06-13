@@ -14,3 +14,5 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.4
 	github.com/zeebo/bencode v1.0.0
 )
+
+replace github.com/antonfisher/nested-logrus-formatter => github.com/gqgs/nested-logrus-formatter v1.3.2-0.20210613163930-09740a972bc4

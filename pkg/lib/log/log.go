@@ -8,39 +8,59 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Logger interface {
-	Fatal(args ...interface{})
-	Error(args ...interface{})
-	Info(args ...interface{})
-	Warn(args ...interface{})
-	Debug(args ...interface{})
-	Trace(args ...interface{})
+type (
+	Entry interface {
+		Fatal(args ...interface{})
+		Error(args ...interface{})
+		Info(args ...interface{})
+		Warn(args ...interface{})
+		Debug(args ...interface{})
+		Trace(args ...interface{})
 
-	Fatalf(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Warnf(format string, args ...interface{})
-	Debugf(format string, args ...interface{})
-	Tracef(format string, args ...interface{})
+		Fatalf(format string, args ...interface{})
+		Errorf(format string, args ...interface{})
+		Infof(format string, args ...interface{})
+		Warnf(format string, args ...interface{})
+		Debugf(format string, args ...interface{})
+		Tracef(format string, args ...interface{})
 
-	WithField(key string, value interface{}) Logger
+		WithField(key string, value interface{}) Entry
+	}
+
+	Logger interface {
+		Entry
+	}
+
+	logger struct {
+		*logrus.Logger
+	}
+
+	entry struct {
+		*logrus.Entry
+	}
+)
+
+func (e *entry) WithField(key string, value interface{}) Entry {
+	logrusEntry := e.Entry.WithField(key, value)
+	return &entry{
+		logrusEntry,
+	}
 }
 
-type logger struct {
-	*logrus.Entry
-}
-
-func (l logger) WithField(key string, value interface{}) Logger {
-	l.Entry = l.Entry.WithField(key, value)
-	return l
+func (l *logger) WithField(key string, value interface{}) Entry {
+	logrusEntry := l.Logger.WithField(key, value)
+	return &entry{
+		logrusEntry,
+	}
 }
 
 func New(scope string) Logger {
 	l := logrus.New()
 	l.SetFormatter(&nested.Formatter{
-		FieldsOrder:     []string{"scope"},
+		Prefix:          "[" + scope + "]",
 		TimestampFormat: "15:04:05",
 	})
+
 	switch strings.ToLower(os.Getenv("LOG_LEVEL")) {
 	case "trace":
 		l.SetLevel(logrus.TraceLevel)
@@ -53,5 +73,7 @@ func New(scope string) Logger {
 	default:
 		l.SetLevel(logrus.DebugLevel)
 	}
-	return &logger{l.WithField("scope", scope)}
+	return &logger{
+		Logger: l,
+	}
 }
