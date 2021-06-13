@@ -1,7 +1,5 @@
 package uiwebsocket
 
-import "sync/atomic"
-
 type (
 	siteLimitRequest struct {
 		CMD    string          `json:"cmd"`
@@ -26,7 +24,7 @@ func (w *uiWebsocket) siteLimit(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(siteLimitResponse{
 		CMD:    "response",
 		To:     message.ID,
-		ID:     atomic.AddInt64(&w.reqID, 1),
+		ID:     w.ID(),
 		Result: "ok",
 	})
 }

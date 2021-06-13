@@ -1,7 +1,5 @@
 package uiwebsocket
 
-import "sync/atomic"
-
 type (
 	userGetSettingsRequest struct {
 		CMD          string                `json:"cmd"`
@@ -24,7 +22,7 @@ type (
 func (w *uiWebsocket) userGetSettings(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(userGetSettingsResponse{
 		CMD:    "response",
-		ID:     atomic.AddInt64(&w.reqID, 1),
+		ID:     w.ID(),
 		To:     message.ID,
 		Result: make(userGetSettingsResult),
 	})

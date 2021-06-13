@@ -27,18 +27,18 @@ func (w *uiWebsocket) handleMessage(rawMessage []byte) {
 
 func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	switch message.CMD {
-	case "userGetGlobalSettings":
-		return w.userGetGlobalSettings(rawMessage, message)
 	case "channelJoin":
 		return w.channelJoin(rawMessage, message)
-	case "siteInfo":
-		return w.siteInfo(rawMessage, message)
+	case "channelJoinAllsite":
+		return w.channelJoinAllsite(rawMessage, message)
 	case "siteSetLimit":
 		return w.siteLimit(rawMessage, message)
-	case "optionalLimitStats":
-		return w.optionalLimitStats(rawMessage, message)
 	case "userGetSettings":
 		return w.userGetSettings(rawMessage, message)
+	case "userGetGlobalSettings":
+		return w.userGetGlobalSettings(rawMessage, message)
+	case "siteInfo":
+		return w.siteInfo(rawMessage, message)
 	case "serverInfo":
 		return w.serverInfo(rawMessage, message)
 	case "serverErrors":
@@ -47,15 +47,16 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.announcerStats(rawMessage, message)
 	case "siteList":
 		return w.siteList(rawMessage, message)
-	case "channelJoinAllsite":
-		return w.channelJoinAllsite(rawMessage, message)
-	case "feedQuery":
-		return w.feedQuery(rawMessage, message)
 	case "filterIncludeList":
 		return w.filterIncludeList(rawMessage, message)
-	default:
-		return errors.New("unknown cmd")
 	}
+
+	for _, plugin := range w.plugins {
+		if plugin.Handles(message.CMD) {
+			return plugin.Handle(w.conn, message.CMD, w.ID(), rawMessage)
+		}
+	}
+	return errors.New("unknown cmd")
 }
 
 func decode(payload []byte) (Message, error) {

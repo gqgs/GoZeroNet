@@ -1,7 +1,5 @@
 package uiwebsocket
 
-import "sync/atomic"
-
 type (
 	userGetGlobalSettingsResponse struct {
 		CMD    string                      `json:"cmd"`
@@ -17,7 +15,7 @@ func (w *uiWebsocket) userGetGlobalSettings(rawMessage []byte, message Message) 
 	return w.conn.WriteJSON(userGetGlobalSettingsResponse{
 		CMD:    "response",
 		To:     message.ID,
-		ID:     atomic.AddInt64(&w.reqID, 1),
+		ID:     w.ID(),
 		Result: make(userGetGlobalSettingsResult),
 	})
 }

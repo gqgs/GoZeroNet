@@ -1,7 +1,5 @@
 package uiwebsocket
 
-import "sync/atomic"
-
 type (
 	filterIncludeListRequest struct {
 		CMD          string                  `json:"cmd"`
@@ -27,7 +25,7 @@ type (
 func (w *uiWebsocket) filterIncludeList(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(filterIncludeListResponse{
 		CMD:    "response",
-		ID:     atomic.AddInt64(&w.reqID, 1),
+		ID:     w.ID(),
 		To:     message.ID,
 		Result: make(filterIncludeListResult, 0),
 	})

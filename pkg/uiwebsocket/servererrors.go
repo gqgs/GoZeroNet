@@ -1,7 +1,5 @@
 package uiwebsocket
 
-import "sync/atomic"
-
 type (
 	serverErrorsRequest struct {
 		CMD          string             `json:"cmd"`
@@ -24,7 +22,7 @@ type (
 func (w *uiWebsocket) serverErrors(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(serverErrorsResponse{
 		CMD:    "response",
-		ID:     atomic.AddInt64(&w.reqID, 1),
+		ID:     w.ID(),
 		To:     message.ID,
 		Result: make(serverErrorsResult, 0),
 	})

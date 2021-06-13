@@ -1,8 +1,6 @@
 package uiwebsocket
 
 import (
-	"sync/atomic"
-
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
@@ -30,7 +28,7 @@ type (
 func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(siteListResponse{
 		CMD:    "response",
-		ID:     atomic.AddInt64(&w.reqID, 1),
+		ID:     w.ID(),
 		To:     message.ID,
 		Result: []site.Info{site.GetInfo(w.siteManager)},
 	})

@@ -2,7 +2,6 @@ package uiwebsocket
 
 import (
 	"encoding/json"
-	"sync/atomic"
 )
 
 type (
@@ -39,7 +38,7 @@ func (w *uiWebsocket) channelJoin(rawMessage []byte, message Message) error {
 
 	return w.conn.WriteJSON(channelJoinResponse{
 		CMD:    "response",
-		ID:     atomic.AddInt64(&w.reqID, 1),
+		ID:     w.ID(),
 		To:     message.ID,
 		Result: "ok",
 	})

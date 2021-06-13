@@ -3,12 +3,14 @@ package uiwebsocket
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
+	"github.com/gqgs/go-zeronet/pkg/uiwebsocket/plugin"
 )
 
 type uiWebsocket struct {
@@ -22,6 +24,7 @@ type uiWebsocket struct {
 	channelsMutex sync.RWMutex
 	channels      map[string]struct{}
 	allChannels   bool
+	plugins       []plugin.Plugin
 }
 
 func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager,
@@ -35,7 +38,15 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager,
 		pubsubManager: pubsubManager,
 		channels:      make(map[string]struct{}),
 		allChannels:   false,
+		plugins: []plugin.Plugin{
+			plugin.NewNewsFeedPlugin(),
+			plugin.NewOptionalManager(),
+		},
 	}
+}
+
+func (w *uiWebsocket) ID() int64 {
+	return atomic.AddInt64(&w.reqID, 1)
 }
 
 func (w *uiWebsocket) Serve() {
