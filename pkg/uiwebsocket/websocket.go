@@ -47,8 +47,6 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.announcerStats(rawMessage, message)
 	case "siteList":
 		return w.siteList(rawMessage, message)
-	case "filterIncludeList":
-		return w.filterIncludeList(rawMessage, message)
 	}
 
 	for _, plugin := range w.plugins {

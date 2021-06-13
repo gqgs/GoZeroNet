@@ -7,6 +7,7 @@ type pluginWriter interface {
 
 type Plugin interface {
 	Name() string
+	Description() string
 	// Handles returns true if the plugin handles this command
 	Handles(cmd string) bool
 	// Handle parses and handles the message writing the result to w

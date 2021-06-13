@@ -7,12 +7,16 @@ import (
 
 type newsFeedPlugin struct{}
 
-func NewNewsFeedPlugin() Plugin {
+func NewNewsFeed() Plugin {
 	return &newsFeedPlugin{}
 }
 
 func (newsFeedPlugin) Name() string {
 	return "Newsfeed"
+}
+
+func (newsFeedPlugin) Description() string {
+	return "Feeds from SQL queries"
 }
 
 func (newsFeedPlugin) Handles(cmd string) bool {
@@ -29,7 +33,7 @@ func (p newsFeedPlugin) Handle(w pluginWriter, cmd string, to, id int64, message
 	case "feedQuery":
 		return p.feedQuery(w, id, message)
 	default:
-		reply := fmt.Sprintf(`{"error": "cmd not implemented, "to": %d, "id", %d}`, to, id)
+		reply := fmt.Sprintf(`{"error": "not implemented: %q", "to": %d, "id", %d}`, cmd, to, id)
 		w.Write([]byte(reply))
 		return fmt.Errorf("TODO: implement me: %s", cmd)
 	}

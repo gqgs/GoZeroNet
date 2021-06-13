@@ -15,6 +15,10 @@ func NewOptionalManager() Plugin {
 	return &optionalManager{}
 }
 
+func (optionalManager) Description() string {
+	return "Manage optional content"
+}
+
 func (optionalManager) Handles(cmd string) bool {
 	switch cmd {
 	case "optionalFileList", "optionalFileInfo", "optionalFilePin", "optionalFileUnpin",
@@ -31,7 +35,7 @@ func (o optionalManager) Handle(w pluginWriter, cmd string, to, id int64, messag
 	case "optionalLimitStats":
 		return o.optionalLimitStats(w, id, message)
 	default:
-		reply := fmt.Sprintf(`{"error": "cmd not implemented, "to": %d, "id", %d}`, to, id)
+		reply := fmt.Sprintf(`{"error": "not implemented: %q", "to": %d, "id", %d}`, cmd, to, id)
 		w.Write([]byte(reply))
 		return fmt.Errorf("TODO: implement me: %s", cmd)
 	}

@@ -39,8 +39,9 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager,
 		channels:      make(map[string]struct{}),
 		allChannels:   false,
 		plugins: []plugin.Plugin{
-			plugin.NewNewsFeedPlugin(),
+			plugin.NewNewsFeed(),
 			plugin.NewOptionalManager(),
+			plugin.NewContentFilter(),
 		},
 	}
 }
