@@ -7,6 +7,7 @@ import (
 	"os/signal"
 
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uiserver"
 )
@@ -24,7 +25,9 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	siteManager, err := site.NewSiteManager()
+	pubsubManager := pubsub.NewManager()
+
+	siteManager, err := site.NewSiteManager(pubsubManager)
 	if err != nil {
 		return err
 	}
@@ -33,7 +36,8 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	if err != nil {
 		return err
 	}
-	uiServer := uiserver.NewServer(uiServerAddr, siteManager, fileServer)
+
+	uiServer := uiserver.NewServer(uiServerAddr, siteManager, fileServer, pubsubManager)
 
 	idleConnsClosed := make(chan struct{})
 	go func() {

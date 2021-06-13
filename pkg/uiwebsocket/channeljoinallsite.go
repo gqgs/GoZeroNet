@@ -1,6 +1,9 @@
 package uiwebsocket
 
-import "sync/atomic"
+import (
+	"encoding/json"
+	"sync/atomic"
+)
 
 type (
 	channelJoinAllsiteRequest struct {
@@ -24,6 +27,18 @@ type (
 )
 
 func (w *uiWebsocket) channelJoinAllsite(rawMessage []byte, message Message) error {
+	payload := new(channelJoinAllsiteRequest)
+	if err := json.Unmarshal(rawMessage, payload); err != nil {
+		return err
+	}
+
+	w.channelsMutex.Lock()
+	w.channels[payload.Params.Channel] = struct{}{}
+	w.channelsMutex.Unlock()
+
+	// TODO: should be allowed only for admin
+	w.allChannels = true
+
 	return w.conn.WriteJSON(channelJoinAllsiteResponse{
 		CMD:    "response",
 		ID:     atomic.AddInt64(&w.reqID, 1),

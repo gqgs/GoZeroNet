@@ -30,7 +30,7 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	case "userGetGlobalSettings":
 		return w.userGetGlobalSettings(rawMessage, message)
 	case "channelJoin":
-		return w.channelInfo(rawMessage, message)
+		return w.channelJoin(rawMessage, message)
 	case "siteInfo":
 		return w.siteInfo(rawMessage, message)
 	case "siteSetLimit":

@@ -9,13 +9,15 @@ import (
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/content"
+	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/template"
 )
 
 type Site struct {
-	addr     string
-	trackers map[string]*AnnouncerStats
-	peers    map[string]struct{}
+	addr          string
+	trackers      map[string]*AnnouncerStats
+	peers         map[string]struct{}
+	pubsubManager pubsub.Manager
 
 	Added     int    `json:"added"`
 	AjaxKey   string `json:"ajax_key"`
@@ -42,6 +44,10 @@ type Site struct {
 	SizeLimit                 int               `json:"size_limit"`
 	SizeOptional              int               `json:"size_optional"`
 	WrapperKey                string            `json:"wrapper_key"`
+}
+
+func (s *Site) Address() string {
+	return s.addr
 }
 
 func (s Site) DecodeJSON(filename string, v interface{}) error {
@@ -157,7 +163,7 @@ func (m *siteManager) ReadFile(site, innerPath string, dst io.Writer) error {
 	return s.ReadFile(innerPath, dst)
 }
 
-func NewSiteManager() (*siteManager, error) {
+func NewSiteManager(pubsubManager pubsub.Manager) (*siteManager, error) {
 	sitesFile, err := os.Open(path.Join(config.DataDir, "sites.json"))
 	if err != nil {
 		// TODO: ignore error if file not found
@@ -177,6 +183,7 @@ func NewSiteManager() (*siteManager, error) {
 		site.trackers = make(map[string]*AnnouncerStats)
 		site.peers = make(map[string]struct{})
 		wrapperKeyMap[site.WrapperKey] = site
+		site.pubsubManager = pubsubManager
 	}
 
 	return &siteManager{

@@ -23,8 +23,6 @@ type Logger interface {
 	Debugf(format string, args ...interface{})
 	Tracef(format string, args ...interface{})
 
-	IfError(args ...interface{})
-
 	WithField(key string, value interface{}) Logger
 }
 
@@ -35,14 +33,6 @@ type logger struct {
 func (l logger) WithField(key string, value interface{}) Logger {
 	l.Entry = l.Entry.WithField(key, value)
 	return l
-}
-
-func (l logger) IfError(args ...interface{}) {
-	for _, arg := range args {
-		if arg != nil {
-			l.Error(arg)
-		}
-	}
 }
 
 func New(scope string) Logger {
