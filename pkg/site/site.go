@@ -132,6 +132,7 @@ type SiteManager interface {
 	RenderIndex(site, indexFilename string, dst io.Writer) error
 	ReadFile(site, innerPath string, dst io.Writer) error
 	SiteByWrapperKey(wrapperKey string) *Site
+	SiteList(user user.User) ([]*Info, error)
 }
 
 type siteManager struct {
@@ -213,6 +214,20 @@ func (m *siteManager) ReadFile(site, innerPath string, dst io.Writer) error {
 	}
 
 	return s.ReadFile(innerPath, dst)
+}
+
+func (m *siteManager) SiteList(user user.User) ([]*Info, error) {
+	list := make([]*Info, len(m.sites))
+	var err error
+	var i int
+	for _, site := range m.sites {
+		list[i], err = site.Info(user)
+		if err != nil {
+			return nil, err
+		}
+		i++
+	}
+	return list, nil
 }
 
 func NewSiteManager(pubsubManager pubsub.Manager) (*siteManager, error) {

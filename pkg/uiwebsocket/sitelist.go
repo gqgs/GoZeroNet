@@ -26,7 +26,8 @@ type (
 )
 
 func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
-	info, err := w.site.Info(w.currentUser)
+	// TODO: admin command
+	siteList, err := w.siteManager.SiteList(w.currentUser)
 	if err != nil {
 		return err
 	}
@@ -35,6 +36,6 @@ func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
 		CMD:    "response",
 		ID:     w.ID(),
 		To:     message.ID,
-		Result: []*site.Info{info},
+		Result: siteList,
 	})
 }

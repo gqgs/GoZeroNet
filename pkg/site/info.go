@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"io"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
@@ -74,7 +75,7 @@ func (s *Site) Info(user user.User) (*Info, error) {
 		AuthAddress:    user.AuthAddress(s.addr),
 		CertUserID:     user.CertUserID(s.addr),
 		Peers:          len(s.peers),
-		SizeLimit:      s.Settings.SizeLimit,
+		SizeLimit:      sizeLimit(s.Settings.SizeLimit),
 		NextSizeLimit:  nextSizeLimit(s.Settings.Size),
 		ContentUpdated: float64(content.Modified),
 		Content:        content,
@@ -90,6 +91,13 @@ func addressHash(addr string) string {
 	h := sha256.New()
 	_, _ = io.WriteString(h, addr)
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func sizeLimit(size int) int {
+	if size == 0 {
+		return config.SizeLimit
+	}
+	return size
 }
 
 // https://github.com/HelloZeroNet/ZeroNet/blob/454c0b2e7e000fda7000cba49027541fbf327b96/src/Site/Site.py#L145
