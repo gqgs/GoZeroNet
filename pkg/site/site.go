@@ -13,6 +13,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/content"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/template"
+	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
 type Site struct {
@@ -73,15 +74,20 @@ func (s *Site) Download() error {
 	return nil
 }
 
-func (s *Site) SetSiteLimit(sizeLimit int) error {
+func (s *Site) SetSiteLimit(sizeLimit int, user user.User) error {
 	s.Settings.SizeLimit = sizeLimit
 	if err := s.SaveSettings(); err != nil {
 		return err
 	}
 
+	info, err := s.Info(user)
+	if err != nil {
+		return err
+	}
+
 	event := SiteChangedEvent{
-		Cmd:  "setSiteInfo",
-		Info: s.Info(),
+		Cmd:    "setSiteInfo",
+		Params: info,
 	}
 	encoded, err := json.Marshal(event)
 	if err != nil {

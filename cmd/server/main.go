@@ -10,6 +10,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uiserver"
+	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
 // The Python execution spawns two servers:
@@ -32,12 +33,17 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 		return err
 	}
 
+	userManager, err := user.NewUserManager()
+	if err != nil {
+		return err
+	}
+
 	fileServer, err := fileserver.NewServer(fileServerAddr)
 	if err != nil {
 		return err
 	}
 
-	uiServer, err := uiserver.NewServer(uiServerAddr, siteManager, fileServer, pubsubManager)
+	uiServer, err := uiserver.NewServer(uiServerAddr, siteManager, fileServer, pubsubManager, userManager)
 	if err != nil {
 		return err
 	}

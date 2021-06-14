@@ -11,6 +11,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uiwebsocket/plugin"
+	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
 type uiWebsocket struct {
@@ -25,10 +26,11 @@ type uiWebsocket struct {
 	channels      map[string]struct{}
 	allChannels   bool
 	plugins       []plugin.Plugin
+	currentUser   user.User
 }
 
 func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager,
-	fileServer fileserver.Server, site *site.Site, pubsubManager pubsub.Manager) *uiWebsocket {
+	fileServer fileserver.Server, site *site.Site, pubsubManager pubsub.Manager, currentUser user.User) *uiWebsocket {
 	return &uiWebsocket{
 		conn:          conn,
 		siteManager:   siteManager,
@@ -43,6 +45,7 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager,
 			plugin.NewOptionalManager(),
 			plugin.NewContentFilter(),
 		},
+		currentUser: currentUser,
 	}
 }
 

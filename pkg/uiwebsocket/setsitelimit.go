@@ -33,7 +33,7 @@ func (w *uiWebsocket) siteSetLimit(rawMessage []byte, message Message) error {
 	}
 
 	// TODO: admin only
-	if err := w.site.SetSiteLimit(request.Params[0]); err != nil {
+	if err := w.site.SetSiteLimit(request.Params[0], w.currentUser); err != nil {
 		return err
 	}
 

@@ -16,6 +16,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uimedia"
 	"github.com/gqgs/go-zeronet/pkg/uiwebsocket"
+	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
 type server struct {
@@ -25,9 +26,10 @@ type server struct {
 	siteManager   site.SiteManager
 	fileServer    fileserver.Server
 	pubsubManager pubsub.Manager
+	userManager   user.UserManager
 }
 
-func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.Server, pubsubManager pubsub.Manager) (*server, error) {
+func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.Server, pubsubManager pubsub.Manager, userManager user.UserManager) (*server, error) {
 	r := chi.NewRouter()
 
 	host, portString, _ := net.SplitHostPort(addr)
@@ -49,6 +51,7 @@ func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.
 		siteManager:   siteManager,
 		fileServer:    fileServer,
 		pubsubManager: pubsubManager,
+		userManager:   userManager,
 	}
 
 	uimediaHandler := http.FileServer(http.FS(uimedia.FS)).ServeHTTP
@@ -77,13 +80,15 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := s.userManager.User()
+
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
 		s.log.Error(err)
 		return
 	}
 
-	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager).Serve()
+	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager, user).Serve()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

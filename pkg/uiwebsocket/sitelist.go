@@ -16,20 +16,25 @@ type (
 	}
 
 	siteListResponse struct {
-		CMD    string      `json:"cmd"`
-		ID     int64       `json:"id"`
-		To     int64       `json:"to"`
-		Result []site.Info `json:"result"`
+		CMD    string       `json:"cmd"`
+		ID     int64        `json:"id"`
+		To     int64        `json:"to"`
+		Result []*site.Info `json:"result"`
 	}
 
 	siteListResult string
 )
 
 func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
+	info, err := w.site.Info(w.currentUser)
+	if err != nil {
+		return err
+	}
+
 	return w.conn.WriteJSON(siteListResponse{
 		CMD:    "response",
 		ID:     w.ID(),
 		To:     message.ID,
-		Result: []site.Info{w.site.Info()},
+		Result: []*site.Info{info},
 	})
 }
