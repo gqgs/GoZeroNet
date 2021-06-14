@@ -13,12 +13,12 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
-// The Python execution spawns two servers:
-// FileServer serving TCP at 0.0.0.0 and random port.
+// The execution spawns two servers:
+// FileServer serving TCP at 127.0.0.1 and a random port, by default.
 // This follows the protocol at:
 // https://zeronet.io/docs/help_zeronet/network_protocol/
 //
-// UIServer serving WSGI at 127.0.0.1:43110.
+// UIServer serving at 127.0.0.1:43111, by default.
 // This follows the protocol at:
 // https://zeronet.io/docs/site_development/zeroframe_api_reference/
 
