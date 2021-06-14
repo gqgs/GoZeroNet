@@ -148,6 +148,7 @@ func (s *Site) Announce() {
 	}
 
 	// TODO: make parallel requests
+	var addedPeers int
 	for _, tracker := range config.Trackers {
 		stats, exists := s.trackers[tracker]
 		if !exists {
@@ -171,13 +172,16 @@ func (s *Site) Announce() {
 		for _, peer := range peers {
 			s.peers[peer] = struct{}{}
 		}
+		addedPeers += len(peers)
 	}
+
+	_ = s.broadcastSiteChange("peers_added", addedPeers)
+
 	// TODO: if trackers.json file exists annouce using the trackers defined there
 	// If it doesn't exist use bootstrap trackers in config.Trackers
 	// In either case, update trackers.json and return the updates stats here
 }
 
 func (s Site) AnnouncerStats() map[string]*AnnouncerStats {
-	s.Announce()
 	return s.trackers
 }

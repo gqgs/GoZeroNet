@@ -22,6 +22,7 @@ type Site struct {
 	peers         map[string]struct{}
 	pubsubManager pubsub.Manager
 	Settings      *Settings
+	user          user.User
 }
 
 type Settings struct {
@@ -74,26 +75,37 @@ func (s *Site) Download() error {
 	return nil
 }
 
+func (s *Site) broadcastSiteChange(events ...interface{}) error {
+	info, err := s.Info()
+	if err != nil {
+		return err
+	}
+
+	info.Events = events
+
+	event := SiteChangedEvent{
+		Cmd:    "setSiteInfo",
+		Params: info,
+	}
+
+	encoded, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	s.pubsubManager.Broadcast(s.addr, "siteChanged", encoded)
+
+	return nil
+}
+
 func (s *Site) SetSiteLimit(sizeLimit int, user user.User) error {
 	s.Settings.SizeLimit = sizeLimit
 	if err := s.SaveSettings(); err != nil {
 		return err
 	}
 
-	info, err := s.Info(user)
-	if err != nil {
+	if err := s.broadcastSiteChange(); err != nil {
 		return err
 	}
-
-	event := SiteChangedEvent{
-		Cmd:    "setSiteInfo",
-		Params: info,
-	}
-	encoded, err := json.Marshal(event)
-	if err != nil {
-		return err
-	}
-	s.pubsubManager.Broadcast(s.addr, "siteChanged", encoded)
 
 	return s.Download()
 }
@@ -132,7 +144,8 @@ type SiteManager interface {
 	RenderIndex(site, indexFilename string, dst io.Writer) error
 	ReadFile(site, innerPath string, dst io.Writer) error
 	SiteByWrapperKey(wrapperKey string) *Site
-	SiteList(user user.User) ([]*Info, error)
+	SiteList() ([]*Info, error)
+	SetUser(user user.User)
 }
 
 type siteManager struct {
@@ -148,6 +161,12 @@ func (m *siteManager) Site(addr string) *Site {
 
 func (m *siteManager) SiteByWrapperKey(wrapperKey string) *Site {
 	return m.wrapperKeyMap[wrapperKey]
+}
+
+func (m *siteManager) SetUser(user user.User) {
+	for _, site := range m.sites {
+		site.user = user
+	}
 }
 
 func (m *siteManager) RenderIndex(site, indexFilename string, dst io.Writer) error {
@@ -216,12 +235,12 @@ func (m *siteManager) ReadFile(site, innerPath string, dst io.Writer) error {
 	return s.ReadFile(innerPath, dst)
 }
 
-func (m *siteManager) SiteList(user user.User) ([]*Info, error) {
+func (m *siteManager) SiteList() ([]*Info, error) {
 	list := make([]*Info, len(m.sites))
 	var err error
 	var i int
 	for _, site := range m.sites {
-		list[i], err = site.Info(user)
+		list[i], err = site.Info()
 		if err != nil {
 			return nil, err
 		}

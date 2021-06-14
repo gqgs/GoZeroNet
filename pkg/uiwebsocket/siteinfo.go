@@ -21,7 +21,7 @@ type (
 )
 
 func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
-	info, err := w.site.Info(w.currentUser)
+	info, err := w.site.Info()
 	if err != nil {
 		return err
 	}

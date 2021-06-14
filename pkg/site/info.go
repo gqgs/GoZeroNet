@@ -6,23 +6,23 @@ import (
 	"io"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
-	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
 type Info struct {
-	Address        string    `json:"address"`
-	AddressHash    string    `json:"address_hash"`
-	AddressShort   string    `json:"address_short"`
-	AuthAddress    string    `json:"auth_address"`
-	BadFiles       int       `json:"bad_files"`
-	CertUserID     string    `json:"cert_user_id"`
-	Peers          int       `json:"peers"`
-	NextSizeLimit  int       `json:"next_size_limit"`
-	SizeLimit      int       `json:"size_limit"`
-	Workers        int       `json:"workers"`
-	ContentUpdated float64   `json:"content_updated"`
-	Content        *Content  `json:"content"`
-	Settings       *Settings `json:"settings"`
+	Address        string        `json:"address"`
+	AddressHash    string        `json:"address_hash"`
+	AddressShort   string        `json:"address_short"`
+	AuthAddress    string        `json:"auth_address"`
+	BadFiles       int           `json:"bad_files"`
+	Events         []interface{} `json:"events,omitempty"`
+	CertUserID     string        `json:"cert_user_id"`
+	Peers          int           `json:"peers"`
+	NextSizeLimit  int           `json:"next_size_limit"`
+	SizeLimit      int           `json:"size_limit"`
+	Workers        int           `json:"workers"`
+	ContentUpdated float64       `json:"content_updated"`
+	Content        *Content      `json:"content"`
+	Settings       *Settings     `json:"settings"`
 }
 
 type File struct {
@@ -62,7 +62,7 @@ type Content struct {
 	ZeronetVersion           string             `json:"zeronet_version"`
 }
 
-func (s *Site) Info(user user.User) (*Info, error) {
+func (s *Site) Info() (*Info, error) {
 	content := new(Content)
 	if err := s.DecodeJSON("content.json", content); err != nil {
 		return nil, err
@@ -72,8 +72,8 @@ func (s *Site) Info(user user.User) (*Info, error) {
 		Address:        s.addr,
 		AddressHash:    addressHash(s.addr),
 		AddressShort:   addressShort(s.addr),
-		AuthAddress:    user.AuthAddress(s.addr),
-		CertUserID:     user.CertUserID(s.addr),
+		AuthAddress:    s.user.AuthAddress(s.addr),
+		CertUserID:     s.user.CertUserID(s.addr),
 		Peers:          len(s.peers),
 		SizeLimit:      sizeLimit(s.Settings.SizeLimit),
 		NextSizeLimit:  nextSizeLimit(s.Settings.Size),

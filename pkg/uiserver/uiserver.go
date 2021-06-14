@@ -81,6 +81,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := s.userManager.User()
+	s.siteManager.SetUser(user)
 
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
@@ -89,6 +90,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager, user).Serve()
+	go site.Announce()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
