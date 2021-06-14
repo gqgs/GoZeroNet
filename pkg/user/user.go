@@ -11,6 +11,7 @@ import (
 type User interface {
 	AuthAddress(addr string) string
 	CertUserID(addr string) string
+	SiteSettings(addr string) map[string]interface{}
 }
 
 type userManager struct {
@@ -61,10 +62,10 @@ type Site struct {
 }
 
 type user struct {
-	Certs      map[string]Cert `json:"certs"`
-	MasterSeed string          `json:"master_seed"`
-	Settings   map[string]interface{}
-	Sites      map[string]Site `json:"sites"`
+	Certs      map[string]Cert        `json:"certs"`
+	MasterSeed string                 `json:"master_seed"`
+	Settings   map[string]interface{} `json:"settings"`
+	Sites      map[string]Site        `json:"sites"`
 }
 
 func (u *user) AuthAddress(addr string) string {
@@ -74,4 +75,8 @@ func (u *user) AuthAddress(addr string) string {
 func (u *user) CertUserID(addr string) string {
 	// TODO: implement me
 	return ""
+}
+
+func (u *user) SiteSettings(addr string) map[string]interface{} {
+	return u.Sites[addr].Settings
 }
