@@ -25,6 +25,6 @@ func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
 		CMD:    "response",
 		To:     message.ID,
 		ID:     w.ID(),
-		Result: site.GetInfo(w.siteManager),
+		Result: w.site.Info(),
 	})
 }

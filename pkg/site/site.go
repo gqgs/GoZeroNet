@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/fs"
+	"io/ioutil"
 	"os"
 	"path"
 
@@ -18,7 +20,10 @@ type Site struct {
 	trackers      map[string]*AnnouncerStats
 	peers         map[string]struct{}
 	pubsubManager pubsub.Manager
+	Settings      *Settings
+}
 
+type Settings struct {
 	Added     int    `json:"added"`
 	AjaxKey   string `json:"ajax_key"`
 	AuthKey   string `json:"auth_key"`
@@ -44,6 +49,47 @@ type Site struct {
 	SizeLimit                 int               `json:"size_limit"`
 	SizeOptional              int               `json:"size_optional"`
 	WrapperKey                string            `json:"wrapper_key"`
+}
+
+func (s *Site) SaveSettings() error {
+	settings, err := loadSiteSettingsFromFile()
+	if err != nil {
+		return err
+	}
+
+	settings[s.addr] = s.Settings
+
+	encoded, err := json.Marshal(settings)
+	if err != nil {
+		return err
+	}
+
+	path := path.Join(config.DataDir, "sites.json")
+	return ioutil.WriteFile(path, encoded, fs.ModePerm)
+}
+
+func (s *Site) Download() error {
+	// TODO: implement me
+	return nil
+}
+
+func (s *Site) SetSiteLimit(sizeLimit int) error {
+	s.Settings.SizeLimit = sizeLimit
+	if err := s.SaveSettings(); err != nil {
+		return err
+	}
+
+	event := SiteChangedEvent{
+		Cmd:  "setSiteInfo",
+		Info: s.Info(),
+	}
+	encoded, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	s.pubsubManager.Broadcast(s.addr, "siteChanged", encoded)
+
+	return s.Download()
 }
 
 func (s *Site) Address() string {
@@ -164,6 +210,31 @@ func (m *siteManager) ReadFile(site, innerPath string, dst io.Writer) error {
 }
 
 func NewSiteManager(pubsubManager pubsub.Manager) (*siteManager, error) {
+	settings, err := loadSiteSettingsFromFile()
+	if err != nil {
+		return nil, err
+	}
+
+	sites := make(map[string]*Site)
+	wrapperKeyMap := make(map[string]*Site)
+	for addr, siteSettings := range settings {
+		site := new(Site)
+		site.Settings = siteSettings
+		site.addr = addr
+		site.trackers = make(map[string]*AnnouncerStats)
+		site.peers = make(map[string]struct{})
+		wrapperKeyMap[siteSettings.WrapperKey] = site
+		site.pubsubManager = pubsubManager
+		sites[addr] = site
+	}
+
+	return &siteManager{
+		sites:         sites,
+		wrapperKeyMap: wrapperKeyMap,
+	}, nil
+}
+
+func loadSiteSettingsFromFile() (map[string]*Settings, error) {
 	sitesFile, err := os.Open(path.Join(config.DataDir, "sites.json"))
 	if err != nil {
 		// TODO: ignore error if file not found
@@ -171,23 +242,6 @@ func NewSiteManager(pubsubManager pubsub.Manager) (*siteManager, error) {
 	}
 	defer sitesFile.Close()
 
-	sites := make(map[string]*Site)
-	wrapperKeyMap := make(map[string]*Site)
-
-	if err = json.NewDecoder(sitesFile).Decode(&sites); err != nil {
-		return nil, err
-	}
-
-	for addr, site := range sites {
-		site.addr = addr
-		site.trackers = make(map[string]*AnnouncerStats)
-		site.peers = make(map[string]struct{})
-		wrapperKeyMap[site.WrapperKey] = site
-		site.pubsubManager = pubsubManager
-	}
-
-	return &siteManager{
-		sites:         sites,
-		wrapperKeyMap: wrapperKeyMap,
-	}, nil
+	settings := make(map[string]*Settings)
+	return settings, json.NewDecoder(sitesFile).Decode(&settings)
 }

@@ -30,6 +30,6 @@ func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
 		CMD:    "response",
 		ID:     w.ID(),
 		To:     message.ID,
-		Result: []site.Info{site.GetInfo(w.siteManager)},
+		Result: []site.Info{w.site.Info()},
 	})
 }

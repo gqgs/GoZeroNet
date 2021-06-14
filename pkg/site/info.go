@@ -1,18 +1,18 @@
 package site
 
 type Info struct {
-	Address        string  `json:"address"`
-	AddressHash    string  `json:"address_hash"`
-	AddressShort   string  `json:"address_short"`
-	AuthAddress    string  `json:"auth_address"`
-	BadFiles       int     `json:"bad_files"`
-	Peers          int     `json:"peers"`
-	NextSizeLimit  int     `json:"next_size_limit"`
-	SizeLimit      int     `json:"size_limit"`
-	Workers        int     `json:"workers"`
-	ContentUpdated float64 `json:"content_updated"`
-	Content        Content `json:"content"`
-	Settings       *Site   `json:"settings"`
+	Address        string    `json:"address"`
+	AddressHash    string    `json:"address_hash"`
+	AddressShort   string    `json:"address_short"`
+	AuthAddress    string    `json:"auth_address"`
+	BadFiles       int       `json:"bad_files"`
+	Peers          int       `json:"peers"`
+	NextSizeLimit  int       `json:"next_size_limit"`
+	SizeLimit      int       `json:"size_limit"`
+	Workers        int       `json:"workers"`
+	ContentUpdated float64   `json:"content_updated"`
+	Content        Content   `json:"content"`
+	Settings       *Settings `json:"settings"`
 }
 
 type Content struct {
@@ -34,7 +34,7 @@ type Content struct {
 	ZeronetVersion           string   `json:"zeronet_version"`
 }
 
-func GetInfo(manager SiteManager) Info {
+func (s *Site) Info() Info {
 	return Info{
 		Address:        "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D",
 		AddressHash:    "f69941233e191d9e00f0cd16c5da10b0124d1c0a498b5ecfa1448b21a3eb0094",
@@ -58,6 +58,6 @@ func GetInfo(manager SiteManager) Info {
 			ViewPort:                 "width=device-width, initial-scale=0.8",
 			ZeronetVersion:           "0.7.2",
 		},
-		Settings: manager.Site("1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D"),
+		Settings: s.Settings,
 	}
 }
