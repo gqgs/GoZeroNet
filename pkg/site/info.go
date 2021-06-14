@@ -75,7 +75,7 @@ func (s *Site) Info(user user.User) (*Info, error) {
 		CertUserID:     user.CertUserID(s.addr),
 		Peers:          len(s.peers),
 		SizeLimit:      s.Settings.SizeLimit,
-		NextSizeLimit:  s.Settings.SizeLimit * 2,
+		NextSizeLimit:  nextSizeLimit(s.Settings.Size),
 		ContentUpdated: float64(content.Modified),
 		Content:        content,
 		Settings:       s.Settings,
@@ -90,4 +90,16 @@ func addressHash(addr string) string {
 	h := sha256.New()
 	_, _ = io.WriteString(h, addr)
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// https://github.com/HelloZeroNet/ZeroNet/blob/454c0b2e7e000fda7000cba49027541fbf327b96/src/Site/Site.py#L145
+func nextSizeLimit(size int) int {
+	sizeLimits := []int{10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000}
+	for _, limit := range sizeLimits {
+		if float64(size)*1.2 < float64(limit)*1024*1024 {
+			return limit
+		}
+	}
+
+	return 1e6
 }
