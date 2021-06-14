@@ -12,6 +12,7 @@ type User interface {
 	AuthAddress(addr string) string
 	CertUserID(addr string) string
 	SiteSettings(addr string) map[string]interface{}
+	GlobalSettings() map[string]interface{}
 }
 
 type userManager struct {
@@ -79,4 +80,8 @@ func (u *user) CertUserID(addr string) string {
 
 func (u *user) SiteSettings(addr string) map[string]interface{} {
 	return u.Sites[addr].Settings
+}
+
+func (u *user) GlobalSettings() map[string]interface{} {
+	return u.Settings
 }
