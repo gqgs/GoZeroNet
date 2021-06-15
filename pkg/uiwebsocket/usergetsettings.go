@@ -20,7 +20,7 @@ type (
 )
 
 func (w *uiWebsocket) userGetSettings(rawMessage []byte, message Message) error {
-	settings := w.currentUser.SiteSettings(w.site.Address())
+	settings := w.site.User().SiteSettings(w.site.Address())
 	if len(settings) == 0 {
 		settings = make(userGetSettingsResult)
 	}

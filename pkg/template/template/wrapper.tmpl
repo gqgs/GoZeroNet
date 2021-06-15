@@ -7,7 +7,12 @@
  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
  <link rel="stylesheet" href="/uimedia/all.css?rev={{.Rev}}" />
  <link rel="apple-touch-icon" sizes="180x180" href="/uimedia/img/apple-touch-icon.png">
- {{.MetaTags}}
+ {{if .ViewPort}}
+ <meta name="viewport" id="viewport" content={{.ViewPort}}>
+ {{end}}
+ {{if .Favicon}}
+  <link rel="icon" href="/{{.Favicon}}">
+ {{end}}
 </head>
 <body style="{{.BodyStyle}}" class="{{.ThemeClass}}">
 

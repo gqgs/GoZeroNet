@@ -12,18 +12,18 @@ type User interface {
 	AuthAddress(addr string) string
 	CertUserID(addr string) string
 	SiteSettings(addr string) map[string]interface{}
-	GlobalSettings() map[string]interface{}
+	GlobalSettings() GlobalSettings
 }
 
-type userManager struct {
+type manager struct {
 	users map[string]*user
 }
 
-type UserManager interface {
+type Manager interface {
 	User() User
 }
 
-func (m *userManager) User() User {
+func (m *manager) User() User {
 	// For now return the first user
 	for _, user := range m.users {
 		return user
@@ -31,7 +31,7 @@ func (m *userManager) User() User {
 	return nil
 }
 
-func NewUserManager() (*userManager, error) {
+func NewUserManager() (*manager, error) {
 	userFilePath := path.Join(config.DataDir, "users.json")
 	file, err := os.Open(userFilePath)
 	if err != nil {
@@ -45,7 +45,7 @@ func NewUserManager() (*userManager, error) {
 		return nil, err
 	}
 
-	return &userManager{users}, nil
+	return &manager{users}, nil
 }
 
 type Cert struct {
@@ -62,11 +62,16 @@ type Site struct {
 	Settings       map[string]interface{} `json:"settings"`
 }
 
+type GlobalSettings struct {
+	Theme          string `json:"theme"`
+	UseSystemTheme bool   `json:"use_system_theme"`
+}
+
 type user struct {
-	Certs      map[string]Cert        `json:"certs"`
-	MasterSeed string                 `json:"master_seed"`
-	Settings   map[string]interface{} `json:"settings"`
-	Sites      map[string]Site        `json:"sites"`
+	Certs      map[string]Cert `json:"certs"`
+	MasterSeed string          `json:"master_seed"`
+	Settings   GlobalSettings  `json:"settings"`
+	Sites      map[string]Site `json:"sites"`
 }
 
 func (u *user) AuthAddress(addr string) string {
@@ -82,6 +87,6 @@ func (u *user) SiteSettings(addr string) map[string]interface{} {
 	return u.Sites[addr].Settings
 }
 
-func (u *user) GlobalSettings() map[string]interface{} {
+func (u *user) GlobalSettings() GlobalSettings {
 	return u.Settings
 }

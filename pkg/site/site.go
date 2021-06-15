@@ -66,7 +66,7 @@ func (s *Site) broadcastSiteChange(events ...interface{}) error {
 	return nil
 }
 
-func (s *Site) SetSiteLimit(sizeLimit int, user user.User) error {
+func (s *Site) SetSiteLimit(sizeLimit int) error {
 	s.Settings.SizeLimit = sizeLimit
 	if err := s.SaveSettings(); err != nil {
 		return err
@@ -81,6 +81,10 @@ func (s *Site) SetSiteLimit(sizeLimit int, user user.User) error {
 
 func (s *Site) Address() string {
 	return s.addr
+}
+
+func (s *Site) User() user.User {
+	return s.user
 }
 
 func (s Site) DecodeJSON(filename string, v interface{}) error {

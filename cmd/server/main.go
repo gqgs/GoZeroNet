@@ -28,12 +28,12 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 
 	pubsubManager := pubsub.NewManager()
 
-	siteManager, err := site.NewSiteManager(pubsubManager)
+	userManager, err := user.NewUserManager()
 	if err != nil {
 		return err
 	}
 
-	userManager, err := user.NewUserManager()
+	siteManager, err := site.NewSiteManager(pubsubManager, userManager)
 	if err != nil {
 		return err
 	}

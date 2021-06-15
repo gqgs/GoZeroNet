@@ -26,10 +26,11 @@ type server struct {
 	siteManager   site.Manager
 	fileServer    fileserver.Server
 	pubsubManager pubsub.Manager
-	userManager   user.UserManager
+	userManager   user.Manager
 }
 
-func NewServer(addr string, siteManager site.Manager, fileServer fileserver.Server, pubsubManager pubsub.Manager, userManager user.UserManager) (*server, error) {
+func NewServer(addr string, siteManager site.Manager, fileServer fileserver.Server,
+	pubsubManager pubsub.Manager, userManager user.Manager) (*server, error) {
 	r := chi.NewRouter()
 
 	host, portString, _ := net.SplitHostPort(addr)
@@ -80,16 +81,13 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := s.userManager.User()
-	s.siteManager.SetUser(user)
-
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
 		s.log.Error(err)
 		return
 	}
 
-	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager, user).Serve()
+	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager).Serve()
 	go site.Announce()
 }
 

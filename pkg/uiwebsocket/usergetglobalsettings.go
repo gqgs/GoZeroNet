@@ -1,25 +1,23 @@
 package uiwebsocket
 
+import "github.com/gqgs/go-zeronet/pkg/user"
+
 type (
 	userGetGlobalSettingsResponse struct {
-		CMD    string                      `json:"cmd"`
-		ID     int64                       `json:"id"`
-		To     int64                       `json:"to"`
-		Result userGetGlobalSettingsResult `json:"result"`
+		CMD    string              `json:"cmd"`
+		ID     int64               `json:"id"`
+		To     int64               `json:"to"`
+		Result user.GlobalSettings `json:"result"`
 	}
 
-	userGetGlobalSettingsResult map[string]interface{}
+	userGetGlobalSettingsResult map[string]user.GlobalSettings
 )
 
 func (w *uiWebsocket) userGetGlobalSettings(rawMessage []byte, message Message) error {
-	settings := w.currentUser.GlobalSettings()
-	if len(settings) == 0 {
-		settings = make(userGetGlobalSettingsResult)
-	}
 	return w.conn.WriteJSON(userGetGlobalSettingsResponse{
 		CMD:    "response",
 		To:     message.ID,
 		ID:     w.ID(),
-		Result: settings,
+		Result: w.site.User().GlobalSettings(),
 	})
 }
