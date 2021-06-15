@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sync"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -15,7 +16,9 @@ import (
 
 type Site struct {
 	addr          string
+	trackersMutex sync.RWMutex
 	trackers      map[string]*AnnouncerStats
+	peersMutex    sync.RWMutex
 	peers         map[string]struct{}
 	pubsubManager pubsub.Manager
 	Settings      *Settings

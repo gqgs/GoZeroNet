@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -126,7 +128,7 @@ func parsePeers(peerList []byte) ([]string, error) {
 
 // Announce announces to trackers the new peer
 // TODO: where to get the peer ID?
-// TODO: debounce this function + also mutex
+// TODO: debounce this function
 func (s *Site) Announce() {
 	h := sha1.New()
 	io.WriteString(h, s.addr)
@@ -147,33 +149,50 @@ func (s *Site) Announce() {
 		return float64(time.Now().UnixNano()) / 1e9
 	}
 
-	// TODO: make parallel requests
-	var addedPeers int
+	var wg sync.WaitGroup
+	wg.Add(len(config.Trackers))
+	var addedPeers int64
 	for _, tracker := range config.Trackers {
-		stats, exists := s.trackers[tracker]
-		if !exists {
-			stats = new(AnnouncerStats)
-		}
-		stats.NumRequest++
-		stats.TimeRequest = now()
-		peers, err := announceToTracker(ctx, tracker, params)
-		if err != nil {
-			stats.Status = "error"
-			stats.LastError = err.Error()
-			stats.TimeLastError = now()
-			stats.NumError++
+		tracker := tracker
+		go func() {
+			defer wg.Done()
+
+			s.trackersMutex.RLock()
+			stats, exists := s.trackers[tracker]
+			s.trackersMutex.RUnlock()
+			if !exists {
+				stats = new(AnnouncerStats)
+			}
+			stats.NumRequest++
+			stats.TimeRequest = now()
+			peers, err := announceToTracker(ctx, tracker, params)
+			if err != nil {
+				stats.Status = "error"
+				stats.LastError = err.Error()
+				stats.TimeLastError = now()
+				stats.NumError++
+				s.trackersMutex.Lock()
+				s.trackers[tracker] = stats
+				s.trackersMutex.Unlock()
+				return
+			}
+			stats.NumSuccess++
+			stats.Status = "announced"
+			stats.TimeStatus = now()
+			s.trackersMutex.Lock()
 			s.trackers[tracker] = stats
-			continue
-		}
-		stats.NumSuccess++
-		stats.Status = "announced"
-		stats.TimeStatus = now()
-		s.trackers[tracker] = stats
-		for _, peer := range peers {
-			s.peers[peer] = struct{}{}
-		}
-		addedPeers += len(peers)
+			s.trackersMutex.Unlock()
+
+			s.peersMutex.Lock()
+			for _, peer := range peers {
+				s.peers[peer] = struct{}{}
+			}
+			s.peersMutex.Unlock()
+
+			atomic.AddInt64(&addedPeers, int64(len(peers)))
+		}()
 	}
+	wg.Wait()
 
 	_ = s.broadcastSiteChange("peers_added", addedPeers)
 
