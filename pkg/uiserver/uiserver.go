@@ -23,13 +23,13 @@ type server struct {
 	srv           *http.Server
 	log           log.Logger
 	addr          string
-	siteManager   site.SiteManager
+	siteManager   site.Manager
 	fileServer    fileserver.Server
 	pubsubManager pubsub.Manager
 	userManager   user.UserManager
 }
 
-func NewServer(addr string, siteManager site.SiteManager, fileServer fileserver.Server, pubsubManager pubsub.Manager, userManager user.UserManager) (*server, error) {
+func NewServer(addr string, siteManager site.Manager, fileServer fileserver.Server, pubsubManager pubsub.Manager, userManager user.UserManager) (*server, error) {
 	r := chi.NewRouter()
 
 	host, portString, _ := net.SplitHostPort(addr)

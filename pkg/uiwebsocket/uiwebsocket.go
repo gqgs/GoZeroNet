@@ -18,7 +18,7 @@ type uiWebsocket struct {
 	reqID         int64
 	conn          websocket.Conn
 	log           log.Logger
-	siteManager   site.SiteManager
+	siteManager   site.Manager
 	fileServer    fileserver.Server
 	site          *site.Site
 	pubsubManager pubsub.Manager
@@ -29,7 +29,7 @@ type uiWebsocket struct {
 	currentUser   user.User
 }
 
-func NewUIWebsocket(conn websocket.Conn, siteManager site.SiteManager,
+func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager,
 	fileServer fileserver.Server, site *site.Site, pubsubManager pubsub.Manager, currentUser user.User) *uiWebsocket {
 	return &uiWebsocket{
 		conn:          conn,
