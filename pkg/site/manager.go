@@ -8,6 +8,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
+	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/gqgs/go-zeronet/pkg/template"
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
@@ -44,7 +45,7 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager) (*manage
 		site.Settings = siteSettings
 		site.addr = addr
 		site.trackers = make(map[string]*AnnouncerStats)
-		site.peers = make(map[string]struct{})
+		site.peers = make(map[string]peer.Peer)
 		site.wrapperNonce = make(map[string]int64)
 		site.pubsubManager = pubsubManager
 		site.user = user
@@ -76,7 +77,7 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.addr = addr
 	site.Settings = new(Settings)
 	site.trackers = make(map[string]*AnnouncerStats)
-	site.peers = make(map[string]struct{})
+	site.peers = make(map[string]peer.Peer)
 	site.wrapperNonce = make(map[string]int64)
 	site.user = m.userManager.User()
 	site.pubsubManager = m.pubsubManager

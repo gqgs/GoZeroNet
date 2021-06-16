@@ -12,6 +12,7 @@ import (
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
+	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
@@ -20,7 +21,7 @@ type Site struct {
 	trackersMutex     sync.RWMutex
 	trackers          map[string]*AnnouncerStats
 	peersMutex        sync.RWMutex
-	peers             map[string]struct{}
+	peers             map[string]peer.Peer
 	pubsubManager     pubsub.Manager
 	Settings          *Settings
 	user              user.User
@@ -29,7 +30,7 @@ type Site struct {
 	wrapperNonce      map[string]int64
 }
 
-func (s *Site) Peers() map[string]struct{} {
+func (s *Site) Peers() map[string]peer.Peer {
 	return s.peers
 }
 

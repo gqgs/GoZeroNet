@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/site"
@@ -35,16 +34,15 @@ func download(addr string) error {
 	peers := newSite.Peers()
 	log.Println("found ", len(peers), " peers")
 
-	for peer := range peers {
+	for _, peer := range peers {
 		log.Println("connecting to peer", peer)
-		conn, err := connection.NewConnection(peer)
-		if err != nil {
+		if err := peer.Connect(); err != nil {
 			log.Println(err)
 			continue
 		}
-		defer conn.Close()
+		defer peer.Close()
 
-		resp, err := fileserver.GetFile(conn, addr, "content.json", 0, 0)
+		resp, err := fileserver.GetFile(peer, addr, "content.json", 0, 0)
 		if err != nil {
 			log.Println(err)
 			continue

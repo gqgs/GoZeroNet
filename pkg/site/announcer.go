@@ -17,6 +17,7 @@ import (
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
+	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/zeebo/bencode"
 )
 
@@ -194,8 +195,8 @@ func (s *Site) Announce() {
 			s.trackersMutex.Unlock()
 
 			s.peersMutex.Lock()
-			for _, peer := range peers {
-				s.peers[peer] = struct{}{}
+			for _, peerAddress := range peers {
+				s.peers[peerAddress] = peer.NewPeer(peerAddress)
 			}
 			s.peersMutex.Unlock()
 
