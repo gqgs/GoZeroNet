@@ -3,19 +3,20 @@ package site
 import (
 	"context"
 	"crypto/sha1"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/ip"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/zeebo/bencode"
@@ -105,7 +106,7 @@ func announceToTracker(ctx context.Context, tracker string, params requestParams
 		return nil, err
 	}
 
-	return parsePeers(parsed.Peers)
+	return parsePeers(parsed.Peers, true)
 }
 
 func parseTrackerResponse(reader io.Reader) (*requestResponse, error) {
@@ -114,27 +115,26 @@ func parseTrackerResponse(reader io.Reader) (*requestResponse, error) {
 }
 
 // https://www.bittorrent.org/beps/bep_0023.html
-func parsePeers(peerList []byte) ([]string, error) {
+func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 	if len(peerList)%6 != 0 {
 		return nil, errors.New("unexpected peer list size")
 	}
 
-	var ips []string
+	var peers []string
 	for i := 0; i < len(peerList); i += 6 {
-		ip, port := peerList[i:i+4], peerList[i+4:i+6]
+		// TODO: remove copy in 1.17
+		// https://github.com/golang/go/issues/395
+		var addr [6]byte
+		copy(addr[:], peerList[i:i+6])
+		peer := ip.ParseIPv4(addr)
 
-		peerID := net.IPv4(ip[0], ip[1], ip[2], ip[3])
-		peerPort := binary.BigEndian.Uint16(port)
-
-		// not connectable
-		if peerPort == 1 {
+		if skipNotConnectable && strings.HasSuffix(peer, ":1") {
 			continue
 		}
-
-		ips = append(ips, fmt.Sprintf("%s:%d", peerID, peerPort))
+		peers = append(peers, peer)
 	}
 
-	return ips, nil
+	return peers, nil
 }
 
 // Announce announces to trackers the new peer
@@ -160,6 +160,7 @@ func (s *Site) Announce() {
 		return float64(time.Now().UnixNano()) / 1e9
 	}
 
+	s.log.WithField("trackers", len(config.Trackers)).Info("announcing to trackers...")
 	var wg sync.WaitGroup
 	wg.Add(len(config.Trackers))
 	var addedPeers int64
@@ -205,11 +206,44 @@ func (s *Site) Announce() {
 	}
 	wg.Wait()
 
+	s.log.Info("announcing to trackers done")
 	_ = s.broadcastSiteChange("peers_added", addedPeers)
 
 	// TODO: if trackers.json file exists annouce using the trackers defined there
 	// If it doesn't exist use bootstrap trackers in config.Trackers
 	// In either case, update trackers.json and return the updates stats here
+}
+
+func (s *Site) AnnouncePex() {
+	s.log.WithField("peers", len(s.peers)).Info("announcing to pex...")
+	var wg sync.WaitGroup
+	wg.Add(len(s.peers))
+	for _, sitePeer := range s.peers {
+		sitePeer := sitePeer
+		go func() {
+			defer wg.Done()
+			if err := sitePeer.Connect(); err != nil {
+				s.log.Warn(err)
+				return
+			}
+			resp, err := fileserver.Pex(sitePeer, s.addr, 10)
+			if err != nil {
+				s.log.Warn(err)
+				return
+			}
+			s.log.WithField("peer", sitePeer).Infof("found %d peers", len(resp.Peers))
+			for _, peerAddr := range resp.Peers {
+				var addr [6]byte
+				copy(addr[:], peerAddr)
+				newPeer := ip.ParseIPv4(addr)
+				s.peersMutex.Lock()
+				s.peers[newPeer] = peer.NewPeer(newPeer)
+				s.peersMutex.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+	s.log.Info("announcing to pex done")
 }
 
 func (s *Site) AnnouncerStats() map[string]*AnnouncerStats {

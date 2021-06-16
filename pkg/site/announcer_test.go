@@ -37,7 +37,7 @@ func Test_parseTrackerResponse(t *testing.T) {
 		"185.220.100.243:1",
 	}
 
-	peerList, err := parsePeers(parsed.Peers)
+	peerList, err := parsePeers(parsed.Peers, false)
 	require.NoError(t, err)
 	require.True(t, reflect.DeepEqual(expectedPeerList, peerList))
 }

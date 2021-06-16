@@ -2,7 +2,6 @@ package connection
 
 import (
 	"net"
-	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
@@ -16,12 +15,10 @@ type conn struct {
 // If the returned error is nil the client must close the
 // connection after using it.
 func NewConnection(addr string) (net.Conn, error) {
-	netConn, err := net.Dial("tcp", addr)
+	netConn, err := net.DialTimeout("tcp", addr, config.ConnectionDeadline)
 	if err != nil {
 		return nil, err
 	}
-
-	netConn.SetDeadline(time.Now().Add(config.ConnectionDeadline))
 
 	if config.Debug {
 		return debugConn{

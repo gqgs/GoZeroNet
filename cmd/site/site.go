@@ -30,6 +30,7 @@ func download(addr string) error {
 	}
 
 	newSite.Announce()
+	newSite.AnnouncePex()
 
 	peers := newSite.Peers()
 	log.Println("found ", len(peers), " peers")

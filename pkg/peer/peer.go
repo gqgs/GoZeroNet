@@ -36,6 +36,7 @@ func (p *peer) Close() error {
 	if p.Conn != nil {
 		return p.Conn.Close()
 	}
+	p.connected = false
 	return nil
 }
 

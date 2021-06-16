@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/gqgs/go-zeronet/pkg/user"
@@ -28,6 +29,7 @@ type Site struct {
 	isAdmin           bool
 	wrapperNonceMutex sync.RWMutex
 	wrapperNonce      map[string]int64
+	log               log.Logger
 }
 
 func (s *Site) Peers() map[string]peer.Peer {

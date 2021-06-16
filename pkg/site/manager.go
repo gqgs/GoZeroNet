@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/gqgs/go-zeronet/pkg/peer"
@@ -49,6 +50,7 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager) (*manage
 		site.wrapperNonce = make(map[string]int64)
 		site.pubsubManager = pubsubManager
 		site.user = user
+		site.log = log.New(addr)
 
 		for _, permission := range site.Settings.Permissions {
 			if strings.EqualFold(permission, "admin") {
@@ -81,6 +83,7 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.wrapperNonce = make(map[string]int64)
 	site.user = m.userManager.User()
 	site.pubsubManager = m.pubsubManager
+	site.log = log.New(addr)
 
 	m.wrapperKeyMap[addr] = site
 	m.sites[addr] = site
