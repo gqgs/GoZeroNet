@@ -120,6 +120,11 @@ func parsePeers(peerList []byte) ([]string, error) {
 		peerID := net.IPv4(ip[0], ip[1], ip[2], ip[3])
 		peerPort := binary.BigEndian.Uint16(port)
 
+		// not connectable
+		if peerPort == 1 {
+			continue
+		}
+
 		ips = append(ips, fmt.Sprintf("%s:%d", peerID, peerPort))
 	}
 
@@ -136,7 +141,7 @@ func (s *Site) Announce() {
 		infoHash: h.Sum(nil),
 		peerID:   random.PeerID(),
 		port:     config.FileServerPort,
-		numWant:  10,
+		numWant:  25,
 	}
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*30))
