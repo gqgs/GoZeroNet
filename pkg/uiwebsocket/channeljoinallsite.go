@@ -6,10 +6,9 @@ import (
 
 type (
 	channelJoinAllsiteRequest struct {
-		CMD          string                   `json:"cmd"`
-		ID           int64                    `json:"id"`
-		Params       channelJoinAllsiteParams `json:"params"`
-		WrapperNonce string                   `json:"wrapper_nonce"`
+		CMD    string                   `json:"cmd"`
+		ID     int64                    `json:"id"`
+		Params channelJoinAllsiteParams `json:"params"`
 	}
 	channelJoinAllsiteParams struct {
 		Channel string `json:"channel"`

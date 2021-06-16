@@ -6,10 +6,9 @@ import (
 
 type (
 	serverShutdownRequest struct {
-		CMD          string               `json:"cmd"`
-		ID           int64                `json:"id"`
-		Params       serverShutdownParams `json:"params"`
-		WrapperNonce string               `json:"wrapper_nonce"`
+		CMD    string               `json:"cmd"`
+		ID     int64                `json:"id"`
+		Params serverShutdownParams `json:"params"`
 	}
 	serverShutdownParams map[string]string
 

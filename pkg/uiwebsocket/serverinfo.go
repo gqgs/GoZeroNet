@@ -6,10 +6,9 @@ import (
 
 type (
 	serverInfoRequest struct {
-		CMD          string           `json:"cmd"`
-		ID           int64            `json:"id"`
-		Params       serverInfoParams `json:"params"`
-		WrapperNonce string           `json:"wrapper_nonce"`
+		CMD    string           `json:"cmd"`
+		ID     int64            `json:"id"`
+		Params serverInfoParams `json:"params"`
 	}
 	serverInfoParams map[string]string
 

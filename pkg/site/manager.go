@@ -42,6 +42,7 @@ func NewSiteManager(pubsubManager pubsub.Manager, userManager user.Manager) (*ma
 		site.addr = addr
 		site.trackers = make(map[string]*AnnouncerStats)
 		site.peers = make(map[string]struct{})
+		site.wrapperNonce = make(map[string]int64)
 		site.pubsubManager = pubsubManager
 		site.user = user
 
@@ -93,6 +94,8 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 
 	wrapperNonce := random.HexString(64)
 	scriptNonce := random.Base62String(64)
+
+	site.registerWrapperNonce(wrapperNonce)
 
 	vars := struct {
 		Address                  string

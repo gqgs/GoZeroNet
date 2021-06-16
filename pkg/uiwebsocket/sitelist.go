@@ -6,10 +6,9 @@ import (
 
 type (
 	siteListRequest struct {
-		CMD          string         `json:"cmd"`
-		ID           int64          `json:"id"`
-		Params       siteListParams `json:"params"`
-		WrapperNonce string         `json:"wrapper_nonce"`
+		CMD    string         `json:"cmd"`
+		ID     int64          `json:"id"`
+		Params siteListParams `json:"params"`
 	}
 	siteListParams struct {
 		ConnectionSites bool `json:"connecting_sites"`

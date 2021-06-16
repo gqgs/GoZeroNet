@@ -18,6 +18,17 @@ func (w *uiWebsocket) handleMessage(rawMessage []byte) {
 	message, err := decode(rawMessage)
 	if err != nil {
 		w.log.WithField("err", err).Warn("cmd decode error")
+		return
+	}
+
+	if isInnerFrameCmd(message) {
+		if !w.site.HasValidWrapperNonce(message.WrapperNonce) {
+			w.log.WithField("wrapper_nonce", message.WrapperNonce).
+				WithField("cmd", message.CMD).
+				WithField("id", message.ID).
+				Warn("unknown wrapper nonce")
+			return
+		}
 	}
 
 	if err := w.route(rawMessage, message); err != nil {
@@ -86,4 +97,8 @@ type serverErrorRsponse struct {
 	ID    int64  `json:"id"`
 	To    int64  `json:"to"`
 	Error string `json:"error"`
+}
+
+func isInnerFrameCmd(message Message) bool {
+	return message.ID < 1000000 && message.ID >= 0
 }

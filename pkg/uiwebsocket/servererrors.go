@@ -2,10 +2,9 @@ package uiwebsocket
 
 type (
 	serverErrorsRequest struct {
-		CMD          string             `json:"cmd"`
-		ID           int64              `json:"id"`
-		Params       serverErrorsParams `json:"params"`
-		WrapperNonce string             `json:"wrapper_nonce"`
+		CMD    string             `json:"cmd"`
+		ID     int64              `json:"id"`
+		Params serverErrorsParams `json:"params"`
 	}
 	serverErrorsParams map[string]string
 

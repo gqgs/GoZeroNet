@@ -6,10 +6,9 @@ import (
 
 type (
 	announcerStatsRequest struct {
-		CMD          string               `json:"cmd"`
-		ID           int64                `json:"id"`
-		Params       announcerStatsParams `json:"params"`
-		WrapperNonce string               `json:"wrapper_nonce"`
+		CMD    string               `json:"cmd"`
+		ID     int64                `json:"id"`
+		Params announcerStatsParams `json:"params"`
 	}
 	announcerStatsParams map[string]string
 

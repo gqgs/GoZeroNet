@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -15,15 +16,41 @@ import (
 )
 
 type Site struct {
-	addr          string
-	trackersMutex sync.RWMutex
-	trackers      map[string]*AnnouncerStats
-	peersMutex    sync.RWMutex
-	peers         map[string]struct{}
-	pubsubManager pubsub.Manager
-	Settings      *Settings
-	user          user.User
-	isAdmin       bool
+	addr              string
+	trackersMutex     sync.RWMutex
+	trackers          map[string]*AnnouncerStats
+	peersMutex        sync.RWMutex
+	peers             map[string]struct{}
+	pubsubManager     pubsub.Manager
+	Settings          *Settings
+	user              user.User
+	isAdmin           bool
+	wrapperNonceMutex sync.RWMutex
+	wrapperNonce      map[string]int64
+}
+
+func (s *Site) HasValidWrapperNonce(wrapperNonce string) bool {
+	s.wrapperNonceMutex.RLock()
+	defer s.wrapperNonceMutex.RUnlock()
+	created, exists := s.wrapperNonce[wrapperNonce]
+	// Nonces are valid for 24 hours
+	if exists && time.Since(time.Unix(created, 0)).Hours() > 24 {
+		s.unRegisterWrapperNonce(wrapperNonce)
+		return false
+	}
+	return exists
+}
+
+func (s *Site) unRegisterWrapperNonce(wrapperNonce string) {
+	s.wrapperNonceMutex.Lock()
+	delete(s.wrapperNonce, wrapperNonce)
+	s.wrapperNonceMutex.Unlock()
+}
+
+func (s *Site) registerWrapperNonce(wrapperNonce string) {
+	s.wrapperNonceMutex.Lock()
+	s.wrapperNonce[wrapperNonce] = time.Now().Unix()
+	s.wrapperNonceMutex.Unlock()
 }
 
 func (s *Site) SaveSettings() error {
