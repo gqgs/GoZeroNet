@@ -14,6 +14,8 @@ type Message struct {
 	WrapperNonce string `json:"wrapper_nonce"`
 }
 
+type wsHandlerFunc func(rawMessage []byte, message Message) error
+
 func (w *uiWebsocket) handleMessage(rawMessage []byte) {
 	message, err := decode(rawMessage)
 	if err != nil {
@@ -76,8 +78,7 @@ func decode(payload []byte) (Message, error) {
 	return message, err
 }
 
-func (w *uiWebsocket) adminOnly(handler func(rawMessage []byte,
-	message Message) error) func(rawMessage []byte, message Message) error {
+func (w *uiWebsocket) adminOnly(handler wsHandlerFunc) wsHandlerFunc {
 	if w.site.IsAdmin() {
 		return handler
 	}
