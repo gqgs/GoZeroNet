@@ -47,6 +47,8 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.announcerStats(rawMessage, message)
 	case "siteList":
 		return w.siteList(rawMessage, message)
+	case "serverShutdown":
+		return w.serverShutdown(rawMessage, message)
 	}
 
 	for _, plugin := range w.plugins {
