@@ -25,9 +25,12 @@ type manager struct {
 	sites map[string]*Site
 	// WrapperKey -> Site
 	wrapperKeyMap map[string]*Site
+
+	pubsubManager pubsub.Manager
+	userManager   user.Manager
 }
 
-func NewSiteManager(pubsubManager pubsub.Manager, userManager user.Manager) (*manager, error) {
+func NewManager(pubsubManager pubsub.Manager, userManager user.Manager) (*manager, error) {
 	settings, err := loadSiteSettingsFromFile()
 	if err != nil {
 		return nil, err
@@ -60,7 +63,27 @@ func NewSiteManager(pubsubManager pubsub.Manager, userManager user.Manager) (*ma
 	return &manager{
 		sites:         sites,
 		wrapperKeyMap: wrapperKeyMap,
+		pubsubManager: pubsubManager,
+		userManager:   userManager,
 	}, nil
+}
+
+func (m *manager) NewSite(addr string) (*Site, error) {
+	if site, alreadyExists := m.sites[addr]; alreadyExists {
+		return site, errors.New("site already exists")
+	}
+	site := new(Site)
+	site.addr = addr
+	site.Settings = new(Settings)
+	site.trackers = make(map[string]*AnnouncerStats)
+	site.peers = make(map[string]struct{})
+	site.wrapperNonce = make(map[string]int64)
+	site.user = m.userManager.User()
+	site.pubsubManager = m.pubsubManager
+
+	m.wrapperKeyMap[addr] = site
+	m.sites[addr] = site
+	return site, nil
 }
 
 func (m *manager) Site(addr string) *Site {

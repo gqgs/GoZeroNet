@@ -9,6 +9,7 @@ import (
 	"github.com/gqgs/go-zeronet/cmd/db"
 	"github.com/gqgs/go-zeronet/cmd/peer"
 	"github.com/gqgs/go-zeronet/cmd/server"
+	"github.com/gqgs/go-zeronet/cmd/site"
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,6 +21,7 @@ func main() {
 			server.NewCommand(),
 			peer.NewCommand(),
 			db.NewCommand(),
+			site.NewCommand(),
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

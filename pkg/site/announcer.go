@@ -65,10 +65,15 @@ func announceToTracker(ctx context.Context, tracker string, params requestParams
 		return nil, err
 	}
 
+	port := params.port
+	if port == 0 {
+		port = 1
+	}
+
 	values := url.Values{}
 	values.Set("info_hash", string(params.infoHash))
 	values.Set("peer_id", params.peerID)
-	values.Set("port", strconv.Itoa(params.port))
+	values.Set("port", strconv.Itoa(port))
 	values.Set("uploaded", "0")
 	values.Set("downloaded", "0")
 	// Hack for tracker compatibility
@@ -141,7 +146,7 @@ func (s *Site) Announce() {
 		infoHash: h.Sum(nil),
 		peerID:   random.PeerID(),
 		port:     config.FileServerPort,
-		numWant:  25,
+		numWant:  50,
 	}
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*30))

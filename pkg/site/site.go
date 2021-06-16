@@ -29,6 +29,10 @@ type Site struct {
 	wrapperNonce      map[string]int64
 }
 
+func (s *Site) Peers() map[string]struct{} {
+	return s.peers
+}
+
 func (s *Site) HasValidWrapperNonce(wrapperNonce string) bool {
 	s.wrapperNonceMutex.RLock()
 	defer s.wrapperNonceMutex.RUnlock()

@@ -28,10 +28,12 @@ func (m *manager) User() User {
 	for _, user := range m.users {
 		return user
 	}
-	return nil
+	user := new(user)
+	user.Sites = make(map[string]Site)
+	return user
 }
 
-func NewUserManager() (*manager, error) {
+func NewManager() (*manager, error) {
 	userFilePath := path.Join(config.DataDir, "users.json")
 	file, err := os.Open(userFilePath)
 	if err != nil {
