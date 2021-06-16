@@ -30,9 +30,9 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	case "channelJoin":
 		return w.channelJoin(rawMessage, message)
 	case "channelJoinAllsite":
-		return w.channelJoinAllsite(rawMessage, message)
+		return w.adminOnly(w.channelJoinAllsite)(rawMessage, message)
 	case "siteSetLimit":
-		return w.siteSetLimit(rawMessage, message)
+		return w.adminOnly(w.siteSetLimit)(rawMessage, message)
 	case "userGetSettings":
 		return w.userGetSettings(rawMessage, message)
 	case "userGetGlobalSettings":
@@ -42,13 +42,13 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	case "serverInfo":
 		return w.serverInfo(rawMessage, message)
 	case "serverErrors":
-		return w.serverErrors(rawMessage, message)
+		return w.adminOnly(w.serverErrors)(rawMessage, message)
 	case "announcerStats":
-		return w.announcerStats(rawMessage, message)
+		return w.adminOnly(w.announcerStats)(rawMessage, message)
 	case "siteList":
-		return w.siteList(rawMessage, message)
+		return w.adminOnly(w.siteList)(rawMessage, message)
 	case "serverShutdown":
-		return w.serverShutdown(rawMessage, message)
+		return w.adminOnly(w.serverShutdown)(rawMessage, message)
 	}
 
 	for _, plugin := range w.plugins {
@@ -63,4 +63,27 @@ func decode(payload []byte) (Message, error) {
 	var message Message
 	err := easyjson.Unmarshal(payload, &message)
 	return message, err
+}
+
+func (w *uiWebsocket) adminOnly(handler func(rawMessage []byte,
+	message Message) error) func(rawMessage []byte, message Message) error {
+	if w.site.IsAdmin() {
+		return handler
+	}
+
+	return func(rawMessage []byte, message Message) error {
+		return w.conn.WriteJSON(serverErrorRsponse{
+			CMD:   "response",
+			ID:    w.ID(),
+			To:    message.ID,
+			Error: "Forbidden",
+		})
+	}
+}
+
+type serverErrorRsponse struct {
+	CMD   string `json:"cmd"`
+	ID    int64  `json:"id"`
+	To    int64  `json:"to"`
+	Error string `json:"error"`
 }

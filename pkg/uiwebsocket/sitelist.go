@@ -26,7 +26,6 @@ type (
 )
 
 func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
-	// TODO: admin command
 	siteList, err := w.siteManager.SiteList()
 	if err != nil {
 		return err

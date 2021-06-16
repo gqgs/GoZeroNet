@@ -32,7 +32,6 @@ func (w *uiWebsocket) siteSetLimit(rawMessage []byte, message Message) error {
 		return errors.New("missing required parameter")
 	}
 
-	// TODO: admin only
 	if err := w.site.SetSiteLimit(request.Params[0]); err != nil {
 		return err
 	}

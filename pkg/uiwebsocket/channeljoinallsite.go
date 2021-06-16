@@ -35,7 +35,6 @@ func (w *uiWebsocket) channelJoinAllsite(rawMessage []byte, message Message) err
 	w.channels[payload.Params.Channel] = struct{}{}
 	w.channelsMutex.Unlock()
 
-	// TODO: should be allowed only for admin
 	w.allChannels = true
 
 	return w.conn.WriteJSON(channelJoinAllsiteResponse{

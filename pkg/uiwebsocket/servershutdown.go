@@ -24,7 +24,6 @@ type (
 )
 
 func (w *uiWebsocket) serverShutdown(rawMessage []byte, message Message) error {
-	// TODO: admin only
 	process, err := os.FindProcess(os.Getpid())
 	if err != nil {
 		return err

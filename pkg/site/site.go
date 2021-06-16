@@ -23,6 +23,7 @@ type Site struct {
 	pubsubManager pubsub.Manager
 	Settings      *Settings
 	user          user.User
+	isAdmin       bool
 }
 
 func (s *Site) SaveSettings() error {
@@ -45,6 +46,10 @@ func (s *Site) SaveSettings() error {
 func (s *Site) Download() error {
 	// TODO: implement me
 	return nil
+}
+
+func (s *Site) IsAdmin() bool {
+	return s.isAdmin
 }
 
 func (s *Site) broadcastSiteChange(events ...interface{}) error {
@@ -90,7 +95,7 @@ func (s *Site) User() user.User {
 	return s.user
 }
 
-func (s Site) DecodeJSON(filename string, v interface{}) error {
+func (s *Site) DecodeJSON(filename string, v interface{}) error {
 	innerPath := path.Join(config.DataDir, s.addr, filename)
 	file, err := os.Open(innerPath)
 	if err != nil {
@@ -102,7 +107,7 @@ func (s Site) DecodeJSON(filename string, v interface{}) error {
 	return json.NewDecoder(file).Decode(v)
 }
 
-func (s Site) ReadFile(innerPath string, dst io.Writer) error {
+func (s *Site) ReadFile(innerPath string, dst io.Writer) error {
 	path := path.Join(config.DataDir, s.addr, innerPath)
 	file, err := os.Open(path)
 	if err != nil {

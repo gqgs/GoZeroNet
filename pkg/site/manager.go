@@ -3,6 +3,7 @@ package site
 import (
 	"errors"
 	"io"
+	"strings"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -41,10 +42,18 @@ func NewSiteManager(pubsubManager pubsub.Manager, userManager user.Manager) (*ma
 		site.addr = addr
 		site.trackers = make(map[string]*AnnouncerStats)
 		site.peers = make(map[string]struct{})
-		wrapperKeyMap[siteSettings.WrapperKey] = site
 		site.pubsubManager = pubsubManager
 		site.user = user
+
+		for _, permission := range site.Settings.Permissions {
+			if strings.EqualFold(permission, "admin") {
+				site.isAdmin = true
+				break
+			}
+		}
+
 		sites[addr] = site
+		wrapperKeyMap[siteSettings.WrapperKey] = site
 	}
 
 	return &manager{
