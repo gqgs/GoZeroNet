@@ -10,6 +10,15 @@ import (
 	"golang.org/x/crypto/ripemd160"
 )
 
+// IsValidSignature return true if message was signed with key related to address
+func IsValidSignature(message []byte, base64Sign, address string) bool {
+	pubkey, err := RecoverPublicKey(message, base64Sign)
+	if err != nil {
+		return false
+	}
+	return address == PublicKeyToAddress(pubkey)
+}
+
 // RecoverPublicKey recovers the public key given a message and the message signature
 func RecoverPublicKey(message []byte, base64Sign string) ([]byte, error) {
 	sign, err := base64.StdEncoding.DecodeString(base64Sign)
@@ -26,16 +35,16 @@ func RecoverPublicKey(message []byte, base64Sign string) ([]byte, error) {
 }
 
 // PublicKeyToAddress converts a public key to ZN style addresses
-func PublicKeyToAddress(pubKey []byte) (string, error) {
+func PublicKeyToAddress(pubKey []byte) string {
 	sha256Digest := sha256.Sum256(pubKey)
 	ripemdHasher := ripemd160.New()
 	if _, err := ripemdHasher.Write(sha256Digest[:]); err != nil {
-		return "", err
+		return ""
 	}
 	digest := ripemdHasher.Sum(nil)
 	digest = append([]byte{0}, digest...)
 	result := base58CheckEncode(digest)
-	return result, nil
+	return result
 }
 
 // base58 has a CheckEncode method but it prepends a version
@@ -56,10 +65,8 @@ func checksum(input []byte) (cksum [4]byte) {
 }
 
 func hash(message []byte) []byte {
-	// FIXME: handle different length cases
-	// https://github.com/vbuterin/pybitcointools/blob/87806f3c984e258a5f30814a089b5c29cbcf0952/bitcoin/main.py#L397
 	padded := []byte("\x18Bitcoin Signed Message:\n")
-	padded = append(padded, byte(len(message)))
+	padded = append(padded, numToVarInt(len(message))...)
 	padded = append(padded, message...)
 
 	h := sha256.Sum256(padded)
@@ -77,4 +84,36 @@ func coincurveSig(sign []byte) ([]byte, error) {
 	}
 
 	return append(sign[1:], recoveryID), nil
+}
+
+// https://github.com/vbuterin/pybitcointools/blob/87806f3c984e258a5f30814a089b5c29cbcf0952/bitcoin/main.py#L397
+func numToVarInt(n int) []byte {
+	const base = 256
+
+	var result []byte
+	var minLength int
+	if n < 253 {
+		return []byte{byte(n)}
+	} else if n < 65536 {
+		minLength = 2
+		result = append(result, 253)
+	} else if n < 4294967296 {
+		minLength = 4
+		result = append(result, 254)
+	} else {
+		minLength = 8
+		result = append(result, 255)
+	}
+
+	for n > 0 {
+		index := n % base
+		result = append(result, byte(index))
+		n /= base
+	}
+
+	for len(result) <= minLength {
+		result = append(result, 0)
+	}
+
+	return result
 }
