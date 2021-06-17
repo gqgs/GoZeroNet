@@ -118,10 +118,9 @@ func (c *Content) isValid() bool {
 		return false
 	}
 
-	contentString := string(contentJSON)
 	var validSigns int
 	for addr, sign := range c.Signs {
-		if crypto.IsValidSignature([]byte(contentString), sign, addr) {
+		if crypto.IsValidSignature(contentJSON, sign, addr) {
 			validSigns++
 			if validSigns >= c.SignsRequired {
 				return true
