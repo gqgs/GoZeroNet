@@ -1,6 +1,7 @@
 package site
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
+	"github.com/gqgs/go-zeronet/pkg/lib/parser"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
@@ -111,18 +113,12 @@ func (c *Content) isValid() bool {
 		return false
 	}
 
-	// FIXME: find a better way to replicate Python's json.dumps
-	replacer := strings.NewReplacer(
-		`":`, `": `,
-		"},", "}, ",
-		"],", "], ",
-		`",`, `", `,
-		`,"`, `, "`,
-	)
+	contentJSON, err = parser.FixJSONSpacing(bytes.NewReader(contentJSON))
+	if err != nil {
+		return false
+	}
 
-	contentString := replacer.Replace(string(contentJSON))
-	contentString = strings.TrimSpace(contentString)
-
+	contentString := string(contentJSON)
 	var validSigns int
 	for addr, sign := range c.Signs {
 		if crypto.IsValidSignature([]byte(contentString), sign, addr) {
