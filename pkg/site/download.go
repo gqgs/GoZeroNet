@@ -3,11 +3,14 @@ package site
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
@@ -74,4 +77,61 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	// Bitcoin signature + SHA512_64 of downloaded files
 
 	return nil
+}
+
+func (c *Content) isValid() bool {
+	if c == nil {
+		return false
+	}
+
+	signers := make([]string, len(c.Signs))
+	var i int
+	for addr := range c.Signs {
+		signers[i] = addr
+		i++
+	}
+	signerdMsg := fmt.Sprintf("%d:%s", c.SignsRequired, strings.Join(signers, ","))
+	if !crypto.IsValidSignature([]byte(signerdMsg), c.SignersSign, c.Address) {
+		return false
+	}
+
+	signs := make(map[string]string)
+	for key, value := range c.Signs {
+		signs[key] = value
+	}
+
+	// file was signed without signs
+	c.Signs = nil
+	contentJSON, err := json.Marshal(c)
+
+	// restore signs
+	c.Signs = signs
+
+	if err != nil {
+		return false
+	}
+
+	// FIXME: find a better way to replicate Python's json.dumps
+	replacer := strings.NewReplacer(
+		`":`, `": `,
+		"},", "}, ",
+		"],", "], ",
+		`",`, `", `,
+		`,"`, `, "`,
+	)
+
+	contentString := replacer.Replace(string(contentJSON))
+	contentString = strings.TrimSpace(contentString)
+
+	var validSigns int
+	for addr, sign := range c.Signs {
+		if crypto.IsValidSignature([]byte(contentString), sign, addr) {
+			validSigns++
+			if validSigns >= c.SignsRequired {
+				return true
+			}
+		}
+	}
+
+	return false
 }

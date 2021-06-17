@@ -1,0 +1,147 @@
+{
+ "address": "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D",
+ "background-color": "#F2F4F6",
+ "background-color-dark": "#383F46",
+ "description": "New ZeroHello",
+ "files": {
+  "LICENSE": {
+   "sha512": "d281feecb7d1218e1aea8269f288fcd63385da1a130681fadae77262637cb65f",
+   "size": 18027
+  },
+  "README.md": {
+   "sha512": "d7955e22ea8f0b7a74f3274d4c7e23ba342c58d848973c47df55005158cc09f0",
+   "size": 241
+  },
+  "chartjs/chart.bundle.min.js": {
+   "sha512": "f8b84bec9157a76d7fa620998264edf84d7efe94ce472f6c3c60268346d4081a",
+   "size": 208221
+  },
+  "css/all.css": {
+   "sha512": "fc810e4f61d8b3f06bf7152e333a1f5403bdd69727e965bb9472394a5ffa8e69",
+   "size": 237857
+  },
+  "img/loading-circle.gif": {
+   "sha512": "339baf1bccb9b80ae29c2493e73b40cf0588c96fc095954b475dea0538aaa929",
+   "size": 2346
+  },
+  "img/logo.png": {
+   "sha512": "81884a41736056c54274a7332f233b872fdf9e298b6dda91d655cc7105221682",
+   "size": 11379
+  },
+  "img/logo.svg": {
+   "sha512": "ff770c076d196585cfa08d77bf0299c2c48a71b2ba61a84bc9ae0062cabab6d4",
+   "size": 1001
+  },
+  "img/logo_big.png": {
+   "sha512": "81884a41736056c54274a7332f233b872fdf9e298b6dda91d655cc7105221682",
+   "size": 11379
+  },
+  "img/world.png": {
+   "sha512": "2741b5107146c26ec6ff4de4f5b2219c848cbd7405e03718c2dca2b2c0acc15f",
+   "size": 13735
+  },
+  "index.html": {
+   "sha512": "09a6f500faf2fc962e493505d627d5df9259cb1427c3afd4537cdf1ab9741d6a",
+   "size": 1330
+  },
+  "js/all.js": {
+   "sha512": "1846bef3f6abedf656a9ad2b06cec0f82e5b1267d04036bfce0495aba68dd76c",
+   "size": 301450
+  },
+  "languages/da.json": {
+   "sha512": "a11d1da29b791c2de8a926d5c9177011dc00ab569a2b1fc8b435e5615658827f",
+   "size": 4011
+  },
+  "languages/es.json": {
+   "sha512": "1281c97a6319d13aa0896cbadc8d5c33c465b54fd8b7701515ceefc64a1ebb0e",
+   "size": 4354
+  },
+  "languages/fa.json": {
+   "sha512": "b68ab565b5ce6acf53b2fe445c6a056bfab33986ddd2cf23e70ff6d2c2e74809",
+   "size": 12675
+  },
+  "languages/fr.json": {
+   "sha512": "d1aae78afcdc6a93d3923abcb2f6d4738570452d8f79beea33b8476179b07579",
+   "size": 4354
+  },
+  "languages/hu.json": {
+   "sha512": "2d9a53a395a590273c8a20dfb2bc2d4db74aadbcae6dcf5a8cf1872ead9b25b8",
+   "size": 4454
+  },
+  "languages/it.json": {
+   "sha512": "a536f8757cc7787f2c5dfb94b18532ba1aee9adc851b97a4bfc372e40063aaba",
+   "size": 4665
+  },
+  "languages/jp.json": {
+   "sha512": "ad621ae4090da223abbca967c87174d13f3819e9dabc193061e6b9fccd8575b6",
+   "size": 4737
+  },
+  "languages/nl.json": {
+   "sha512": "49ce3f99d856bb5ff4c495676c9bfc70de9343e6c1a4d61e3c0195f6835ff1dd",
+   "size": 4553
+  },
+  "languages/pl.json": {
+   "sha512": "b91f7757b0d50eba0899b522b7a3625af2a3e75195dbab66307f6cacc8c5e642",
+   "size": 7615
+  },
+  "languages/pt-br.json": {
+   "sha512": "ded30ff14b8a86e8044bdd2345a46bef90b9dcb7368ec967dfbee0278909642b",
+   "size": 9373
+  },
+  "languages/pt.json": {
+   "sha512": "3c2e80fc40cca01f289050337c022d74eb28b8b8b5c0bcd8261ba132d974b3d5",
+   "size": 4322
+  },
+  "languages/ru.json": {
+   "sha512": "e6b9c5f1c465d9d1f514cc2f245c09a640bd680c41a24001ac9d79756366c121",
+   "size": 5521
+  },
+  "languages/sk.json": {
+   "sha512": "e443c8696ec967fe3fa8facb73d30a3c19f0fb8845765fd0169d7cf2fa1425f8",
+   "size": 6385
+  },
+  "languages/sl.json": {
+   "sha512": "722398f7c26146a1ac79830b21c9633aacfd3319dcbe009feab4a1915c5ebe2f",
+   "size": 4266
+  },
+  "languages/tr.json": {
+   "sha512": "7b6a8eb77e686f2228f94198eb1aad95b87e79987ffa455c4e88ed7e34777f8f",
+   "size": 4371
+  },
+  "languages/uk.json": {
+   "sha512": "26b2b1a0a14cc9277335cc054b2aa1082407cc15d8d25c91381d51c75cdba04d",
+   "size": 7738
+  },
+  "languages/zh-tw.json": {
+   "sha512": "6baee6b1b7040ae07966d8546de62285331d94c3540a165a70dedf2abc52608a",
+   "size": 6746
+  },
+  "languages/zh.json": {
+   "sha512": "c88caa7786fdab3188e97c0af5019e5bf18fcc2d06d75eef371fc2747589956f",
+   "size": 9445
+  },
+  "template-new/content.json-default": {
+   "sha512": "7e6068f0105c5f6a0e1237baa1dfbbb353b40042c7ccedc306c6f88a446469aa",
+   "size": 474
+  },
+  "template-new/index.html": {
+   "sha512": "542f7724432a22ceb8821b4241af4d36cfd81e101b72d425c6c59e148856537e",
+   "size": 1114
+  },
+  "template-new/js/ZeroFrame.js": {
+   "sha512": "76a24d167e8a4c45f7d1b315efe31e4b4ccb19efef011c080994c94045ff4c93",
+   "size": 5088
+  }
+ },
+ "ignore": "(js|css)/(?!all.(js|css))",
+ "inner_path": "content.json",
+ "modified": 1604369175,
+ "postmessage_nonce_security": true,
+ "signers_sign": "HLcq242ZHh4nTexhe6kvkBroycZ1JpF4pjlLGxbhjKAwDAfdCZ/gxUwM9aIN6OrD8K5YqAfvIVlbwkLMB1XSEDo=",
+ "signs": {"1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D": "G199jIJYcpSeRhy37G0iu0WPTIkz2oX4dfYpJ8ptwF48eS2yXCz3R3SACi3smxTaPjUS/YeoCKXvehfRHRSK7Sw="},
+ "signs_required": 1,
+ "title": "ZeroHello",
+ "translate": ["js/all.js"],
+ "viewport": "width=device-width, initial-scale=0.8",
+ "zeronet_version": "0.7.2"
+}

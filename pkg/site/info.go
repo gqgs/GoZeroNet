@@ -31,35 +31,35 @@ type File struct {
 }
 
 type Include struct {
-	Signers         []string `json:"signers"`
-	SignersRequired int      `json:"signers_required"`
+	Signers         []string `json:"signers,omitempty"`
+	SignersRequired int      `json:"signers_required,omitempty"`
 }
 
 type Content struct {
-	Address                  string             `json:"address"`
-	AddressIndex             int                `json:"address_index"`
-	BackgroundColor          string             `json:"background-color"`
-	BackgroundColorDark      string             `json:"background-color-dark"`
-	CloneRoot                string             `json:"clone_root"`
-	Cloneable                bool               `json:"cloneable"`
-	ClonedFrom               string             `json:"cloned_from"`
-	Description              string             `json:"description"`
-	Favicon                  string             `json:"favicon"`
-	Files                    map[string]File    `json:"files"`
-	FilesOptional            map[string]File    `json:"files_optional"`
-	Ignore                   string             `json:"ignore"`
-	Includes                 map[string]Include `json:"includes"`
-	InnerPath                string             `json:"inner_path"`
-	Modified                 int                `json:"modified"`
-	Optional                 string             `json:"optional"`
-	PostmessageNonceSecurity bool               `json:"postmessage_nonce_security"`
-	SignersSign              string             `json:"signers_sign"`
-	Signs                    map[string]string  `json:"signs"`
-	SignsRequired            int                `json:"signs_required"`
-	Title                    string             `json:"title"`
-	Translate                []string           `json:"translate"`
-	Viewport                 string             `json:"viewport"`
-	ZeronetVersion           string             `json:"zeronet_version"`
+	Address                  string             `json:"address,omitempty"`
+	AddressIndex             int                `json:"address_index,omitempty"`
+	BackgroundColor          string             `json:"background-color,omitempty"`
+	BackgroundColorDark      string             `json:"background-color-dark,omitempty"`
+	CloneRoot                string             `json:"clone_root,omitempty"`
+	Cloneable                bool               `json:"cloneable,omitempty"`
+	ClonedFrom               string             `json:"cloned_from,omitempty"`
+	Description              string             `json:"description,omitempty"`
+	Favicon                  string             `json:"favicon,omitempty"`
+	Files                    map[string]File    `json:"files,omitempty"`
+	FilesOptional            map[string]File    `json:"files_optional,omitempty"`
+	Ignore                   string             `json:"ignore,omitempty"`
+	Includes                 map[string]Include `json:"includes,omitempty"`
+	InnerPath                string             `json:"inner_path,omitempty"`
+	Modified                 int                `json:"modified,omitempty"`
+	Optional                 string             `json:"optional,omitempty"`
+	PostmessageNonceSecurity bool               `json:"postmessage_nonce_security,omitempty"`
+	SignersSign              string             `json:"signers_sign,omitempty"`
+	Signs                    map[string]string  `json:"signs,omitempty"`
+	SignsRequired            int                `json:"signs_required,omitempty"`
+	Title                    string             `json:"title,omitempty"`
+	Translate                []string           `json:"translate,omitempty"`
+	Viewport                 string             `json:"viewport,omitempty"`
+	ZeronetVersion           string             `json:"zeronet_version,omitempty"`
 }
 
 func (s *Site) Info() (*Info, error) {
