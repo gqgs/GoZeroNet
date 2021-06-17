@@ -77,11 +77,6 @@ func (s *Site) SaveSettings() error {
 	return ioutil.WriteFile(path, encoded, fs.ModePerm)
 }
 
-func (s *Site) Download() error {
-	// TODO: implement me
-	return nil
-}
-
 func (s *Site) IsAdmin() bool {
 	return s.isAdmin
 }
@@ -118,7 +113,8 @@ func (s *Site) SetSiteLimit(sizeLimit int) error {
 		return err
 	}
 
-	return s.Download()
+	// return s.Download()
+	return nil
 }
 
 func (s *Site) Address() string {

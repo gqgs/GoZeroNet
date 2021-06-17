@@ -88,7 +88,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager).Serve()
-	go site.Announce()
+	go site.AnnounceTrackers()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

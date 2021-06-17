@@ -137,10 +137,9 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 	return peers, nil
 }
 
-// Announce announces to trackers the new peer
-// TODO: where to get the peer ID?
+// AnnounceTrackers announces to trackers the new peer
 // TODO: debounce this function
-func (s *Site) Announce() {
+func (s *Site) AnnounceTrackers() {
 	h := sha1.New()
 	io.WriteString(h, s.addr)
 	params := requestParams{
