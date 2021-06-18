@@ -59,16 +59,25 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	}
 
 	for filename, file := range content.Files {
-		resp, err := fileserver.GetFile(peer, s.addr, filename, 0, 0)
-		if err != nil {
-			return err
+		var body []byte
+		var location int
+		for {
+			resp, err := fileserver.GetFile(peer, s.addr, filename, location, file.Size)
+			if err != nil {
+				return err
+			}
+			body = append(body, resp.Body...)
+			if len(body) >= file.Size {
+				break
+			}
+			location = resp.Location
 		}
 
-		digest := sha512.Sum512(resp.Body)
+		digest := sha512.Sum512(body)
 		hexDigest := hex.EncodeToString(digest[:32])
 		if hexDigest != file.Sha512 {
 			s.log.Warnf("ignoring file with invalid hash. want: %s (%d), got: %s (%d)",
-				file.Sha512, file.Size, hexDigest, len(resp.Body))
+				file.Sha512, file.Size, hexDigest, len(body))
 			continue
 		}
 
@@ -77,7 +86,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			return err
 		}
 
-		if err := os.WriteFile(filePath, resp.Body, os.ModePerm); err != nil {
+		if err := os.WriteFile(filePath, body, os.ModePerm); err != nil {
 			return err
 		}
 	}
