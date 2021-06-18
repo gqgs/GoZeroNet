@@ -63,8 +63,10 @@ func New(scope string) Logger {
 
 	switch strings.ToLower(os.Getenv("LOG_LEVEL")) {
 	case "trace":
+		l.ReportCaller = true
 		l.SetLevel(logrus.TraceLevel)
 	case "debug":
+		l.ReportCaller = true
 		l.SetLevel(logrus.DebugLevel)
 	case "info":
 		l.SetLevel(logrus.InfoLevel)

@@ -19,7 +19,7 @@ const (
 	DefaultUIServerAddr   = "127.0.0.1:43111"
 
 	ConnectionDeadline = time.Second * 5
-	FileServerDeadline = time.Second
+	FileServerDeadline = time.Second * 5
 	RandomIPv4Addr     = "127.0.0.1:"
 	DataDir            = "./data/"
 	Language           = "en"

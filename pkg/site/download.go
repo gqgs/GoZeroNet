@@ -1,8 +1,11 @@
 package site
 
 import (
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 
@@ -38,6 +41,14 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		return err
 	}
 
+	if content.InnerPath != innerPath {
+		return fmt.Errorf("invalid content.json inner path: %s", content.InnerPath)
+	}
+
+	if !content.isValid() {
+		return fmt.Errorf("invalid content.json: %s", content.InnerPath)
+	}
+
 	contentPath := path.Join(config.DataDir, s.addr, content.InnerPath)
 	if err := os.MkdirAll(path.Dir(contentPath), os.ModePerm); err != nil {
 		return err
@@ -47,10 +58,18 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		return err
 	}
 
-	for filename := range content.Files {
+	for filename, file := range content.Files {
 		resp, err := fileserver.GetFile(peer, s.addr, filename, 0, 0)
 		if err != nil {
 			return err
+		}
+
+		digest := sha512.Sum512(resp.Body)
+		hexDigest := hex.EncodeToString(digest[:32])
+		if hexDigest != file.Sha512 {
+			s.log.Warnf("ignoring file with invalid hash. want: %s (%d), got: %s (%d)",
+				file.Sha512, file.Size, hexDigest, len(resp.Body))
+			continue
 		}
 
 		filePath := path.Join(config.DataDir, s.addr, filename)
@@ -68,10 +87,6 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			return err
 		}
 	}
-
-	// TODO:
-	// Validate downloaded file
-	// Bitcoin signature + SHA512_64 of downloaded files
 
 	return nil
 }

@@ -21,7 +21,7 @@ func NewConnection(addr string) (net.Conn, error) {
 	}
 
 	if config.Debug {
-		return debugConn{
+		return traceConn{
 			Conn: netConn,
 			log:  log.New("connection"),
 		}, nil
@@ -32,19 +32,19 @@ func NewConnection(addr string) (net.Conn, error) {
 	}, nil
 }
 
-type debugConn struct {
+type traceConn struct {
 	net.Conn
 	log log.Logger
 }
 
-func (c debugConn) Write(b []byte) (n int, err error) {
+func (c traceConn) Write(b []byte) (n int, err error) {
 	n, err = c.Conn.Write(b)
-	c.log.WithField("op", "Write").Debug(n, string(b))
+	c.log.WithField("op", "Write").Trace(n, string(b))
 	return
 }
 
-func (c debugConn) Read(b []byte) (n int, err error) {
+func (c traceConn) Read(b []byte) (n int, err error) {
 	n, err = c.Conn.Read(b)
-	c.log.WithField("op", "Read").Debug(n, string(b))
+	c.log.WithField("op", "Read").Trace(n, string(b))
 	return
 }
