@@ -22,6 +22,7 @@ type writer interface {
 	io.ByteWriter
 	io.Writer
 	io.StringWriter
+	Bytes() []byte
 }
 
 // FixJSONSpacing modifies a valid JSON input to include

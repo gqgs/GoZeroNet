@@ -77,47 +77,51 @@ state 9
 
 
 state 10
-	str:  STRING.    (15)
+	str:  STRING.    (17)
 
-	.  reduce 15 (src line 108)
+	.  reduce 17 (src line 115)
 
 
 state 11
-	number:  NUMBER.    (16)
+	number:  NUMBER.    (18)
 
-	.  reduce 16 (src line 114)
+	.  reduce 18 (src line 121)
 
 
 state 12
-	true:  TRUE.    (17)
+	true:  TRUE.    (19)
 
-	.  reduce 17 (src line 120)
+	.  reduce 19 (src line 127)
 
 
 state 13
-	false:  FALSE.    (18)
+	false:  FALSE.    (20)
 
-	.  reduce 18 (src line 126)
+	.  reduce 20 (src line 133)
 
 
 state 14
-	null:  NULL.    (19)
+	null:  NULL.    (21)
 
-	.  reduce 19 (src line 132)
+	.  reduce 21 (src line 139)
 
 
 state 15
 	object:  LC.object_data RC 
+	object:  LC.RC 
 
-	STRING  shift 18
+	RC  shift 18
+	STRING  shift 19
 	.  error
 
 	object_data  goto 17
 
 state 16
 	array:  LS.array_data RS 
+	array:  LS.RS 
 
 	LS  shift 16
+	RS  shift 21
 	LC  shift 15
 	TRUE  shift 12
 	FALSE  shift 13
@@ -128,59 +132,71 @@ state 16
 
 	true  goto 5
 	false  goto 6
-	value  goto 20
+	value  goto 22
 	number  goto 4
 	null  goto 7
 	str  goto 3
 	object  goto 8
 	array  goto 9
-	array_data  goto 19
+	array_data  goto 20
 
 state 17
 	object:  LC object_data.RC 
 	object_data:  object_data.COMMA STRING COLON value 
 
-	COMMA  shift 22
-	RC  shift 21
+	COMMA  shift 24
+	RC  shift 23
 	.  error
 
 
 state 18
-	object_data:  STRING.COLON value 
+	object:  LC RC.    (10)
 
-	COLON  shift 23
-	.  error
+	.  reduce 10 (src line 80)
 
 
 state 19
-	array:  LS array_data.RS 
-	array_data:  array_data.COMMA value 
+	object_data:  STRING.COLON value 
 
-	COMMA  shift 25
-	RS  shift 24
+	COLON  shift 25
 	.  error
 
 
 state 20
-	array_data:  value.    (13)
+	array:  LS array_data.RS 
+	array_data:  array_data.COMMA value 
 
-	.  reduce 13 (src line 98)
+	COMMA  shift 27
+	RS  shift 26
+	.  error
 
 
 state 21
+	array:  LS RS.    (14)
+
+	.  reduce 14 (src line 101)
+
+
+state 22
+	array_data:  value.    (15)
+
+	.  reduce 15 (src line 105)
+
+
+state 23
 	object:  LC object_data RC.    (9)
 
 	.  reduce 9 (src line 75)
 
 
-state 22
+state 24
 	object_data:  object_data COMMA.STRING COLON value 
 
-	STRING  shift 26
+	STRING  shift 28
 	.  error
 
 
-state 23
+state 25
 	object_data:  STRING COLON.value 
 
 	LS  shift 16
@@ -194,34 +210,7 @@ state 23
 
 	true  goto 5
 	false  goto 6
-	value  goto 27
-	number  goto 4
-	null  goto 7
-	str  goto 3
-	object  goto 8
-	array  goto 9
-
-state 24
-	array:  LS array_data RS.    (12)
-
-	.  reduce 12 (src line 92)
-
-
-state 25
-	array_data:  array_data COMMA.value 
-
-	LS  shift 16
-	LC  shift 15
-	TRUE  shift 12
-	FALSE  shift 13
-	NULL  shift 14
-	STRING  shift 10
-	NUMBER  shift 11
-	.  error
-
-	true  goto 5
-	false  goto 6
-	value  goto 28
+	value  goto 29
 	number  goto 4
 	null  goto 7
 	str  goto 3
@@ -229,26 +218,13 @@ state 25
 	array  goto 9
 
 state 26
-	object_data:  object_data COMMA STRING.COLON value 
+	array:  LS array_data RS.    (13)
 
-	COLON  shift 29
-	.  error
+	.  reduce 13 (src line 96)
 
 
 state 27
-	object_data:  STRING COLON value.    (10)
-
-	.  reduce 10 (src line 81)
-
-
-state 28
-	array_data:  array_data COMMA value.    (14)
-
-	.  reduce 14 (src line 103)
-
-
-state 29
-	object_data:  object_data COMMA STRING COLON.value 
+	array_data:  array_data COMMA.value 
 
 	LS  shift 16
 	LC  shift 15
@@ -268,21 +244,61 @@ state 29
 	object  goto 8
 	array  goto 9
 
-state 30
-	object_data:  object_data COMMA STRING COLON value.    (11)
+state 28
+	object_data:  object_data COMMA STRING.COLON value 
 
-	.  reduce 11 (src line 86)
+	COLON  shift 31
+	.  error
+
+
+state 29
+	object_data:  STRING COLON value.    (11)
+
+	.  reduce 11 (src line 85)
+
+
+state 30
+	array_data:  array_data COMMA value.    (16)
+
+	.  reduce 16 (src line 110)
+
+
+state 31
+	object_data:  object_data COMMA STRING COLON.value 
+
+	LS  shift 16
+	LC  shift 15
+	TRUE  shift 12
+	FALSE  shift 13
+	NULL  shift 14
+	STRING  shift 10
+	NUMBER  shift 11
+	.  error
+
+	true  goto 5
+	false  goto 6
+	value  goto 32
+	number  goto 4
+	null  goto 7
+	str  goto 3
+	object  goto 8
+	array  goto 9
+
+state 32
+	object_data:  object_data COMMA STRING COLON value.    (12)
+
+	.  reduce 12 (src line 90)
 
 
 14 terminals, 12 nonterminals
-20 grammar rules, 31/16000 states
+22 grammar rules, 33/16000 states
 0 shift/reduce, 0 reduce/reduce conflicts reported
 61 working sets used
 memory: parser 47/240000
-18 extra closures
-43 shift entries, 1 exceptions
+20 extra closures
+45 shift entries, 1 exceptions
 15 goto entries
 28 entries saved by goto default
-Optimizer space used: output 31/240000
-31 table entries, 1 zero
-maximum spread: 14, maximum offset: 29
+Optimizer space used: output 39/240000
+39 table entries, 0 zero
+maximum spread: 14, maximum offset: 31

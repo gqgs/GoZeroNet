@@ -66,49 +66,51 @@ var yyExca = [...]int{
 
 const yyPrivate = 57344
 
-const yyLast = 31
+const yyLast = 39
 
 var yyAct = [...]int{
-	2, 16, 26, 15, 18, 12, 13, 14, 10, 11,
-	22, 25, 1, 29, 24, 21, 23, 20, 19, 9,
-	17, 8, 3, 7, 27, 4, 28, 6, 5, 0,
-	30,
+	2, 16, 21, 15, 28, 12, 13, 14, 10, 11,
+	27, 18, 31, 26, 16, 19, 15, 22, 12, 13,
+	14, 10, 11, 25, 24, 1, 29, 20, 30, 23,
+	9, 17, 32, 8, 3, 7, 4, 6, 5,
 }
 
 var yyPact = [...]int{
-	-5, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
-	-1000, -1000, -1000, -1000, -1000, -9, -5, 6, 11, 7,
-	-1000, -1000, -11, -5, -1000, -5, 8, -1000, -1000, -5,
-	-1000,
+	8, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, -1000, 2, -5, 20, -1000, 18,
+	6, -1000, -1000, -1000, -9, 8, -1000, 8, 7, -1000,
+	-1000, 8, -1000,
 }
 
 var yyPgo = [...]int{
-	0, 28, 27, 0, 25, 23, 22, 21, 20, 19,
-	18, 12,
+	0, 38, 37, 0, 36, 35, 34, 33, 31, 30,
+	27, 25,
 }
 
 var yyR1 = [...]int{
 	0, 11, 3, 3, 3, 3, 3, 3, 3, 7,
-	8, 8, 9, 10, 10, 6, 4, 1, 2, 5,
+	7, 8, 8, 9, 9, 10, 10, 6, 4, 1,
+	2, 5,
 }
 
 var yyR2 = [...]int{
 	0, 1, 1, 1, 1, 1, 1, 1, 1, 3,
-	3, 5, 3, 1, 3, 1, 1, 1, 1, 1,
+	2, 3, 5, 3, 2, 1, 3, 1, 1, 1,
+	1, 1,
 }
 
 var yyChk = [...]int{
 	-1000, -11, -3, -6, -4, -1, -2, -5, -7, -9,
-	13, 14, 10, 11, 12, 8, 6, -8, 13, -10,
-	-3, 9, 4, 5, 7, 4, 13, -3, -3, 5,
-	-3,
+	13, 14, 10, 11, 12, 8, 6, -8, 9, 13,
+	-10, 7, -3, 9, 4, 5, 7, 4, 13, -3,
+	-3, 5, -3,
 }
 
 var yyDef = [...]int{
 	0, -2, 1, 2, 3, 4, 5, 6, 7, 8,
-	15, 16, 17, 18, 19, 0, 0, 0, 0, 0,
-	13, 9, 0, 0, 12, 0, 0, 10, 14, 0,
-	11,
+	17, 18, 19, 20, 21, 0, 0, 0, 10, 0,
+	0, 14, 15, 9, 0, 0, 13, 0, 0, 11,
+	16, 0, 12,
 }
 
 var yyTok1 = [...]int{
@@ -516,63 +518,75 @@ yydefault:
 			yyVAL.m = yyDollar[2].m
 		}
 	case 10:
+		yyDollar = yyS[yypt-2 : yypt+1]
+//line json.y:81
+		{
+			// no-op
+		}
+	case 11:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line json.y:83
+//line json.y:87
 		{
 			yyVAL.m = map[string]interface{}{yyDollar[1].s: yyDollar[3].i}
 		}
-	case 11:
+	case 12:
 		yyDollar = yyS[yypt-5 : yypt+1]
-//line json.y:87
+//line json.y:91
 		{
 			yyVAL.m = yyDollar[1].m
 			yyVAL.m[yyDollar[3].s] = yyDollar[5].i
 		}
-	case 12:
+	case 13:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line json.y:94
+//line json.y:98
 		{
 			yyVAL.a = yyDollar[2].a
 		}
-	case 13:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line json.y:100
-		{
-			yyVAL.a = []interface{}{yyDollar[1].i}
-		}
 	case 14:
-		yyDollar = yyS[yypt-3 : yypt+1]
-//line json.y:104
+		yyDollar = yyS[yypt-2 : yypt+1]
+//line json.y:101
 		{
-			yyVAL.a = append(yyDollar[1].a, yyDollar[3].i)
+			// no-op
 		}
 	case 15:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line json.y:110
+//line json.y:107
 		{
-			yyVAL.s = yyDollar[1].s
+			yyVAL.a = []interface{}{yyDollar[1].i}
 		}
 	case 16:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line json.y:116
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line json.y:111
 		{
-			yyVAL.i = yyDollar[1].i
+			yyVAL.a = append(yyDollar[1].a, yyDollar[3].i)
 		}
 	case 17:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line json.y:122
+//line json.y:117
 		{
-			yyVAL.b = true
+			yyVAL.s = yyDollar[1].s
 		}
 	case 18:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line json.y:128
+//line json.y:123
 		{
-			yyVAL.b = false
+			yyVAL.i = yyDollar[1].i
 		}
 	case 19:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line json.y:134
+//line json.y:129
+		{
+			yyVAL.b = true
+		}
+	case 20:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line json.y:135
+		{
+			yyVAL.b = false
+		}
+	case 21:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line json.y:141
 		{
 			yyVAL.i = nil
 		}

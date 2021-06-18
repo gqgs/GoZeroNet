@@ -1,0 +1,1 @@
+goyacc -o json.go json.y
