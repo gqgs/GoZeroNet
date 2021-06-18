@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
@@ -25,7 +27,15 @@ func (s *Site) Download() error {
 			s.log.WithField("peer", p).Error(err)
 			continue
 		}
-		return nil
+
+		s.Settings.Downloaded = time.Now().Unix()
+		s.Settings.Peers = len(s.peers)
+		s.Settings.Serving = true
+		s.Settings.AjaxKey = random.HexString(64)
+		s.Settings.AuthKey = random.HexString(64)
+		s.Settings.WrapperKey = random.HexString(64)
+
+		return s.SaveSettings()
 	}
 
 	return errors.New("could not download site")
@@ -47,6 +57,10 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 
 	if !content.isValid() {
 		return fmt.Errorf("invalid content.json: %s", content.InnerPath)
+	}
+
+	if innerPath == "content.json" {
+		s.Settings.Modified = int64(content.Modified)
 	}
 
 	contentPath := path.Join(config.DataDir, s.addr, content.InnerPath)
@@ -80,6 +94,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 				file.Sha512, file.Size, hexDigest, len(body))
 			continue
 		}
+		s.Settings.BytesRecv += file.Size
 
 		filePath := path.Join(config.DataDir, s.addr, filename)
 		if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {

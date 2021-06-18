@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
@@ -84,6 +85,8 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.user = m.userManager.User()
 	site.pubsubManager = m.pubsubManager
 	site.log = log.New(addr)
+
+	site.Settings.Added = time.Now().Unix()
 
 	m.wrapperKeyMap[addr] = site
 	m.sites[addr] = site

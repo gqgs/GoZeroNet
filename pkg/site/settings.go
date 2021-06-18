@@ -9,7 +9,7 @@ import (
 )
 
 type Settings struct {
-	Added     int    `json:"added"`
+	Added     int64  `json:"added"`
 	AjaxKey   string `json:"ajax_key"`
 	AuthKey   string `json:"auth_key"`
 	BytesRecv int    `json:"bytes_recv"`
@@ -20,8 +20,8 @@ type Settings struct {
 	} `json:"cache"`
 	PieceFields               map[string]string `json:"piecefields"`
 	HasBigFile                bool              `json:"has_bigfile"`
-	Downloaded                int               `json:"downloaded"`
-	Modified                  int               `json:"modified"`
+	Downloaded                int64             `json:"downloaded"`
+	Modified                  int64             `json:"modified"`
 	ModifiedFilesModification bool              `json:"modified_files_notification"`
 	OptionalDownloaded        int               `json:"optional_downloaded"`
 	OptionalHelp              map[string]string `json:"optional_help"`
