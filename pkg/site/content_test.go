@@ -2,7 +2,6 @@ package site
 
 import (
 	"encoding/json"
-	"io"
 	"os"
 	"testing"
 
@@ -11,24 +10,64 @@ import (
 
 func Test_isValid(t *testing.T) {
 	tests := []struct {
-		name        string
-		filename    string
-		wantIsValid bool
+		name     string
+		filename string
 	}{
 		{
-			"root content.json",
-			"./testdata/root-content.json",
-			true,
+			"ZeroHello root content.json",
+			"./testdata/0hello-root-content.json",
 		},
 		{
-			"data user content.json",
-			"./testdata/datauser-content.json",
-			true,
+			"ZeroBlog root content.json",
+			"./testdata/0blog-root-content.json",
 		},
 		{
-			"user content.json",
-			"./testdata/user-content.json",
-			true,
+			"ZeroBlog datauser content.json",
+			"./testdata/0blog-datauser-content.json",
+		},
+		{
+			"ZeroBlog user content.json",
+			"./testdata/0blog-user-content.json",
+		},
+		{
+			"MC root.json",
+			"./testdata/mc-root-content.json",
+		},
+		{
+			"MC datauser content.json",
+			"./testdata/mc-datauser-content.json",
+		},
+		{
+			"MC user content.json",
+			"./testdata/mc-user-content.json",
+		},
+		{
+			"0ch root.json",
+			"./testdata/0ch-root-content.json",
+		},
+		{
+			"0ch datauser content.json",
+			"./testdata/0ch-datauser-content.json",
+		},
+		{
+			"0ch user content.json",
+			"./testdata/0ch-user-content.json",
+		},
+		{
+			"0ch archive content.json",
+			"./testdata/0ch-archive-content.json",
+		},
+		{
+			"ZeroTalk root.json",
+			"./testdata/0talk-root-content.json",
+		},
+		{
+			"ZeroTalk datauser content.json",
+			"./testdata/0talk-datauser-content.json",
+		},
+		{
+			"ZeroTalk user content.json",
+			"./testdata/0talk-user-content.json",
 		},
 	}
 
@@ -41,19 +80,13 @@ func Test_isValid(t *testing.T) {
 			}
 			defer contentFile.Close()
 
-			contentData, err := io.ReadAll(contentFile)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-
 			content := new(Content)
-			if err := json.Unmarshal(contentData, content); err != nil {
+			if err := json.NewDecoder(contentFile).Decode(content); err != nil {
 				t.Error(err)
 				return
 			}
 
-			require.Equal(t, tt.wantIsValid, content.isValid())
+			require.True(t, content.isValid())
 		})
 	}
 }

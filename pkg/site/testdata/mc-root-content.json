@@ -1,0 +1,176 @@
+{
+ "address": "1ADQAHsqsie5PBeQhQgjcKmUu3qdPFg6aA",
+ "address_index": 57444767,
+ "background-color": "#FFF",
+ "clone_root": "template-new",
+ "cloneable": false,
+ "cloned_from": "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D",
+ "description": "Decentralized imageboard",
+ "favicon": "static/favicon.ico",
+ "files": {
+  "content.json-default": {
+   "sha512": "0310fd9f81286cf848d13c191767a813b0ea09a46ea5cc00e745b64347c1af7f",
+   "size": 5784
+  },
+  "css/dark.css": {
+   "sha512": "e4b5fca6873c1f41df53367b47cf5a7d39cee427b666182c17cbdc3dc1d8f3ce",
+   "size": 3134
+  },
+  "css/highlight.css": {
+   "sha512": "6fb7906c0e29a5bd5e667b05b50578e15417230b5b9fb7135a8f8d7f05f572ac",
+   "size": 763
+  },
+  "css/light.css": {
+   "sha512": "b76a0df54c4d4ffb3889da22715913e05d8a22a0692a349beaa93e4383e96b29",
+   "size": 3101
+  },
+  "css/style.css": {
+   "sha512": "008ac2fbc8c40de244823e761a982e3713a141710e1c5034da5172791d49843a",
+   "size": 10258
+  },
+  "data-default/content.json-default": {
+   "sha512": "c08333760a97a3c3311ddaa8bd01280653ca2fa670615aedb95b9389997ba242",
+   "size": 1072
+  },
+  "dbschema.json": {
+   "sha512": "51f4f4a91e2ce2a6acd004618ebcae539fdb2bce170ea2a3b2ab3d39d5e7eb17",
+   "size": 2271
+  },
+  "dist/2ba9bdde681eb252df64.zip": {
+   "sha512": "a7f7fdf931bc6085a5638364e8c8a672a693eb9ff79e85d6ce57d72f598d08ee",
+   "size": 66448
+  },
+  "dist/4e1e0f7656ed12e68986.zip": {
+   "sha512": "a450ab3bd908388d38fad36b4aa1f7b8a3dca1f7b9673b4fd0b85c614f6e0a5f",
+   "size": 32909
+  },
+  "dist/67e3cffa0457526ff979.zip": {
+   "sha512": "f92d7ef462aec2f779a295c38bbd91f5abc521d5f1d15953f4f78b9118085a20",
+   "size": 5138
+  },
+  "dist/848df07fef445a03f6c2.zip": {
+   "sha512": "be7159788ef56cd399858acc78a26538e029fa62814f4cd6637cdd8ff31ac1a2",
+   "size": 52911
+  },
+  "dist/90223c76cc7816efb539.zip": {
+   "sha512": "41fa6315b9502cff78ac8899de05db5764e104c065ba78c687f0b0ccef2c8cb9",
+   "size": 1017130
+  },
+  "dist/c0d1d69971af806de696.zip": {
+   "sha512": "5d073c0b7826293f6b5ccbaf6d9be441e130fe443d7b25ee8552768f06062771",
+   "size": 187271
+  },
+  "dist/d3a2b0cfd4510efa6d8a.zip": {
+   "sha512": "29c6ac5d06b2a4e4a60549df43cd5b44bfafbd5feadafd2a1135e61130c61fe0",
+   "size": 237
+  },
+  "dist/fdf6c5d6f890d774d088.zip": {
+   "sha512": "c81d9b3fc4ac481e7c9a7a40340dc5d1e334fbf2591539d6fa797871eff98d0c",
+   "size": 199878
+  },
+  "dist/main.zip": {
+   "sha512": "1030feee941c75710e1214b2652aef9edd95b05badbde340b70d30aac21e5fd4",
+   "size": 178413
+  },
+  "dist/vendor.zip": {
+   "sha512": "0f6ba6de6158f404ab3bb30974ec2f181ca90217715d7e1211ab9d67b2d1e55f",
+   "size": 347185
+  },
+  "index.html": {
+   "sha512": "98b1243c53377f7c235f31f5ae510123b874d64acf986974e986bb920575744f",
+   "size": 1119
+  },
+  "languages/it.json": {
+   "sha512": "14efea1ad13b62e46464b0915cc267a8214043ed3e4251c1d79fd8626b93b037",
+   "size": 17
+  },
+  "languages/jp.json": {
+   "sha512": "2930c24acc42b414ee2185b1f7a03b3b523a087dbc6fbb055bf6ea37015771bc",
+   "size": 17
+  },
+  "languages/pl.json": {
+   "sha512": "455110201ed8389dd2284380969793836ffea9f49216070694cbc4956acbb22d",
+   "size": 17
+  },
+  "languages/pt-br.json": {
+   "sha512": "03c8a556e599af160971065db1c8cca0fcce9bd96a285dcbccc81d61b63a9c61",
+   "size": 17
+  },
+  "languages/ru.json": {
+   "sha512": "064294329b5fd0abaefa4aa57092a63b1a1a96685febb474a5f65af782a1e575",
+   "size": 17
+  },
+  "languages/uk.json": {
+   "sha512": "31ff123de2f9e6e9d0aace20ee5eae588e03df09730d53361b34635467eca2d2",
+   "size": 17
+  },
+  "languages/zh.json": {
+   "sha512": "c9c8d371f221f664f6eced7511eda32bd6a61b5057fb75553f1f1ae1bec88ace",
+   "size": 17
+  },
+  "static/audio.png": {
+   "sha512": "20dd2b6359face93b5f4a566a4f176e2f0b2755e84afa690b49744d0cae6dc9d",
+   "size": 5368
+  },
+  "static/doc.png": {
+   "sha512": "49946c4f7eb23a9b078a36a823f03f478f43594dac959ba26d8b24e4f5ec761f",
+   "size": 7997
+  },
+  "static/error.png": {
+   "sha512": "dd53c07d015787b71f1c5f805e8986b5e90fd813686b89f38a156d6b527a4ee2",
+   "size": 10949
+  },
+  "static/favicon.ico": {
+   "sha512": "583c2e04f8f480727782fb9efa8a22dc5d165c33581df0d93a92da1decae34b4",
+   "size": 1150
+  },
+  "static/logo.svg": {
+   "sha512": "763908abfa7cf1f22fafbcbbcb12f62a8dca702896d9e27552925a71042eaab6",
+   "size": 2033
+  },
+  "static/options.png": {
+   "sha512": "e6a0507368fb7a4b8560c8047dac3c474fad83940b5dd5a6b40e288e0ad8e17a",
+   "size": 561
+  },
+  "static/spinner.webp": {
+   "sha512": "f6697435d6347024221b6fc94d7ca401b75b1aebc70f609059076b9d37bb3134",
+   "size": 129222
+  },
+  "static/spoiler.png": {
+   "sha512": "f765b8c9e68201e21aa9cd51cd6fee7d399d61326074f6eaa4f972e31a3af720",
+   "size": 12048
+  },
+  "static/sponsor.gif": {
+   "sha512": "96a41d3361be4e246a0996d1b7d4684cc6366b0b7404bd23d1411fde44d5f854",
+   "size": 462302
+  },
+  "static/video.png": {
+   "sha512": "129d73b4469213bd4e94ab511b632f9652ad554724cb89722d561bea0e1a6951",
+   "size": 5283
+  }
+ },
+ "files_optional": {
+  "static/logo.png": {
+   "sha512": "11978ddaa1ca6333f60239e957d5cf4629c1a024518abfecadf6cb4097bb196c",
+   "size": 69162
+  }
+ },
+ "ignore": "(js/.*|data/.*|\\.git/.*|babel\\.config\\.json|LICENSE|tsconfig\\.json|README\\.md|node_modules/.*|package\\.json|package-lock\\.json|webpack\\.config\\.js|index\\.template\\.html|webpack\\.dev\\.js|webpack\\.prod\\.js)",
+ "includes": {
+  "data/users/content.json": {
+   "signers": [],
+   "signers_required": 1
+  }
+ },
+ "inner_path": "content.json",
+ "modified": 1622776192,
+ "optional": "dist/\\d.*\\.js|dist/.*\\.worker\\.js|static/logo\\.png",
+ "postmessage_nonce_security": true,
+ "signers_sign": "HCd2MVEDoqcgbwctfSjGGqZ5GCLcuNp/oHf/aT1saRQsO+u/HEmU9d7EWK723/Dmx9LbuO0EDNJOkAGQGaJdoho=",
+ "signs": {"1ADQAHsqsie5PBeQhQgjcKmUu3qdPFg6aA": "HHaWgaO85+/sYNWKtyM7RKDYQiy89pynn6x51Iew3lYIZchdyZxQdJdSuUo+kb1+UFbdfKmRfvy/rzUl1jKLz0I="},
+ "signs_required": 1,
+ "title": "Millchan",
+ "translate": ["index.html"],
+ "viewport": "width=device-width, initial-scale=0.8, user-scalable=0",
+ "zeronet_version": "0.7.2"
+}

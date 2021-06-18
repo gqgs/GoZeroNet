@@ -196,12 +196,14 @@ func (s *jsonScanner) scanNumber() interface{} {
 		}
 		number = append(number, r)
 	}
+
+	s.w.WriteString(string(number))
+
 	if isFloat {
 		f, _ := strconv.ParseFloat(string(number), 64)
 		return f
 	}
 	i, _ := strconv.Atoi(string(number))
-	s.w.WriteString(string(number))
 	return i
 }
 

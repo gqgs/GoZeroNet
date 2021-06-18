@@ -1,0 +1,32 @@
+{
+ "address": "1ADQAHsqsie5PBeQhQgjcKmUu3qdPFg6aA",
+ "files": {},
+ "ignore": ".*",
+ "inner_path": "data/users/content.json",
+ "modified": 1613791277,
+ "signs": {"1ADQAHsqsie5PBeQhQgjcKmUu3qdPFg6aA": "G8pvNR7pukA4O+XBhURy7bNPR+uoZcumJWxTbefz0VvuY6Ch5Rod+MNpD4fYj+v5ZkeGiNpylR2bbcMpyEXJwHg="},
+ "user_contents": {
+  "cert_signers": {
+   "millchan": ["1NwwLdiFBcVAA4jXQ712ZtQfDHEMvk8BiD"],
+   "zeroid.bit": ["1iD5ZQJMNXu43w1qLB8sfdHVKppVMduGz"]
+  },
+  "content_inner_path": "data/users/content.json",
+  "optional": null,
+  "permission_rules": {
+   ".*@millchan": {
+    "files_allowed": "data.json",
+    "files_allowed_optional": "(src\\/)?.{40}(-thumb)?\\.(png|jpeg|jpg|gif|webm|webp|webp|mp4|ogg|mp3|pdf|epub|zip|tar\\.gz)(\\.piecemap\\.msgpack)?",
+    "max_size": 5000000
+   },
+   ".*@zeroid.bit": {
+    "files_allowed": "data.json",
+    "files_allowed_optional": "(src\\/)?.{40}(-thumb)?\\.(png|jpeg|jpg|gif|webm|webp|mp4|ogg|mp3|pdf|epub|zip|tar\\.gz)(\\.piecemap\\.msgpack)?",
+    "max_size": 5000000
+   }
+  },
+  "permissions": {
+   "pornoking@zeroid.bit": {"max_size": 10000000}
+  },
+  "relative_path": "content.json"
+ }
+}

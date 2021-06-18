@@ -25,16 +25,6 @@ type Info struct {
 	Settings       *Settings     `json:"settings"`
 }
 
-type File struct {
-	Sha512 string `json:"sha512"`
-	Size   int    `json:"size"`
-}
-
-type Include struct {
-	Signers         []string `json:"signers,omitempty"`
-	SignersRequired int      `json:"signers_required,omitempty"`
-}
-
 func (s *Site) Info() (*Info, error) {
 	content := new(Content)
 	if err := s.DecodeJSON("content.json", content); err != nil {
@@ -50,7 +40,7 @@ func (s *Site) Info() (*Info, error) {
 		Peers:          len(s.peers),
 		SizeLimit:      sizeLimit(s.Settings.SizeLimit),
 		NextSizeLimit:  nextSizeLimit(s.Settings.Size),
-		ContentUpdated: float64(content.Modified),
+		ContentUpdated: content.Modified,
 		Content:        content,
 		Settings:       s.Settings,
 	}, nil

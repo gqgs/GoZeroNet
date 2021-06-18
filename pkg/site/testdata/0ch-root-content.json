@@ -1,0 +1,176 @@
+{
+ "address": "1FiSxj2yDPeGuuf6iBwRAXvEMQJATAZNt6",
+ "background-color": "#181818",
+ "description": "Derelict imageboard",
+ "domain": "0chan.bit",
+ "files": {
+  "LICENSE": {
+   "sha512": "26ef1f0a32b4137912ed7219bb6098799fc20afefa40f1590155339f3666aead",
+   "size": 35140
+  },
+  "README.md": {
+   "sha512": "88ae14eadd448bb6c31a29fb9e3c4eb605be096ff9095c32b494126c40103e6c",
+   "size": 407
+  },
+  "content.example.json": {
+   "sha512": "9fd6df956ba4b1bccab4bce6e08cad2d7a34dca1262e8d86761ec66cfc1cb2a1",
+   "size": 322
+  },
+  "css/core.css": {
+   "sha512": "700f1ed608bbaef929e81adffceedb9bb71ff63122e8df2c007ed28df6a77875",
+   "size": 13281
+  },
+  "css/styles.css": {
+   "sha512": "0aa6d78f9eef485773d7f6d8b14c4effe25b4ce69733d7105447bb89d0944d25",
+   "size": 13829
+  },
+  "data/settings.example.json": {
+   "sha512": "609ea05d4d89e656b068ea1c36ea7d3f5870a00ac2c3b5c81f1f894eb412a4fa",
+   "size": 197
+  },
+  "data/settings.json": {
+   "sha512": "d28a98d7aad51f06ddfeb0e138abe7ad2203bc8ed3819ccfe254d617ea02f54a",
+   "size": 1584
+  },
+  "dbschema.json": {
+   "sha512": "3a59ff8f496ca1870b96291ad19067a791e338ad639c5743d1d3d0d9fd6162fe",
+   "size": 1159
+  },
+  "img/preloader.gif": {
+   "sha512": "8b3847fd6a2f2b1b357fecb6e3c8ec74a447d943e2e8c350087bd9d164fbbd4e",
+   "size": 27761
+  },
+  "index.html": {
+   "sha512": "89d1d37101217b094e389c8a94d5faee0858b49200899d35f24757240e9ea8cb",
+   "size": 499
+  },
+  "js/all.js": {
+   "sha512": "917b00341ddb67efc0a84a325df64c3539359a9c05bde4631c7b1f987846db38",
+   "size": 380460
+  },
+  "js/libs/bitcoin.js": {
+   "sha512": "21fe53623ece78d1c2057847d92050af4b78b9c76a1c01a9c8df620b5c518f34",
+   "size": 216018
+  },
+  "js/libs/jquery.js": {
+   "sha512": "53a2b560b20551672fbb0e6e72632d4fd1c7e2dd2ecf7337ebaaab179cb8be7c",
+   "size": 86709
+  },
+  "js/libs/maquette.js": {
+   "sha512": "616c394d6c99e908c725c022060c64604edc85f4a75a43c1e63ce7f51951d00f",
+   "size": 8959
+  },
+  "js/libs/md5.js": {
+   "sha512": "9665465693f17497678e43b53164c60c35c6754d90ff5088e02f10c4b8d7449a",
+   "size": 8542
+  },
+  "js/libs/scroll_to.js": {
+   "sha512": "68a8d854e41fff93db1ee3ba6224f53d4b09e6d129300f271e84e718c803223a",
+   "size": 5214
+  },
+  "js/libs/zero_frame.coffee": {
+   "sha512": "7258ae9597ff71f0d36f8b758df8cdeeedab5e4b08d6991e0b4f4ce57a4c75bc",
+   "size": 2099
+  },
+  "js/nullchan/0_helpers.coffee": {
+   "sha512": "72fff6033598258037cf283105aca9d6cb5a4fedb37a7985e71dcba7b52f5a31",
+   "size": 2468
+  },
+  "js/nullchan/0_view.coffee": {
+   "sha512": "2529cc508836c8363f2bbec14771c8ec08e3053944dea985ee0dc6b8d62ee0e2",
+   "size": 1565
+  },
+  "js/nullchan/database.coffee": {
+   "sha512": "322e572cebef99183004662fae7af65f04bc16559883a2ad63d7d90e63552843",
+   "size": 3592
+  },
+  "js/nullchan/file_manager.coffee": {
+   "sha512": "c3a9643bc4369e4c706bea335f91a49247d84ff053a1d3d3141c67baa9effdef",
+   "size": 3436
+  },
+  "js/nullchan/form.coffee": {
+   "sha512": "040c98f04c7d04969416fe3b7e4c0c00406127686c1346d8bc19636738ad868c",
+   "size": 4783
+  },
+  "js/nullchan/images.coffee": {
+   "sha512": "e80a99658514ff9bc762d2dfffa510d0e39fc93b4a8957a0e43d377643b4da56",
+   "size": 494
+  },
+  "js/nullchan/markup.coffee": {
+   "sha512": "ebac4d1399bd5b705ddc8d07b2c14bc7ff2d1b8364be7aa305828061584cbc62",
+   "size": 3022
+  },
+  "js/nullchan/mention_hovers.coffee": {
+   "sha512": "2aa447babef823dfa00e3c86e20987cd346c9bf2900a5288318a47293a45ca65",
+   "size": 1706
+  },
+  "js/nullchan/messages.coffee": {
+   "sha512": "e262ad2db823d7ba735be52d79e81d16170ca6fd4cc56edcd0c4f7198aeef81f",
+   "size": 3268
+  },
+  "js/nullchan/modal.coffee": {
+   "sha512": "033bef3e0e4ef24852966aacec6160bd3ff7685c8e0d6aeadc146d42a07448d9",
+   "size": 659
+  },
+  "js/nullchan/modal_anon_disclaimer.coffee": {
+   "sha512": "93407d698f7a79c6a1c4e56c55b3ee30741618e2a587b452652b3d33cf92bc9b",
+   "size": 1425
+  },
+  "js/nullchan/pagination.coffee": {
+   "sha512": "430e9471eb6788fec1176be98bff40c47dfef64f44b11f9924b09272b345595f",
+   "size": 1667
+  },
+  "js/nullchan/post.coffee": {
+   "sha512": "f7be298aa79c6c0515cb9186281adac9bea57f5034f3ac0d140208338eadb48f",
+   "size": 6274
+  },
+  "js/nullchan/preloader.coffee": {
+   "sha512": "f56568aeef62d07df943662005f0db5d87a7e6bc5e5976da40b07a8f17ac2cde",
+   "size": 750
+  },
+  "js/nullchan/storage.coffee": {
+   "sha512": "28f86e73a505a34fd9628666d598a0e42a7e7fe41f118fbbdff403db4ab510a5",
+   "size": 411
+  },
+  "js/nullchan/thread.coffee": {
+   "sha512": "87217f8e3dbcdea2d51036175c9dbd18335f25d1f333ce86746f8c73e7c785f2",
+   "size": 910
+  },
+  "js/nullchan/unread_count.coffee": {
+   "sha512": "47941c7943ada726485dceec428283d0dc2500f04954863928e7df1c0f066f5b",
+   "size": 368
+  },
+  "js/nullchan/view_main.coffee": {
+   "sha512": "6d818034205044f260414899b5575733d0b9caffe08e9f5083c74c49885820bd",
+   "size": 3618
+  },
+  "js/nullchan/view_threads.coffee": {
+   "sha512": "86c1c7a3cfe595f3b8e4e641d3a774bd1b39b671e59f81e60937137622386188",
+   "size": 4984
+  },
+  "js/nullchan/z_nullchan.coffee": {
+   "sha512": "e267d95f05f0131c26fa0dd22ada8f1b0c5fe453e435d5e7c0ca130dab7c8c55",
+   "size": 4171
+  }
+ },
+ "ignore": "(archive.rb|publish.rb|min.js|data/archive|.git|data/users|node_modules|data/0chan.db|update_files.rb)",
+ "includes": {
+  "data/archive/content.json": {
+   "signers": [],
+   "signers_required": 1
+  },
+  "data/users/content.json": {
+   "signers": [],
+   "signers_required": 1
+  }
+ },
+ "inner_path": "content.json",
+ "modified": 1565257785,
+ "signers_sign": "HIs9OrWifqYje8P5uJ2Quc+p0IaH4oCLX0jrYpCGBaICKNEeRf0wrD8rpgVoNhEQVdI64F4e7moXNbTPd8I0RZM=",
+ "signs": {
+  "1FiSxj2yDPeGuuf6iBwRAXvEMQJATAZNt6": "G5QApVIo2tl5pfQiaicQWOaTxBVbO64GuVyjkgc7S3+yU23Vrul0mhhY9JlspOAuqRQz9uV96/GMrY0U4hYrUWU="
+ },
+ "signs_required": 1,
+ "title": "0chan",
+ "zeronet_version": "0.7.0"
+}

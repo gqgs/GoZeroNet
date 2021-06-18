@@ -23,6 +23,11 @@ func TestFixJSONSpacing(t *testing.T) {
 			`{"address":"1BLogC9LN4oPDcruNz3qo1ysa133E9AGg8","files":{},"ignore":".*","inner_path":"data/users/content.json","modified":1562293663}`,
 			`{"address": "1BLogC9LN4oPDcruNz3qo1ysa133E9AGg8", "files": {}, "ignore": ".*", "inner_path": "data/users/content.json", "modified": 1562293663}`,
 		},
+		{
+			"given valid JSON with float number",
+			`{"address":"1FiSxj2yDPeGuuf6iBwRAXvEMQJATAZNt6","files":{},"ignore":".*","inner_path":"data/users/content.json","modified":1482758352.990285}`,
+			`{"address": "1FiSxj2yDPeGuuf6iBwRAXvEMQJATAZNt6", "files": {}, "ignore": ".*", "inner_path": "data/users/content.json", "modified": 1482758352.990285}`,
+		},
 	}
 
 	for _, tt := range tests {

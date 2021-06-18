@@ -11,41 +11,60 @@ import (
 )
 
 type Content struct {
-	Address                  string             `json:"address,omitempty"`
-	AddressIndex             int                `json:"address_index,omitempty"`
-	BackgroundColor          string             `json:"background-color,omitempty"`
-	BackgroundColorDark      string             `json:"background-color-dark,omitempty"`
-	CertAuthType             string             `json:"cert_auth_type,omitempty"`
-	CertSign                 string             `json:"cert_sign,omitempty"`
-	CertUserID               string             `json:"cert_user_id,omitempty"`
-	CloneRoot                string             `json:"clone_root,omitempty"`
-	Cloneable                bool               `json:"cloneable,omitempty"`
-	ClonedFrom               string             `json:"cloned_from,omitempty"`
-	Description              string             `json:"description,omitempty"`
-	Favicon                  string             `json:"favicon,omitempty"`
-	Files                    map[string]File    `json:"files"`
-	FilesOptional            map[string]File    `json:"files_optional,omitempty"`
-	Ignore                   string             `json:"ignore,omitempty"`
-	Includes                 map[string]Include `json:"includes,omitempty"`
-	InnerPath                string             `json:"inner_path,omitempty"`
-	Modified                 int                `json:"modified,omitempty"`
-	Optional                 string             `json:"optional,omitempty"`
-	PostmessageNonceSecurity bool               `json:"postmessage_nonce_security,omitempty"`
-	SignersSign              string             `json:"signers_sign,omitempty"`
-	Signs                    map[string]string  `json:"signs,omitempty"`
-	SignsRequired            int                `json:"signs_required,omitempty"`
-	Title                    string             `json:"title,omitempty"`
-	Translate                []string           `json:"translate,omitempty"`
-	Viewport                 string             `json:"viewport,omitempty"`
-	UserContents             *UserContents      `json:"user_contents,omitempty"`
-	ZeronetVersion           string             `json:"zeronet_version,omitempty"`
+	Address                  string                 `json:"address,omitempty"`
+	AddressIndex             int                    `json:"address_index,omitempty"`
+	BackgroundColor          string                 `json:"background-color,omitempty"`
+	BackgroundColorDark      string                 `json:"background-color-dark,omitempty"`
+	CertAuthType             string                 `json:"cert_auth_type,omitempty"`
+	CertSign                 string                 `json:"cert_sign,omitempty"`
+	CertUserID               string                 `json:"cert_user_id,omitempty"`
+	CloneRoot                string                 `json:"clone_root,omitempty"`
+	Cloneable                *bool                  `json:"cloneable,omitempty"`
+	ClonedFrom               string                 `json:"cloned_from,omitempty"`
+	DefaultPage              string                 `json:"default_page,omitempty"`
+	Description              string                 `json:"description,omitempty"`
+	Domain                   string                 `json:"domain,omitempty"`
+	Favicon                  string                 `json:"favicon,omitempty"`
+	Files                    map[string]File        `json:"files"`
+	FilesOptional            map[string]File        `json:"files_optional,omitempty"`
+	Ignore                   string                 `json:"ignore,omitempty"`
+	Includes                 map[string]Include     `json:"includes,omitempty"`
+	InnerPath                string                 `json:"inner_path,omitempty"`
+	Modified                 float64                `json:"modified,omitempty"`
+	Optional                 string                 `json:"optional,omitempty"`
+	PostmessageNonceSecurity bool                   `json:"postmessage_nonce_security,omitempty"`
+	Settings                 map[string]interface{} `json:"settings,omitempty"`
+	SignersSign              string                 `json:"signers_sign,omitempty"`
+	Signs                    map[string]string      `json:"signs,omitempty"`
+	SignsRequired            int                    `json:"signs_required,omitempty"`
+	Title                    string                 `json:"title,omitempty"`
+	Translate                []string               `json:"translate,omitempty"`
+	Viewport                 string                 `json:"viewport,omitempty"`
+	UserContents             *UserContents          `json:"user_contents,omitempty"`
+	ZeronetVersion           string                 `json:"zeronet_version,omitempty"`
+}
+
+type File struct {
+	PieceSize int    `json:"piece_size,omitempty"`
+	Piecemap  string `json:"piecemap,omitempty"`
+	Sha512    string `json:"sha512"`
+	Size      int    `json:"size"`
+}
+
+type Include struct {
+	Signers         []string `json:"signers"`
+	SignersRequired int      `json:"signers_required"`
 }
 
 type UserContents struct {
-	Archived        map[string]int         `json:"archived,omitempty"`
-	CertSigners     map[string][]string    `json:"cert_signers,omitempty"`
-	PermissionRules map[string]interface{} `json:"permission_rules,omitempty"`
-	Permissions     map[string]interface{} `json:"permissions,omitempty"`
+	Archived         map[string]int         `json:"archived,omitempty"`
+	ArchivedBefore   int                    `json:"archived_before,omitempty"`
+	CertSigners      map[string][]string    `json:"cert_signers,omitempty"`
+	ContentInnerPath string                 `json:"content_inner_path,omitempty"`
+	Optional         json.RawMessage        `json:"optional,omitempty"`
+	PermissionRules  map[string]interface{} `json:"permission_rules,omitempty"`
+	Permissions      map[string]interface{} `json:"permissions"`
+	RelativePath     string                 `json:"relative_path,omitempty"`
 }
 
 func (c *Content) isValid() bool {

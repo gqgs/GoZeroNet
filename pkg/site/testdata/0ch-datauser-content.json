@@ -1,0 +1,30 @@
+{
+ "address": "1FiSxj2yDPeGuuf6iBwRAXvEMQJATAZNt6",
+ "files": {},
+ "ignore": ".*",
+ "inner_path": "data/users/content.json",
+ "modified": 1482758352.990285,
+ "optional": ".*\\.(png|jpg|gif)",
+ "signs": {
+  "1FiSxj2yDPeGuuf6iBwRAXvEMQJATAZNt6": "HPTlKQ9EqO0uT7vDLsXT0gcKHuCE31lEk/F+pbL6qe8Y4hTNdQ+aPmeJLCManmJ7Zd/UiPUw1d3uHhhAhm2uDPs="
+ },
+ "user_contents": {
+  "cert_signers": {
+   "0ch.anonymous": [
+    "1LP86ye2hyMGP1UvGxnk7F8Qg9vN1HpVLy"
+   ],
+   "zeroid.bit": [
+    "1iD5ZQJMNXu43w1qLB8sfdHVKppVMduGz"
+   ]
+  },
+  "permission_rules": {
+   ".*": {
+    "files_allowed": "(data.json|test.txt)",
+    "files_allowed_optional": ".*\\.(png|jpg|gif)",
+    "max_size": 5000000,
+    "max_size_optional": 200000000
+   }
+  },
+  "permissions": {}
+ }
+}
