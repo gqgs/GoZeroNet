@@ -57,6 +57,11 @@ func Test_numToVarInt(t *testing.T) {
 			5194967296,
 			"ff00e9a43501000000",
 		},
+		{
+			"n = MAX_INT64",
+			9223372036854775807,
+			"ffffffffffffffff7f",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
