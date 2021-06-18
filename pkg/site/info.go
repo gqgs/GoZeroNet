@@ -35,33 +35,6 @@ type Include struct {
 	SignersRequired int      `json:"signers_required,omitempty"`
 }
 
-type Content struct {
-	Address                  string             `json:"address,omitempty"`
-	AddressIndex             int                `json:"address_index,omitempty"`
-	BackgroundColor          string             `json:"background-color,omitempty"`
-	BackgroundColorDark      string             `json:"background-color-dark,omitempty"`
-	CloneRoot                string             `json:"clone_root,omitempty"`
-	Cloneable                bool               `json:"cloneable,omitempty"`
-	ClonedFrom               string             `json:"cloned_from,omitempty"`
-	Description              string             `json:"description,omitempty"`
-	Favicon                  string             `json:"favicon,omitempty"`
-	Files                    map[string]File    `json:"files,omitempty"`
-	FilesOptional            map[string]File    `json:"files_optional,omitempty"`
-	Ignore                   string             `json:"ignore,omitempty"`
-	Includes                 map[string]Include `json:"includes,omitempty"`
-	InnerPath                string             `json:"inner_path,omitempty"`
-	Modified                 int                `json:"modified,omitempty"`
-	Optional                 string             `json:"optional,omitempty"`
-	PostmessageNonceSecurity bool               `json:"postmessage_nonce_security,omitempty"`
-	SignersSign              string             `json:"signers_sign,omitempty"`
-	Signs                    map[string]string  `json:"signs,omitempty"`
-	SignsRequired            int                `json:"signs_required,omitempty"`
-	Title                    string             `json:"title,omitempty"`
-	Translate                []string           `json:"translate,omitempty"`
-	Viewport                 string             `json:"viewport,omitempty"`
-	ZeronetVersion           string             `json:"zeronet_version,omitempty"`
-}
-
 func (s *Site) Info() (*Info, error) {
 	content := new(Content)
 	if err := s.DecodeJSON("content.json", content); err != nil {
