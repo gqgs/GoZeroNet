@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 )
 
 type User interface {
@@ -29,8 +30,14 @@ func (m *manager) User() User {
 	for _, user := range m.users {
 		return user
 	}
+
+	// user doesn't exist
 	user := new(user)
 	user.Sites = make(map[string]*Site)
+	user.MasterSeed = crypto.NewPrivateKey(crypto.Hex)
+	addr, _ := crypto.PrivateKeyToAddress(user.MasterSeed)
+	user.addr = addr
+	m.users[addr] = user
 	return user
 }
 
@@ -50,7 +57,9 @@ func loadUserSettingsFromFile() (map[string]*user, error) {
 	userFilePath := path.Join(config.DataDir, "users.json")
 	file, err := os.Open(userFilePath)
 	if err != nil {
-		// TODO: create if it doesn't exist
+		if os.IsNotExist(err) {
+			return make(map[string]*user), nil
+		}
 		return nil, err
 	}
 	defer file.Close()
