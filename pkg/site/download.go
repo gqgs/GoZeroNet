@@ -13,6 +13,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
@@ -63,7 +64,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		s.Settings.Modified = int64(content.Modified)
 	}
 
-	contentPath := path.Join(config.DataDir, s.addr, content.InnerPath)
+	contentPath := path.Join(config.DataDir, s.addr, safe.CleanPath(content.InnerPath))
 	if err := os.MkdirAll(path.Dir(contentPath), os.ModePerm); err != nil {
 		return err
 	}
@@ -96,7 +97,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		}
 		s.Settings.BytesRecv += file.Size
 
-		filePath := path.Join(config.DataDir, s.addr, filename)
+		filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(filename))
 		if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
 			return err
 		}

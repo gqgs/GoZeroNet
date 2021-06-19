@@ -44,7 +44,6 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 		writer = reader
 	}
 
-	// TODO: validate .. in innerPath
 	if err := w.site.ReadFile(payload.Params.InnerPath, writer); err != nil {
 		// TODO: download file with timeout if required
 		if !os.IsNotExist(err) {

@@ -13,6 +13,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
@@ -126,7 +127,7 @@ func (s *Site) User() user.User {
 }
 
 func (s *Site) DecodeJSON(filename string, v interface{}) error {
-	innerPath := path.Join(config.DataDir, s.addr, filename)
+	innerPath := path.Join(config.DataDir, s.addr, safe.CleanPath(filename))
 	file, err := os.Open(innerPath)
 	if err != nil {
 		// TODO: download file
@@ -138,7 +139,7 @@ func (s *Site) DecodeJSON(filename string, v interface{}) error {
 }
 
 func (s *Site) ReadFile(innerPath string, dst io.Writer) error {
-	path := path.Join(config.DataDir, s.addr, innerPath)
+	path := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
 	file, err := os.Open(path)
 	if err != nil {
 		// TODO: download file
