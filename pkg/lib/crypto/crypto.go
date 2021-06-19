@@ -3,12 +3,54 @@ package crypto
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
+	"errors"
 	"fmt"
 
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"golang.org/x/crypto/ripemd160"
 )
+
+type Encoding = int
+
+const (
+	Hex Encoding = iota
+	Base58
+)
+
+// PrivateKeyToAddress receives a hex encoded private key and returns
+// the address derived from the associated public key
+func PrivateKeyToAddress(hexKey string) (string, error) {
+	if len(hexKey) != 64 {
+		return "", errors.New("invalid key length")
+	}
+	key, err := hex.DecodeString(hexKey)
+	if err != nil {
+		return "", err
+	}
+
+	_, pubKey := btcec.PrivKeyFromBytes(btcec.S256(), key)
+	return PublicKeyToAddress(pubKey.SerializeUncompressed()), nil
+}
+
+// NewPrivateKey returns a new private key encoded in the requested format
+// It panics if it fails to generate the key
+func NewPrivateKey(encoding Encoding) string {
+	privKey, err := btcec.NewPrivateKey(btcec.S256())
+	if err != nil {
+		panic(err)
+	}
+	switch encoding {
+	case Hex:
+		return hex.EncodeToString(privKey.Serialize())
+	case Base58:
+		return base58CheckEncode(privKey.Serialize())
+	default:
+		panic("invalid encoding")
+	}
+}
 
 // IsValidSignature return true if message was signed with key related to address
 func IsValidSignature(message []byte, base64Sign, address string) bool {

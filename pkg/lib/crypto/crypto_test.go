@@ -71,3 +71,45 @@ func Test_numToVarInt(t *testing.T) {
 		})
 	}
 }
+
+func TestPrivateKeyToAddress(t *testing.T) {
+	tests := []struct {
+		name   string
+		hexKey string
+		want   string
+	}{
+		{
+			"given a valid hex encoded key it should return its address",
+			"366e9056541340ae10ef5af621d73872b6b678161aa9c0dc409701ca155a6693",
+			"1Ea7ZmUiuwNBdYG6v54yyJJfK1NJy9agGX",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := PrivateKeyToAddress(tt.hexKey)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestNewPrivateKey(t *testing.T) {
+	tests := []struct {
+		name     string
+		encoding Encoding
+		wantLen  int
+	}{
+		{
+			"hex string",
+			Hex,
+			64,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewPrivateKey(tt.encoding)
+			require.Len(t, got, tt.wantLen)
+		})
+	}
+}
