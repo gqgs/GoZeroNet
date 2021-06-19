@@ -6,9 +6,9 @@ import (
 
 type (
 	channelJoinRequest struct {
-		CMD    string            `json:"cmd"`
-		ID     int64             `json:"id"`
-		Params channelJoinParams `json:"params"`
+		CMD    string          `json:"cmd"`
+		ID     int64           `json:"id"`
+		Params json.RawMessage `json:"params"`
 	}
 	channelJoinParams struct {
 		Channels []string `json:"channels"`
@@ -30,8 +30,15 @@ func (w *uiWebsocket) channelJoin(rawMessage []byte, message Message) error {
 		return err
 	}
 
+	var params channelJoinParams
+	if err := json.Unmarshal(payload.Params, &params); err != nil {
+		if err := json.Unmarshal(payload.Params, &params.Channels); err != nil {
+			return err
+		}
+	}
+
 	w.channelsMutex.Lock()
-	for _, channel := range payload.Params.Channels {
+	for _, channel := range params.Channels {
 		w.channels[channel] = struct{}{}
 	}
 	w.channelsMutex.Unlock()

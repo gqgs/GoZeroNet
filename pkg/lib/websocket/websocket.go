@@ -1,3 +1,4 @@
+//go:generate go run github.com/golang/mock/mockgen -package websocket -source=$GOFILE -destination=./mock.go
 package websocket
 
 import (
