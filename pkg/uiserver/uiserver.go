@@ -1,7 +1,10 @@
 package uiserver
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -123,14 +126,51 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if strings.HasSuffix(innerPath, "all.css") {
+	switch {
+	case strings.HasSuffix(innerPath, ".svg"):
+		w.Header().Add("Content-Type", "image/svg+xml")
+	case strings.HasSuffix(innerPath, "all.css"):
 		w.Header().Add("Content-Type", "text/css")
-	} else if strings.HasSuffix(innerPath, "all.js") {
+	case strings.HasSuffix(innerPath, "all.js"):
 		w.Header().Add("Content-Type", "application/javascript")
+	}
+
+	if i := strings.Index(innerPath, ".zip/"); i > 0 {
+		i += len(".zip/")
+		zipPath, filename := innerPath[:i], innerPath[i:]
+		s.handleZip(w, site, zipPath, filename)
+		return
 	}
 
 	if err := s.siteManager.ReadFile(site, innerPath, w); err != nil {
 		s.log.WithField("site", site).WithField("innerPath", innerPath).Warn(err)
 		http.Error(w, "not found", http.StatusNotFound)
+	}
+}
+
+func (s *server) handleZip(w http.ResponseWriter, site, zipPath, filename string) {
+	zipWriter := new(bytes.Buffer)
+	if err := s.siteManager.ReadFile(site, zipPath, zipWriter); err != nil {
+		s.log.WithField("site", site).WithField("zipPath", zipPath).Warn(err)
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	bytesReader := bytes.NewReader(zipWriter.Bytes())
+	zipReader, err := zip.NewReader(bytesReader, bytesReader.Size())
+	if err != nil {
+		s.log.WithField("site", site).WithField("zipPath", zipPath).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	file, err := zipReader.Open(filename)
+	if err != nil {
+		s.log.WithField("site", site).WithField("zipPath", zipPath).Warn(err)
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	defer file.Close()
+	if _, err := io.Copy(w, file); err != nil {
+		s.log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
