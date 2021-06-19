@@ -74,19 +74,24 @@ func Test_numToVarInt(t *testing.T) {
 
 func TestPrivateKeyToAddress(t *testing.T) {
 	tests := []struct {
-		name   string
-		hexKey string
-		want   string
+		name string
+		key  string
+		want string
 	}{
 		{
 			"given a valid hex encoded key it should return its address",
 			"366e9056541340ae10ef5af621d73872b6b678161aa9c0dc409701ca155a6693",
 			"1Ea7ZmUiuwNBdYG6v54yyJJfK1NJy9agGX",
 		},
+		{
+			"given a valid base58 encoded key it should return its address",
+			"5KRDwnpby7hk3fn2Giov61BTPggwyYqnJSCgopRdprtqqNbgPXo",
+			"1HzAPSQjyEDtbQeiWaLvmdu6hSxWcpTwjD",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := PrivateKeyToAddress(tt.hexKey)
+			got, err := PrivateKeyToAddress(tt.key)
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 		})
@@ -110,6 +115,42 @@ func TestNewPrivateKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewPrivateKey(tt.encoding)
 			require.Len(t, got, tt.wantLen)
+		})
+	}
+}
+
+func Test_AuthPrivateKeyKey(t *testing.T) {
+	tests := []struct {
+		name        string
+		seed        string
+		address     string
+		wantPrivKey string
+	}{
+		{
+			"given a valid seed it should return a deterministic auth key",
+			"e180efa477c63b0f2757eac7b1cce781877177fe0966be62754ffd4c8592ce38",
+			"",
+			"5JSbeF5PevdrsYjunqpg7kAGbnCVYa1T4APSL3QRu8EoAmXRc7Y",
+		},
+		{
+			"ZeroName seed",
+			"366e9056541340ae10ef5af621d73872b6b678161aa9c0dc409701ca155a6693",
+			"1Name2NXVi1RDPDgf5617UoW7xA6YrhM9F",
+			"5KRDwnpby7hk3fn2Giov61BTPggwyYqnJSCgopRdprtqqNbgPXo",
+		},
+		{
+			"ZeroHello seed",
+			"366e9056541340ae10ef5af621d73872b6b678161aa9c0dc409701ca155a6693",
+			"1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D",
+			"5HwmpV4rm7FFNYzrk1Xy4Gj5WBXeGtbzpZxsBzt11wQsucPnRk7",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			authKey, err := AuthPrivateKey(tt.seed, tt.address)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantPrivKey, authKey)
 		})
 	}
 }

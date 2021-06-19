@@ -126,6 +126,12 @@ func (u *user) SetSiteSettings(addr string, settings map[string]interface{}) err
 
 	if u.Sites[addr] == nil {
 		u.Sites[addr] = new(Site)
+		if u.Sites[addr].AuthPrivatekey, err = crypto.AuthPrivateKey(u.MasterSeed, addr); err != nil {
+			return err
+		}
+		if u.Sites[addr].AuthAddress, err = crypto.PrivateKeyToAddress(u.Sites[addr].AuthPrivatekey); err != nil {
+			return err
+		}
 	}
 
 	u.Sites[addr].Settings = settings

@@ -4,11 +4,13 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil/base58"
+	"github.com/btcsuite/btcutil/hdkeychain"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"golang.org/x/crypto/ripemd160"
 )
@@ -20,23 +22,26 @@ const (
 	Base58
 )
 
-// PrivateKeyToAddress receives a hex encoded private key and returns
-// the address derived from the associated public key
-func PrivateKeyToAddress(hexKey string) (string, error) {
-	if len(hexKey) != 64 {
-		return "", errors.New("invalid key length")
+// PrivateKeyToAddress receives an encoded private key and returns
+// the address derived from the associated public key.
+// It guesses the key encoding based on the input length.
+func PrivateKeyToAddress(encodedKey string) (string, error) {
+	var keyBytes []byte
+	var err error
+	if len(encodedKey) == 64 {
+		keyBytes, err = hex.DecodeString(encodedKey)
+	} else {
+		keyBytes, _, err = base58.CheckDecode(encodedKey)
 	}
-	key, err := hex.DecodeString(hexKey)
 	if err != nil {
 		return "", err
 	}
-
-	_, pubKey := btcec.PrivKeyFromBytes(btcec.S256(), key)
+	_, pubKey := btcec.PrivKeyFromBytes(btcec.S256(), keyBytes)
 	return PublicKeyToAddress(pubKey.SerializeUncompressed()), nil
 }
 
-// NewPrivateKey returns a new private key encoded in the requested format
-// It panics if it fails to generate the key
+// NewPrivateKey returns a new random private key encoded in the requested format.
+// It panics if it fails to generate the key.
 func NewPrivateKey(encoding Encoding) string {
 	privKey, err := btcec.NewPrivateKey(btcec.S256())
 	if err != nil {
@@ -52,7 +57,36 @@ func NewPrivateKey(encoding Encoding) string {
 	}
 }
 
-// IsValidSignature return true if message was signed with key related to address
+// AuthPrivateKey returns a deterministic base58 encoded key derived in function
+// of the seed and the given address.
+func AuthPrivateKey(seed string, address string) (string, error) {
+	bigInt := new(big.Int)
+	bigInt.SetString(hex.EncodeToString([]byte(address)), 16)
+	div := new(big.Int)
+	div.SetInt64(100_000_000)
+	res := bigInt.Mod(bigInt, div)
+	child := uint32(res.Uint64())
+
+	master, err := hdkeychain.NewMaster([]byte(seed), &chaincfg.MainNetParams)
+	if err != nil {
+		return "", err
+	}
+
+	derivedChild, err := master.Child(child)
+	if err != nil {
+		return "", err
+	}
+
+	privKey, err := derivedChild.ECPrivKey()
+	if err != nil {
+		return "", err
+	}
+
+	key := append([]byte{0x80}, privKey.Serialize()...)
+	return base58CheckEncode(key), nil
+}
+
+// IsValidSignature return true if message was signed with key related to address.
 func IsValidSignature(message []byte, base64Sign, address string) bool {
 	pubkey, err := RecoverPublicKey(message, base64Sign)
 	if err != nil {
@@ -61,7 +95,7 @@ func IsValidSignature(message []byte, base64Sign, address string) bool {
 	return address == PublicKeyToAddress(pubkey)
 }
 
-// RecoverPublicKey recovers the public key given a message and the message signature
+// RecoverPublicKey recovers the public key given a message and the message signature.
 func RecoverPublicKey(message []byte, base64Sign string) ([]byte, error) {
 	sign, err := base64.StdEncoding.DecodeString(base64Sign)
 	if err != nil {
@@ -76,7 +110,7 @@ func RecoverPublicKey(message []byte, base64Sign string) ([]byte, error) {
 	return secp256k1.RecoverPubkey(hash(message), sign)
 }
 
-// PublicKeyToAddress converts a public key to ZN style addresses
+// PublicKeyToAddress converts a public key to ZN style addresses.
 func PublicKeyToAddress(pubKey []byte) string {
 	sha256Digest := sha256.Sum256(pubKey)
 	ripemdHasher := ripemd160.New()
@@ -90,7 +124,7 @@ func PublicKeyToAddress(pubKey []byte) string {
 }
 
 // base58 has a CheckEncode method but it prepends a version
-// which is a different behavior from the Python lib
+// which is a different behavior from the Python lib.
 func base58CheckEncode(input []byte) string {
 	b := make([]byte, 0, len(input)+4)
 	b = append(b, input[:]...)
