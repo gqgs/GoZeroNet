@@ -12,6 +12,7 @@ type User interface {
 	AuthAddress(addr string) string
 	CertUserID(addr string) string
 	SiteSettings(addr string) map[string]interface{}
+	SetSiteSettings(addr string, settings map[string]interface{}) error
 	GlobalSettings() GlobalSettings
 }
 
@@ -29,11 +30,23 @@ func (m *manager) User() User {
 		return user
 	}
 	user := new(user)
-	user.Sites = make(map[string]Site)
+	user.Sites = make(map[string]*Site)
 	return user
 }
 
 func NewManager() (*manager, error) {
+	users, err := loadUserSettingsFromFile()
+	if err != nil {
+		return nil, err
+	}
+	for addr, user := range users {
+		user.addr = addr
+	}
+
+	return &manager{users}, nil
+}
+
+func loadUserSettingsFromFile() (map[string]*user, error) {
 	userFilePath := path.Join(config.DataDir, "users.json")
 	file, err := os.Open(userFilePath)
 	if err != nil {
@@ -43,11 +56,7 @@ func NewManager() (*manager, error) {
 	defer file.Close()
 
 	users := make(map[string]*user)
-	if err := json.NewDecoder(file).Decode(&users); err != nil {
-		return nil, err
-	}
-
-	return &manager{users}, nil
+	return users, json.NewDecoder(file).Decode(&users)
 }
 
 type Cert struct {
@@ -70,13 +79,17 @@ type GlobalSettings struct {
 }
 
 type user struct {
-	Certs      map[string]Cert `json:"certs"`
-	MasterSeed string          `json:"master_seed"`
-	Settings   GlobalSettings  `json:"settings"`
-	Sites      map[string]Site `json:"sites"`
+	addr       string
+	Certs      map[string]Cert  `json:"certs"`
+	MasterSeed string           `json:"master_seed"`
+	Settings   GlobalSettings   `json:"settings"`
+	Sites      map[string]*Site `json:"sites"`
 }
 
 func (u *user) AuthAddress(addr string) string {
+	if u.Sites[addr] == nil {
+		return ""
+	}
 	return u.Sites[addr].AuthAddress
 }
 
@@ -86,9 +99,34 @@ func (u *user) CertUserID(addr string) string {
 }
 
 func (u *user) SiteSettings(addr string) map[string]interface{} {
+	if u.Sites[addr] == nil {
+		return nil
+	}
 	return u.Sites[addr].Settings
 }
 
 func (u *user) GlobalSettings() GlobalSettings {
 	return u.Settings
+}
+
+func (u *user) SetSiteSettings(addr string, settings map[string]interface{}) error {
+	users, err := loadUserSettingsFromFile()
+	if err != nil {
+		return err
+	}
+
+	if u.Sites[addr] == nil {
+		u.Sites[addr] = new(Site)
+	}
+
+	u.Sites[addr].Settings = settings
+	users[u.addr] = u
+
+	data, err := json.Marshal(users)
+	if err != nil {
+		return err
+	}
+
+	userFilePath := path.Join(config.DataDir, "users.json")
+	return os.WriteFile(userFilePath, data, os.ModePerm)
 }

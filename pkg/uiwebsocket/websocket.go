@@ -50,6 +50,8 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.userGetSettings(rawMessage, message)
 	case "userGetGlobalSettings":
 		return w.userGetGlobalSettings(rawMessage, message)
+	case "userSetSettings":
+		return w.userSetSettings(rawMessage, message)
 	case "siteInfo":
 		return w.siteInfo(rawMessage, message)
 	case "serverInfo":
