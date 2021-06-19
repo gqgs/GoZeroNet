@@ -64,6 +64,8 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.adminOnly(w.announcerStats)(rawMessage, message)
 	case "siteList":
 		return w.adminOnly(w.siteList)(rawMessage, message)
+	case "fileGet":
+		return w.fileGet(rawMessage, message)
 	case "serverShutdown":
 		return w.adminOnly(w.serverShutdown)(rawMessage, message)
 	}
