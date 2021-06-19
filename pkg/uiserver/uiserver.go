@@ -129,9 +129,9 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasSuffix(innerPath, ".svg"):
 		w.Header().Add("Content-Type", "image/svg+xml")
-	case strings.HasSuffix(innerPath, "all.css"):
+	case strings.HasSuffix(innerPath, ".css"):
 		w.Header().Add("Content-Type", "text/css")
-	case strings.HasSuffix(innerPath, "all.js"):
+	case strings.HasSuffix(innerPath, ".js"):
 		w.Header().Add("Content-Type", "application/javascript")
 	}
 
