@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -149,4 +150,33 @@ func (s *Site) ReadFile(innerPath string, dst io.Writer) error {
 
 	_, err = io.Copy(dst, file)
 	return err
+}
+
+func (s *Site) ListFiles(innerPath string) ([]string, error) {
+	files := make([]string, 0)
+	root := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
+
+	if _, err := os.Stat(root); err != nil {
+		if os.IsNotExist(err) {
+			return files, nil
+		}
+		return nil, err
+	}
+
+	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.Type().IsRegular() {
+			files = append(files, info.Name())
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }
