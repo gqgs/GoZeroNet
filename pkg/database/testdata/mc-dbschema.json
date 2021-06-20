@@ -1,0 +1,83 @@
+{
+    "db_name": "Millchan",
+    "db_file": "data/millchan.db",
+    "version": 2,
+    "maps": {
+        "users/.+/data.json": {
+            "to_table": [ "posts", "boards", "modlogs" ]
+        },
+        "users/.+/content.json": {
+			"to_json_table": [ "cert_user_id" ],
+			"file_name": "data.json"
+		}
+    },
+    "tables": {
+        "posts": {
+            "cols": [
+                ["id", "TEXT"],
+                ["uri", "TEXT"],
+                ["thread", "INTEGER"],
+                ["subject", "TEXT"],
+                ["body", "TEXT"],
+                ["username", "TEXT"],
+                ["time", "INTEGER"],
+                ["files", "TEXT"],
+                ["directory", "TEXT"],
+                ["last_edited","INTEGER"],
+                ["capcode","INTEGER"],
+                ["json_id", "INTEGER REFERENCES json (json_id)"]
+            ],
+            "indexes": [
+		"CREATE UNIQUE INDEX uuid ON posts(id)",
+		"CREATE UNIQUE INDEX post_id ON posts(id,json_id)",
+		"CREATE INDEX post_thread ON posts(thread)",
+		"CREATE INDEX post_uri ON posts(uri)",
+		"CREATE INDEX post_directory ON posts(directory)",
+		"CREATE INDEX post_uri_directory ON posts(uri,directory)"
+		],
+            "schema_changed": 15
+        },
+	"boards": {
+		"cols": [
+			["uri", "TEXT"],
+			["title", "TEXT"],
+			["config", "TEXT"],
+			["description", "TEXT"],
+			["json_id", "INTEGER REFERENCES json (json_id)"]
+		],
+		"indexes": [
+			"CREATE UNIQUE INDEX board_id ON boards(uri,json_id)",
+			"CREATE INDEX board_uri ON boards(uri)"
+		],
+		"schema_changed": 12
+	},
+	"modlogs": {
+		"cols": [
+			["uri", "TEXT"],
+			["time", "INTEGER"],
+			["action", "INTEGER"],
+			["info", "TEXT"],
+			["json_id", "INTEGER REFERENCES json (json_id)"]
+		],
+		"indexes": [
+			"CREATE UNIQUE INDEX log_id ON modlogs(uri,action,info,json_id)",
+			"CREATE INDEX modlogs_action ON modlogs(action)",
+			"CREATE INDEX modlogs_info ON modlogs(info)"
+		],
+		"schema_changed": 13
+	},
+	"json": {
+		"cols": [
+			["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
+			["directory", "TEXT"],
+			["file_name", "TEXT"],
+			["cert_user_id", "TEXT"]
+		],
+		"indexes": [
+			"CREATE UNIQUE INDEX path ON json(directory, file_name)",
+			"CREATE INDEX json_directory ON json(directory)"
+		],
+		"schema_changed": 13
+	}
+    }
+}
