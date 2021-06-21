@@ -21,18 +21,6 @@ func NewCommand() *cli.Command {
 					return rebuild(c.String("site"))
 				},
 			},
-			{
-				Name: "query",
-				Action: func(c *cli.Context) error {
-					return query(c.String("site"), c.String("query"))
-				},
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "query",
-						Required: true,
-					},
-				},
-			},
 		},
 	}
 }

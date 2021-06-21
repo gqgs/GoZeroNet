@@ -33,7 +33,3 @@ func rebuild(addr string) error {
 
 	return site.RebuildDB()
 }
-
-func query(site, query string) error {
-	panic("implement me")
-}

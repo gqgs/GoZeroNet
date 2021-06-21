@@ -3,9 +3,12 @@ package database
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
+	"regexp"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
@@ -42,12 +45,66 @@ func (d *siteDatabase) Close() error {
 	return d.storage.Close()
 }
 
+func (d *siteDatabase) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
+	return d.storage.Query(query, args...)
+}
+
 func (d *siteDatabase) Rebuild() error {
 	schema, err := loadDBSchemaFromFile(d.site)
 	if err != nil {
 		return err
 	}
 
+	if err := d.rebuild(schema); err != nil {
+		return err
+	}
+
+	return d.populate(schema)
+}
+
+func (d *siteDatabase) populate(schema *Schema) error {
+	regexFunc := make(map[*regexp.Regexp]Map)
+	for expr, tableMap := range schema.Maps {
+		regex, err := regexp.Compile(expr)
+		if err != nil {
+			return fmt.Errorf("regex error (%s): %s ", err, expr)
+		}
+		regexFunc[regex] = tableMap
+	}
+
+	tx, err := d.storage.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	root := path.Join(config.DataDir, d.site)
+	err = filepath.WalkDir(root, func(innerPath string, info fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		for regexFunc, tableMap := range regexFunc {
+			if regexFunc.MatchString(innerPath) {
+				if err := tableMap.ProcessFile(innerPath, tx); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (d *siteDatabase) rebuild(schema *Schema) error {
 	dbDir := path.Dir(path.Join(config.DataDir, d.site, safe.CleanPath(schema.DBFile)))
 	tempFile, err := ioutil.TempFile(dbDir, "")
 	if err != nil {
@@ -76,13 +133,21 @@ func (d *siteDatabase) Rebuild() error {
 		return err
 	}
 
-	// replace old storage with new one
-	d.storage.Close()
-	d.storage = newStorage
-
+	// SQLite doesn't like when an open database is moved ("attempt to write a readonly database").
+	// So close the database rename it to the correct path and then open the connection again.
+	if err := d.storage.Close(); err != nil {
+		return err
+	}
+	if err := newStorage.Close(); err != nil {
+		return err
+	}
 	dbPath := path.Join(config.DataDir, d.site, safe.CleanPath(schema.DBFile))
-
-	return os.Rename(tempFile.Name(), dbPath)
+	if err := os.Rename(tempFile.Name(), dbPath); err != nil {
+		return err
+	}
+	newStorage, err = storage.NewStorage(dbPath)
+	d.storage = newStorage
+	return err
 }
 
 func loadDBSchemaFromFile(site string) (*Schema, error) {

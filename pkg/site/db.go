@@ -24,3 +24,7 @@ func (s *Site) CloseDB() error {
 func (s *Site) RebuildDB() error {
 	return s.db.Rebuild()
 }
+
+func (s *Site) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
+	return s.db.Query(query, args...)
+}

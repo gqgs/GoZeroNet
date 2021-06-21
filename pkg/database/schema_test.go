@@ -77,3 +77,36 @@ func Test_SchemaQueries(t *testing.T) {
 		})
 	}
 }
+
+func Test_getDirectoryAndFilename(t *testing.T) {
+	tests := []struct {
+		name          string
+		innerPath     string
+		wantDirectory string
+		wantPath      string
+	}{
+		{
+			"it should extract dir and data.json",
+			"data/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D/data/users/1LjoRHqpAi5FFokP3aYUJuavw7c3XS7HVY/data.json",
+			"users/1LjoRHqpAi5FFokP3aYUJuavw7c3XS7HVY",
+			"data.json",
+		},
+		{
+			"it should extract dir and content.json",
+			"data/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D/data/users/1LjoRHqpAi5FFokP3aYUJuavw7c3XS7HVY/content.json",
+			"users/1LjoRHqpAi5FFokP3aYUJuavw7c3XS7HVY",
+			"content.json",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, _ := getDirectoryAndFilename(tt.innerPath)
+			if got != tt.wantDirectory {
+				t.Errorf("getDirectoryAndFilename() got = %v, want dir %v", got, tt.wantDirectory)
+			}
+			if got1 != tt.wantPath {
+				t.Errorf("getDirectoryAndFilename() got = %v, want path %v", got1, tt.wantPath)
+			}
+		})
+	}
+}

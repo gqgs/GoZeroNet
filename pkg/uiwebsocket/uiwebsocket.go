@@ -54,6 +54,9 @@ func (w *uiWebsocket) Serve() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	w.site.OpenDB()
+	defer w.site.CloseDB()
+
 	go w.handleSubsub(ctx)
 
 	for {
