@@ -42,8 +42,43 @@ func (s *Site) Download() error {
 	return errors.New("could not download site")
 }
 
+// Download content published in the last 7 days
+func (s *Site) DownloadRecent() error {
+	downloaded := make(map[string]struct{})
+	since := time.Now().AddDate(0, 0, -7).Unix()
+	for _, p := range s.peers {
+		if err := p.Connect(); err != nil {
+			s.log.WithField("peer", p).Warn(err)
+			continue
+		}
+		defer p.Close()
+
+		resp, err := fileserver.ListModified(p, s.addr, int(since))
+		if err != nil {
+			s.log.WithField("peer", p).Warn(err)
+			continue
+		}
+
+		for content := range resp.ModifiedFiles {
+			s.log.Debugf("downloading: %s", content)
+			if err := s.DownloadContentJSON(p, content); err != nil {
+				s.log.WithField("peer", p).Error(err)
+				continue
+			}
+			s.log.Debugf("downloaded: %s", content)
+			downloaded[content] = struct{}{}
+		}
+
+		s.log.Infof("downloaded %d files", len(downloaded))
+
+		return nil
+	}
+
+	return errors.New("could not files")
+}
+
 func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
-	resp, err := fileserver.GetFile(peer, s.addr, innerPath, 0, 0)
+	resp, err := fileserver.GetFileFull(peer, s.addr, innerPath)
 	if err != nil {
 		return err
 	}
@@ -74,20 +109,13 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	}
 
 	for filename, file := range content.Files {
-		var body []byte
-		var location int
-		for {
-			resp, err := fileserver.GetFile(peer, s.addr, filename, location, file.Size)
-			if err != nil {
-				return err
-			}
-			body = append(body, resp.Body...)
-			if len(body) >= file.Size {
-				break
-			}
-			location = resp.Location
+		filename = path.Join(path.Dir(innerPath), filename)
+		resp, err := fileserver.GetFileFull(peer, s.addr, filename)
+		if err != nil {
+			s.log.WithField("peer", peer).Warn(err)
+			continue
 		}
-
+		body := resp.Body
 		digest := sha512.Sum512(body)
 		hexDigest := hex.EncodeToString(digest[:32])
 		if hexDigest != file.Sha512 {

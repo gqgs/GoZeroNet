@@ -29,6 +29,35 @@ type (
 	}
 )
 
+// GetFile requests and concatenates all chunks of the file
+func GetFileFull(conn net.Conn, site, innerPath string) (*getFileResponse, error) {
+	var body []byte
+	var location int
+	for {
+		resp, err := GetFile(conn, site, innerPath, location, 0)
+		if err != nil {
+			return nil, err
+		}
+		if len(resp.Body) == 0 {
+			break
+		}
+		body = append(body, resp.Body...)
+		if len(body) >= resp.Size {
+			break
+		}
+		location = resp.Location
+	}
+	return &getFileResponse{
+		CMD:      "response",
+		To:       1,
+		Body:     body,
+		Location: location,
+		Size:     len(body),
+	}, nil
+}
+
+// GetFile read a chunk of the file.
+// The return is limited to 512KB.
 func GetFile(conn net.Conn, site, innerPath string, location, size int) (*getFileResponse, error) {
 	encoded, err := msgpack.Marshal(&getFileRequest{
 		CMD:   "getFile",

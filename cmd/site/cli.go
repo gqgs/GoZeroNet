@@ -19,6 +19,12 @@ func NewCommand() *cli.Command {
 					return download(c.String("site"))
 				},
 			},
+			{
+				Name: "download-recent",
+				Action: func(c *cli.Context) error {
+					return downloadRecent(c.String("site"))
+				},
+			},
 		},
 	}
 }
