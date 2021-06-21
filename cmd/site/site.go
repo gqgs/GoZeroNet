@@ -3,6 +3,7 @@ package site
 import (
 	"errors"
 	"log"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/site"
@@ -60,5 +61,5 @@ func downloadRecent(addr string) error {
 	peers := site.Peers()
 	log.Println("found ", len(peers), " peers")
 
-	return site.DownloadRecent()
+	return site.DownloadSince(time.Now().AddDate(0, 0, -7))
 }

@@ -36,45 +36,50 @@ func (s *Site) Download() error {
 		s.Settings.AuthKey = random.HexString(64)
 		s.Settings.WrapperKey = random.HexString(64)
 
-		return s.SaveSettings()
+		if err := s.SaveSettings(); err != nil {
+			return err
+		}
+		return s.downloadRecent(p, time.Now().AddDate(0, 0, -7))
 	}
 
 	return errors.New("could not download site")
 }
 
-// Download content published in the last 7 days
-func (s *Site) DownloadRecent() error {
-	downloaded := make(map[string]struct{})
-	since := time.Now().AddDate(0, 0, -7).Unix()
+func (s *Site) DownloadSince(since time.Time) error {
 	for _, p := range s.peers {
 		if err := p.Connect(); err != nil {
 			s.log.WithField("peer", p).Warn(err)
 			continue
 		}
 		defer p.Close()
-
-		resp, err := fileserver.ListModified(p, s.addr, int(since))
-		if err != nil {
-			s.log.WithField("peer", p).Warn(err)
+		if err := s.downloadRecent(p, since); err != nil {
+			s.log.WithField("peer", p).Error(err)
 			continue
 		}
-
-		for content := range resp.ModifiedFiles {
-			s.log.Debugf("downloading: %s", content)
-			if err := s.DownloadContentJSON(p, content); err != nil {
-				s.log.WithField("peer", p).Error(err)
-				continue
-			}
-			s.log.Debugf("downloaded: %s", content)
-			downloaded[content] = struct{}{}
-		}
-
-		s.log.Infof("downloaded %d files", len(downloaded))
-
 		return nil
 	}
 
 	return errors.New("could not files")
+}
+
+func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
+	downloaded := make(map[string]struct{})
+	resp, err := fileserver.ListModified(peer, s.addr, int(since.Unix()))
+	if err != nil {
+		return err
+	}
+
+	for content := range resp.ModifiedFiles {
+		if err := s.DownloadContentJSON(peer, content); err != nil {
+			s.log.WithField("peer", peer).Error(err)
+			continue
+		}
+		s.log.Debugf("downloaded: %s", content)
+		downloaded[content] = struct{}{}
+	}
+
+	s.log.Infof("downloaded %d files", len(downloaded))
+	return nil
 }
 
 func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
