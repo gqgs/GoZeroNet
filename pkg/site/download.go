@@ -39,7 +39,10 @@ func (s *Site) Download() error {
 		if err := s.SaveSettings(); err != nil {
 			return err
 		}
-		return s.downloadRecent(p, time.Now().AddDate(0, 0, -7))
+		if err := s.downloadRecent(p, time.Now().AddDate(0, 0, -7)); err != nil {
+			return err
+		}
+		return s.SaveSettings()
 	}
 
 	return errors.New("could not download site")
@@ -56,7 +59,7 @@ func (s *Site) DownloadSince(since time.Time) error {
 			s.log.WithField("peer", p).Error(err)
 			continue
 		}
-		return nil
+		return s.SaveSettings()
 	}
 
 	return errors.New("could not files")
