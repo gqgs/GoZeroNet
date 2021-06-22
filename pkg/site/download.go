@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/database"
+	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
@@ -66,22 +68,18 @@ func (s *Site) DownloadSince(since time.Time) error {
 }
 
 func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
-	downloaded := make(map[string]struct{})
 	resp, err := fileserver.ListModified(peer, s.addr, int(since.Unix()))
 	if err != nil {
 		return err
 	}
 
-	for content := range resp.ModifiedFiles {
-		if err := s.DownloadContentJSON(peer, content); err != nil {
+	for innerPath := range resp.ModifiedFiles {
+		if err := s.DownloadContentJSON(peer, innerPath); err != nil {
 			s.log.WithField("peer", peer).Error(err)
 			continue
 		}
-		s.log.Debugf("downloaded: %s", content)
-		downloaded[content] = struct{}{}
+		s.log.Debugf("downloaded: %s", innerPath)
 	}
-
-	s.log.Infof("downloaded %d files", len(downloaded))
 	return nil
 }
 
@@ -118,7 +116,21 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 
 	for filename, file := range content.Files {
 		filename = path.Join(path.Dir(innerPath), filename)
-		resp, err := fileserver.GetFileFull(peer, s.addr, filename)
+		relPath := safe.CleanPath(filename)
+
+		info, err := s.contentDB.FileInfo(s.addr, relPath)
+		switch err {
+		case database.ErrFileNotFound:
+		case nil:
+		default:
+			s.log.WithField("peer", peer).Error(err)
+			continue
+		}
+
+		if info.IsDownloaded {
+			continue
+		}
+		resp, err := fileserver.GetFileFull(peer, s.addr, relPath)
 		if err != nil {
 			s.log.WithField("peer", peer).Warn(err)
 			continue
@@ -133,7 +145,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		}
 		s.Settings.BytesRecv += file.Size
 
-		filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(filename))
+		filePath := path.Join(config.DataDir, s.addr, relPath)
 		if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
 			return err
 		}
@@ -141,6 +153,14 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		if err := os.WriteFile(filePath, body, os.ModePerm); err != nil {
 			return err
 		}
+
+		fileDone, _ := json.Marshal(&event.FileInfo{
+			InnerPath:    relPath,
+			Hash:         hexDigest,
+			Size:         len(body),
+			IsDownloaded: true,
+		})
+		s.pubsubManager.Broadcast(s.addr, "file-done", fileDone)
 	}
 
 	for includes := range content.Includes {
