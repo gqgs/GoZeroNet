@@ -27,9 +27,16 @@ type uiWebsocket struct {
 	ID            func() int64
 }
 
+func id() func() int64 {
+	var id int64
+	return func() int64 {
+		return atomic.AddInt64(&id, 1)
+	}
+}
+
 func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fileserver.Server,
 	site *site.Site, pubsubManager pubsub.Manager) *uiWebsocket {
-	idFunc := func() int64 { var id int64; return atomic.AddInt64(&id, 1) }
+	idFunc := id()
 	return &uiWebsocket{
 		conn:          conn,
 		siteManager:   siteManager,
