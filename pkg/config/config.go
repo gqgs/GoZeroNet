@@ -28,6 +28,7 @@ const (
 
 	// Validate database queries for correctness
 	ValidateDatabaseQueries = true
+	PubSubQueueSize         = 50
 )
 
 var (

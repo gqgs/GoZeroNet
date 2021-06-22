@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 )
 
@@ -57,7 +58,7 @@ func (m *message) Site() string {
 }
 
 func (m *manager) Register() <-chan Message {
-	messageCh := make(chan Message)
+	messageCh := make(chan Message, config.PubSubQueueSize)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.queue[messageCh] = messageCh
