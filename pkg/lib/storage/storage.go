@@ -3,8 +3,10 @@ package storage
 import (
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"io"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -33,6 +35,16 @@ func (s *sqliteStorage) Query(query string, args ...interface{}) ([]map[string]i
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, err
+	}
+
+	if config.ValidateDatabaseQueries {
+		columnsMap := make(map[string]struct{}, len(columns))
+		for _, c := range columns {
+			if _, found := columnsMap[c]; found {
+				return nil, fmt.Errorf("ambiguous column name: %q", c)
+			}
+			columnsMap[c] = struct{}{}
+		}
 	}
 
 	values := make([]interface{}, len(columns))
