@@ -15,15 +15,15 @@ func Test_Pubsub(t *testing.T) {
 	go func() {
 		select {
 		case message := <-messageCh:
-			require.Equal(t, "test source", message.Source())
-			require.Equal(t, "test queue", message.Queue())
+			require.Equal(t, "test site", message.Site())
+			require.Equal(t, "test queue", message.Event())
 			require.Equal(t, []byte("test message"), message.Body())
 		case <-time.After(time.Second):
 			require.Fail(t, "message timeout")
 		}
 	}()
 
-	manager.Broadcast("test source", "test queue", []byte("test message"))
+	manager.Broadcast("test site", "test queue", []byte("test message"))
 	manager.Unregister(messageCh)
 	require.Len(t, manager.queue, 0)
 }

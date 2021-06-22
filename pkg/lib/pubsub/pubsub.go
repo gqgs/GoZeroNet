@@ -19,8 +19,8 @@ func NewManager() *manager {
 type (
 	Message interface {
 		Body() []byte
-		Queue() string
-		Source() string
+		Event() string
+		Site() string
 	}
 
 	manager struct {
@@ -30,17 +30,17 @@ type (
 	}
 
 	message struct {
-		body   []byte
-		queue  string
-		source string
+		body  []byte
+		event string
+		site  string
 	}
 
 	Manager interface {
-		// Register creates a new subscriber to all queues
+		// Register creates a new subscriber to all event
 		// The client MUST unregister the channel after using it
 		Register() <-chan Message
 		Unregister(messageCh <-chan Message)
-		Broadcast(source, queue string, body []byte)
+		Broadcast(site, event string, body []byte)
 	}
 )
 
@@ -48,12 +48,12 @@ func (m *message) Body() []byte {
 	return m.body
 }
 
-func (m *message) Queue() string {
-	return m.queue
+func (m *message) Event() string {
+	return m.event
 }
 
-func (m *message) Source() string {
-	return m.source
+func (m *message) Site() string {
+	return m.site
 }
 
 func (m *manager) Register() <-chan Message {
@@ -71,7 +71,7 @@ func (m *manager) Unregister(messageCh <-chan Message) {
 	delete(m.queue, messageCh)
 }
 
-func (m *manager) Broadcast(source, queue string, body []byte) {
+func (m *manager) Broadcast(site, event string, body []byte) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	var wg sync.WaitGroup
@@ -82,9 +82,9 @@ func (m *manager) Broadcast(source, queue string, body []byte) {
 			defer wg.Done()
 			select {
 			case channel <- &message{
-				source: source,
-				queue:  queue,
-				body:   body,
+				site:  site,
+				event: event,
+				body:  body,
 			}:
 			case <-time.After(sendTimeout):
 				m.log.Warn("dropped message")
