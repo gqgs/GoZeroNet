@@ -126,6 +126,7 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 		jsonFields[field] = struct{}{}
 	}
 
+	// TODO: refactor this
 	for _, rootElement := range rootElements.Elements {
 		//nolint:exhaustive
 		switch rootElement.Type {
@@ -137,6 +138,28 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 				}
 				update := fmt.Sprintf("UPDATE json SET %s = ? WHERE rowid = ?", rootElement.Name)
 				if _, err := tx.Exec(update, str, jsonRowID); err != nil {
+					return err
+				}
+			}
+		case simdjson.TypeFloat:
+			if _, isJSONField := jsonFields[rootElement.Name]; isJSONField {
+				value, err := rootElement.Iter.Float()
+				if err != nil {
+					return err
+				}
+				update := fmt.Sprintf("UPDATE json SET %s = ? WHERE rowid = ?", rootElement.Name)
+				if _, err := tx.Exec(update, value, jsonRowID); err != nil {
+					return err
+				}
+			}
+		case simdjson.TypeInt:
+			if _, isJSONField := jsonFields[rootElement.Name]; isJSONField {
+				value, err := rootElement.Iter.Int()
+				if err != nil {
+					return err
+				}
+				update := fmt.Sprintf("UPDATE json SET %s = ? WHERE rowid = ?", rootElement.Name)
+				if _, err := tx.Exec(update, value, jsonRowID); err != nil {
 					return err
 				}
 			}
@@ -212,8 +235,6 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 			}
 		case simdjson.TypeObject, simdjson.TypeNull:
 			// can't map these types => no-op
-		case simdjson.TypeInt, simdjson.TypeFloat:
-			println("implement me:", rootElement.Type.String(), rootElement.Name)
 		default:
 			return fmt.Errorf("unexpected type: %s", rootElement.Type)
 		}
