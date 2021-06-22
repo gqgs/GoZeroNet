@@ -101,11 +101,24 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		return fmt.Errorf("invalid content.json: %s", content.InnerPath)
 	}
 
+	contentPath := path.Join(config.DataDir, s.addr, safe.CleanPath(content.InnerPath))
+
+	file, err := os.Open(contentPath)
+	if err == nil {
+		defer file.Close()
+		currentContent := new(Content)
+		if err := json.NewDecoder(file).Decode(currentContent); err == nil {
+			if content.Modified <= currentContent.Modified {
+				s.log.Debugf("outdated %s, skipping...", contentPath)
+				return nil
+			}
+		}
+	}
+
 	if innerPath == "content.json" {
 		s.Settings.Modified = int64(content.Modified)
 	}
 
-	contentPath := path.Join(config.DataDir, s.addr, safe.CleanPath(content.InnerPath))
 	if err := os.MkdirAll(path.Dir(contentPath), os.ModePerm); err != nil {
 		return err
 	}
