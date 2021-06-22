@@ -58,7 +58,7 @@ func addressHash(addr string) string {
 
 func sizeLimit(size int) int {
 	if size == 0 {
-		return config.SizeLimit
+		return config.SiteSizeLimit
 	}
 	return size
 }

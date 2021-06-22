@@ -24,7 +24,7 @@ const (
 	DataDir            = "./data/"
 	Language           = "en"
 	UpdateSite         = "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf"
-	SizeLimit          = 10
+	SiteSizeLimit      = 10
 
 	// Validate database queries for correctness
 	ValidateDatabaseQueries = true
