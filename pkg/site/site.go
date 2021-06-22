@@ -13,6 +13,7 @@ import (
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/database"
+	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
@@ -94,16 +95,10 @@ func (s *Site) broadcastSiteChange(events ...interface{}) error {
 
 	info.Events = events
 
-	event := SiteChangedEvent{
+	event.BroadcastSiteChanged(s.addr, s.pubsubManager, &event.SiteChanged{
 		Cmd:    "setSiteInfo",
 		Params: info,
-	}
-
-	encoded, err := json.Marshal(event)
-	if err != nil {
-		return err
-	}
-	s.pubsubManager.Broadcast(s.addr, "siteChanged", encoded)
+	})
 
 	return nil
 }

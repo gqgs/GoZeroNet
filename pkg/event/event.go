@@ -1,9 +1,11 @@
 package event
 
-import "encoding/json"
+type Event interface {
+	String() string
+}
 
 type EventBroadcaster interface {
-	Broadcast(site, event string, body []byte)
+	Broadcast(site string, event Event)
 }
 
 type FileInfo struct {
@@ -13,9 +15,12 @@ type FileInfo struct {
 	IsDownloaded bool
 }
 
+func (e *FileInfo) String() string {
+	return "fileInfo"
+}
+
 func BroadcastFileDone(site string, broadcaster EventBroadcaster, fileInfo *FileInfo) {
-	body, _ := json.Marshal(fileInfo)
-	broadcaster.Broadcast(site, "file-done", body)
+	broadcaster.Broadcast(site, fileInfo)
 }
 
 type PeerInfo struct {
@@ -23,7 +28,23 @@ type PeerInfo struct {
 	ReputationDelta int
 }
 
+func (e *PeerInfo) String() string {
+	return "peerInfo"
+}
+
 func BroadcastPeerInfoUpdate(site string, broadcaster EventBroadcaster, peerInfo *PeerInfo) {
-	body, _ := json.Marshal(peerInfo)
-	broadcaster.Broadcast(site, "peer-info", body)
+	broadcaster.Broadcast(site, peerInfo)
+}
+
+type SiteChanged struct {
+	Params interface{} `json:"params"`
+	Cmd    string      `json:"cmd"`
+}
+
+func (e *SiteChanged) String() string {
+	return "siteChanged"
+}
+
+func BroadcastSiteChanged(site string, broadcaster EventBroadcaster, siteChanged *SiteChanged) {
+	broadcaster.Broadcast(site, siteChanged)
 }

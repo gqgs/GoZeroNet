@@ -16,7 +16,6 @@ var upgrader = websocket.Upgrader{
 type Conn interface {
 	ReadMessage() (messageType int, message []byte, err error)
 	WriteJSON(v interface{}) error
-	Write(data []byte) error
 }
 
 type conn struct {

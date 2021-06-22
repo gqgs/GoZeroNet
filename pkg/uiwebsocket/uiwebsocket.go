@@ -83,15 +83,17 @@ func (w *uiWebsocket) handleSubsub(ctx context.Context) {
 				continue
 			}
 
+			event := message.Event()
+
 			w.channelsMutex.RLock()
-			_, joinedChannel := w.channels[message.Event()]
+			_, joinedChannel := w.channels[event.String()]
 			w.channelsMutex.RUnlock()
 
 			if !joinedChannel {
 				continue
 			}
 
-			if err := w.conn.Write(message.Body()); err != nil {
+			if err := w.conn.WriteJSON(event); err != nil {
 				w.log.Error(err)
 			}
 		}

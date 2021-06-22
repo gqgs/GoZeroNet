@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"bytes"
 	"testing"
 	"time"
 
@@ -17,13 +18,12 @@ func Test_Pubsub(t *testing.T) {
 		case message := <-messageCh:
 			require.Equal(t, "test site", message.Site())
 			require.Equal(t, "test queue", message.Event())
-			require.Equal(t, []byte("test message"), message.Body())
 		case <-time.After(time.Second):
 			require.Fail(t, "message timeout")
 		}
 	}()
 
-	manager.Broadcast("test site", "test queue", []byte("test message"))
+	manager.Broadcast("test site", bytes.NewBuffer([]byte("test message")))
 	manager.Unregister(messageCh)
 	require.Len(t, manager.queue, 0)
 }

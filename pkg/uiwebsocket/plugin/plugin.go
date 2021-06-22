@@ -2,7 +2,12 @@ package plugin
 
 type pluginWriter interface {
 	WriteJSON(v interface{}) error
-	Write(data []byte) error
+}
+
+type errorMsg struct {
+	Msg string `json:"error"`
+	To  int64  `json:"to"`
+	ID  int64  `json:"id"`
 }
 
 type Plugin interface {

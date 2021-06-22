@@ -1,8 +1,6 @@
 package content
 
 import (
-	"encoding/json"
-
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
@@ -37,24 +35,14 @@ func NewManager(contentDB database.ContentDatabase, pubsubManager pubsub.Manager
 
 func (m *manager) listen() {
 	for msg := range m.queue {
-		switch msg.Event() {
-		case "file-done":
+		switch payload := msg.Event().(type) {
+		case *event.FileInfo:
 			m.log.Debug("file done event")
-			payload := new(event.FileInfo)
-			if err := json.Unmarshal(msg.Body(), payload); err != nil {
-				m.log.Error(err)
-				continue
-			}
 			if err := m.db.UpdateFile(msg.Site(), payload.InnerPath, payload.Hash, payload.Size); err != nil {
 				m.log.Error(err)
 			}
-		case "peer-info":
+		case *event.PeerInfo:
 			m.log.Debug("peer info event")
-			payload := new(event.PeerInfo)
-			if err := json.Unmarshal(msg.Body(), payload); err != nil {
-				m.log.Error(err)
-				continue
-			}
 			if err := m.db.UpdatePeer(msg.Site(), payload.Address, payload.ReputationDelta); err != nil {
 				m.log.Error(err)
 			}

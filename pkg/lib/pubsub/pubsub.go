@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 )
 
@@ -19,8 +20,7 @@ func NewManager() *manager {
 
 type (
 	Message interface {
-		Body() []byte
-		Event() string
+		Event() event.Event
 		Site() string
 	}
 
@@ -31,8 +31,7 @@ type (
 	}
 
 	message struct {
-		body  []byte
-		event string
+		event event.Event
 		site  string
 	}
 
@@ -41,15 +40,11 @@ type (
 		// The client MUST unregister the channel after using it
 		Register() <-chan Message
 		Unregister(messageCh <-chan Message)
-		Broadcast(site, event string, body []byte)
+		Broadcast(site string, event event.Event)
 	}
 )
 
-func (m *message) Body() []byte {
-	return m.body
-}
-
-func (m *message) Event() string {
+func (m *message) Event() event.Event {
 	return m.event
 }
 
@@ -72,7 +67,7 @@ func (m *manager) Unregister(messageCh <-chan Message) {
 	delete(m.queue, messageCh)
 }
 
-func (m *manager) Broadcast(site, event string, body []byte) {
+func (m *manager) Broadcast(site string, event event.Event) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	var wg sync.WaitGroup
@@ -85,7 +80,6 @@ func (m *manager) Broadcast(site, event string, body []byte) {
 			case channel <- &message{
 				site:  site,
 				event: event,
-				body:  body,
 			}:
 			case <-time.After(sendTimeout):
 				m.log.Warn("dropped message")

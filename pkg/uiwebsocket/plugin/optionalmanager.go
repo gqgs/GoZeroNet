@@ -35,8 +35,11 @@ func (o optionalManager) Handle(w pluginWriter, cmd string, to, id int64, messag
 	case "optionalLimitStats":
 		return o.optionalLimitStats(w, id, message)
 	default:
-		reply := fmt.Sprintf(`{"error": "not implemented: %q", "to": %d, "id", %d}`, cmd, to, id)
-		w.Write([]byte(reply))
+		w.WriteJSON(errorMsg{
+			Msg: "not implemented",
+			To:  to,
+			ID:  id,
+		})
 		return fmt.Errorf("TODO: implement me: %s", cmd)
 	}
 }
