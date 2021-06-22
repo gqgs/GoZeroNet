@@ -28,7 +28,3 @@ func (s *Site) RebuildDB() error {
 func (s *Site) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
 	return s.db.Query(query, args...)
 }
-
-func (s *Site) SetContentDB(contentDB database.ContentDatabase) {
-	s.contentDB = contentDB
-}

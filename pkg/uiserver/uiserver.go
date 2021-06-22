@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/gqgs/go-zeronet/pkg/config"
-	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -31,11 +30,10 @@ type server struct {
 	fileServer    fileserver.Server
 	pubsubManager pubsub.Manager
 	userManager   user.Manager
-	contentDB     database.ContentDatabase
 }
 
 func NewServer(addr string, siteManager site.Manager, fileServer fileserver.Server,
-	pubsubManager pubsub.Manager, userManager user.Manager, contentDB database.ContentDatabase) (*server, error) {
+	pubsubManager pubsub.Manager, userManager user.Manager) (*server, error) {
 	r := chi.NewRouter()
 
 	host, portString, _ := net.SplitHostPort(addr)
@@ -58,7 +56,6 @@ func NewServer(addr string, siteManager site.Manager, fileServer fileserver.Serv
 		fileServer:    fileServer,
 		pubsubManager: pubsubManager,
 		userManager:   userManager,
-		contentDB:     contentDB,
 	}
 
 	uimediaHandler := http.FileServer(http.FS(uimedia.FS)).ServeHTTP
@@ -93,7 +90,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager, s.contentDB).Serve()
+	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager).Serve()
 	go site.AnnounceTrackers()
 }
 

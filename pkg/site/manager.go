@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
@@ -31,9 +32,11 @@ type manager struct {
 
 	pubsubManager pubsub.Manager
 	userManager   user.Manager
+	contentDB     database.ContentDatabase
 }
 
-func NewManager(pubsubManager pubsub.Manager, userManager user.Manager) (*manager, error) {
+func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
+	contentDB database.ContentDatabase) (*manager, error) {
 	settings, err := loadSiteSettingsFromFile()
 	if err != nil {
 		return nil, err
@@ -52,6 +55,7 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager) (*manage
 		site.pubsubManager = pubsubManager
 		site.user = user
 		site.log = log.New(addr)
+		site.contentDB = contentDB
 
 		for _, permission := range site.Settings.Permissions {
 			if strings.EqualFold(permission, "admin") {
@@ -69,6 +73,7 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager) (*manage
 		wrapperKeyMap: wrapperKeyMap,
 		pubsubManager: pubsubManager,
 		userManager:   userManager,
+		contentDB:     contentDB,
 	}, nil
 }
 

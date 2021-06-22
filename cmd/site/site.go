@@ -20,7 +20,13 @@ func download(addr string) error {
 		return err
 	}
 
-	siteManager, err := site.NewManager(pubsubManager, userManager)
+	contentDB, err := database.NewContentDatabase()
+	if err != nil {
+		return err
+	}
+	defer contentDB.Close()
+
+	siteManager, err := site.NewManager(pubsubManager, userManager, contentDB)
 	if err != nil {
 		return err
 	}
@@ -30,19 +36,11 @@ func download(addr string) error {
 		return err
 	}
 
-	contentDB, err := database.NewContentDatabase()
-	if err != nil {
-		return err
-	}
-	defer contentDB.Close()
-
 	contentManager := content.NewManager(contentDB, pubsubManager)
 	defer contentManager.Close()
 
 	newSite.AnnounceTrackers()
 	newSite.AnnouncePex()
-
-	newSite.SetContentDB(contentDB)
 
 	peers := newSite.Peers()
 	log.Println("found ", len(peers), " peers")
@@ -58,7 +56,13 @@ func downloadRecent(addr string) error {
 		return err
 	}
 
-	siteManager, err := site.NewManager(pubsubManager, userManager)
+	contentDB, err := database.NewContentDatabase()
+	if err != nil {
+		return err
+	}
+	defer contentDB.Close()
+
+	siteManager, err := site.NewManager(pubsubManager, userManager, contentDB)
 	if err != nil {
 		return err
 	}
@@ -68,19 +72,11 @@ func downloadRecent(addr string) error {
 		return errors.New("site not found")
 	}
 
-	contentDB, err := database.NewContentDatabase()
-	if err != nil {
-		return err
-	}
-	defer contentDB.Close()
-
 	contentManager := content.NewManager(contentDB, pubsubManager)
 	defer contentManager.Close()
 
 	site.AnnounceTrackers()
 	site.AnnouncePex()
-
-	site.SetContentDB(contentDB)
 
 	peers := site.Peers()
 	log.Println("found ", len(peers), " peers")
