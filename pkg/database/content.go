@@ -15,6 +15,7 @@ var ErrFileNotFound = errors.New("file not found")
 type ContentDatabase interface {
 	io.Closer
 	UpdateFile(site, innerPath, hash string, size int) error
+	UpdatePeer(site, address string, reputationDelta int) error
 	FileInfo(site, innerPath string) (*event.FileInfo, error)
 }
 
@@ -66,6 +67,28 @@ func (c *contentDatabase) UpdateFile(site, innerPath, hash string, size int) err
 		INSERT INTO file (site_id, inner_path, hash, size)
 		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?)`,
 		site, innerPath, hash, size); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (c *contentDatabase) UpdatePeer(site, address string, reputationDelta int) error {
+	tx, err := c.storage.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec("INSERT OR IGNORE INTO site (address) VALUES (?)", site); err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(`
+		INSERT INTO peer (site_id, address, reputation)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?)
+		ON CONFLICT (site_id, address) DO UPDATE SET reputation = reputation + excluded.reputation
+		`,
+		site, address, reputationDelta); err != nil {
 		return err
 	}
 	return tx.Commit()

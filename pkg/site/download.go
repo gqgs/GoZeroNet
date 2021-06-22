@@ -61,6 +61,7 @@ func (s *Site) DownloadSince(since time.Time) error {
 			s.log.WithField("peer", p).Error(err)
 			continue
 		}
+
 		return s.SaveSettings()
 	}
 
@@ -94,15 +95,18 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	}
 
 	if content.InnerPath != innerPath {
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 		return fmt.Errorf("invalid content.json inner path: %s", content.InnerPath)
 	}
 
 	if !content.isValid() {
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 		return fmt.Errorf("invalid content.json: %s", content.InnerPath)
 	}
 
-	contentPath := path.Join(config.DataDir, s.addr, safe.CleanPath(content.InnerPath))
+	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 
+	contentPath := path.Join(config.DataDir, s.addr, safe.CleanPath(content.InnerPath))
 	file, err := os.Open(contentPath)
 	if err == nil {
 		defer file.Close()
@@ -152,6 +156,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		digest := sha512.Sum512(body)
 		hexDigest := hex.EncodeToString(digest[:32])
 		if hexDigest != file.Sha512 {
+			event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 			s.log.Warnf("ignoring file with invalid hash. want: %s (%d), got: %s (%d)",
 				file.Sha512, file.Size, hexDigest, len(body))
 			continue
@@ -167,13 +172,13 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			return err
 		}
 
-		fileDone, _ := json.Marshal(&event.FileInfo{
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
+		event.BroadcastFileDone(s.addr, s.pubsubManager, &event.FileInfo{
 			InnerPath:    relPath,
 			Hash:         hexDigest,
 			Size:         len(body),
 			IsDownloaded: true,
 		})
-		s.pubsubManager.Broadcast(s.addr, "file-done", fileDone)
 	}
 
 	for includes := range content.Includes {

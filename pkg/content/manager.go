@@ -48,6 +48,16 @@ func (m *manager) listen() {
 			if err := m.db.UpdateFile(msg.Site(), payload.InnerPath, payload.Hash, payload.Size); err != nil {
 				m.log.Error(err)
 			}
+		case "peer-info":
+			m.log.Debug("peer info event")
+			payload := new(event.PeerInfo)
+			if err := json.Unmarshal(msg.Body(), payload); err != nil {
+				m.log.Error(err)
+				continue
+			}
+			if err := m.db.UpdatePeer(msg.Site(), payload.Address, payload.ReputationDelta); err != nil {
+				m.log.Error(err)
+			}
 		}
 	}
 	close(m.closeCh)

@@ -90,6 +90,7 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.user = m.userManager.User()
 	site.pubsubManager = m.pubsubManager
 	site.log = log.New(addr)
+	site.contentDB = m.contentDB
 
 	site.Settings.Added = time.Now().Unix()
 

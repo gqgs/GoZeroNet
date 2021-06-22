@@ -1,6 +1,7 @@
 package peer
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/gqgs/go-zeronet/pkg/connection"
@@ -13,6 +14,7 @@ type peer struct {
 }
 
 type Peer interface {
+	fmt.Stringer
 	net.Conn
 	Connect() error
 }
