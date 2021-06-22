@@ -67,6 +67,7 @@ func (m *manager) Register() <-chan Message {
 func (m *manager) Unregister(messageCh <-chan Message) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	close(m.queue[messageCh])
 	delete(m.queue, messageCh)
 }
 
