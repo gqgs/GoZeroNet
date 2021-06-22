@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/ripemd160"
 )
 
-type Encoding = int
+type Encoding int
 
 const (
 	Hex Encoding = iota
