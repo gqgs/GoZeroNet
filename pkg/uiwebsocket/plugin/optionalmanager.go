@@ -2,54 +2,48 @@ package plugin
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/gqgs/go-zeronet/pkg/event"
+	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
-type optionalManager struct{}
-
-func (optionalManager) Name() string {
-	return "OptionalManager"
+type optionalManager struct {
+	ID IDFunc
 }
 
-func NewOptionalManager() Plugin {
-	return &optionalManager{}
-}
-
-func (optionalManager) Description() string {
-	return "Manage optional content"
-}
-
-func (optionalManager) Handles(cmd string) bool {
-	switch cmd {
-	case "optionalFileList", "optionalFileInfo", "optionalFilePin", "optionalFileUnpin",
-		"optionalFileDelete", "optionalLimitStats", "optionalLimitSet", "optionalHelpList",
-		"optionalHelp", "optionalHelpRemove", "optionalHelpAll":
-		return true
-	default:
-		return false
+func NewOptionalManager(idFunc IDFunc) Plugin {
+	return &optionalManager{
+		ID: idFunc,
 	}
 }
 
-func (o optionalManager) Handle(w pluginWriter, cmd string, to, id int64, message []byte) error {
+func (*optionalManager) Name() string {
+	return "OptionalManager"
+}
+
+func (*optionalManager) Description() string {
+	return "Manage optional content"
+}
+
+func (o *optionalManager) Handler(cmd string) (HandlerFunc, bool) {
 	switch cmd {
 	case "optionalLimitStats":
-		return o.optionalLimitStats(w, id, message)
+		return o.optionalLimitStats, true
+	case "optionalFileInfo":
+		return o.optionalFileInfo, true
+	// case "optionalFileList", "optionalFilePin", "optionalFileUnpin",
+	// 	"optionalFileDelete", "optionalLimitSet", "optionalHelpList",
+	// 	"optionalHelp", "optionalHelpRemove", "optionalHelpAll":
 	default:
-		w.WriteJSON(errorMsg{
-			Msg: "not implemented",
-			To:  to,
-			ID:  id,
-		})
-		return fmt.Errorf("TODO: implement me: %s", cmd)
+		return nil, false
 	}
 }
 
 type (
 	optionalLimitStatsRequest struct {
-		CMD          string                   `json:"cmd"`
-		ID           int64                    `json:"id"`
-		Params       optionalLimitStatsParams `json:"params"`
-		WrapperNonce string                   `json:"wrapper_nonce"`
+		CMD    string                   `json:"cmd"`
+		ID     int64                    `json:"id"`
+		Params optionalLimitStatsParams `json:"params"`
 	}
 	optionalLimitStatsParams []string
 
@@ -63,22 +57,54 @@ type (
 	optionalLimitStatsResult struct {
 		Free  int    `json:"free"`
 		Limit string `json:"limit"`
-		Used  int    `json:"usd"`
+		Used  int    `json:"used"`
 	}
 )
 
-func (optionalManager) optionalLimitStats(w pluginWriter, id int64, message []byte) error {
+func (o *optionalManager) optionalLimitStats(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(optionalLimitStatsRequest)
 	if err := json.Unmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(optionalLimitStatsResponse{
 		CMD: "response",
-		ID:  id,
+		ID:  o.ID(),
 		To:  request.ID,
 		Result: optionalLimitStatsResult{
 			Free:  540246016,
 			Limit: "10%",
 		},
+	})
+}
+
+type (
+	optionalFileInfoRequest struct {
+		CMD    string                 `json:"cmd"`
+		ID     int64                  `json:"id"`
+		Params optionalFileInfoParams `json:"params"`
+	}
+	optionalFileInfoParams struct {
+		InnerPath string `json:"inner_path"`
+	}
+
+	optionalFileInfoResponse struct {
+		CMD    string          `json:"cmd"`
+		ID     int64           `json:"id"`
+		To     int64           `json:"to"`
+		Result *event.FileInfo `json:"result"`
+	}
+)
+
+func (o *optionalManager) optionalFileInfo(w pluginWriter, site *site.Site, message []byte) error {
+	request := new(optionalFileInfoRequest)
+	if err := json.Unmarshal(message, request); err != nil {
+		return err
+	}
+
+	return w.WriteJSON(optionalFileInfoResponse{
+		CMD:    "response",
+		ID:     o.ID(),
+		To:     request.ID,
+		Result: new(event.FileInfo),
 	})
 }

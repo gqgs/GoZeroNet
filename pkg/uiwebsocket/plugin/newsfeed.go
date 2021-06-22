@@ -2,52 +2,43 @@ package plugin
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
-type newsFeedPlugin struct{}
-
-func NewNewsFeed() Plugin {
-	return &newsFeedPlugin{}
+type newsFeedPlugin struct {
+	ID IDFunc
 }
 
-func (newsFeedPlugin) Name() string {
-	return "Newsfeed"
-}
-
-func (newsFeedPlugin) Description() string {
-	return "Feeds from SQL queries"
-}
-
-func (newsFeedPlugin) Handles(cmd string) bool {
-	switch cmd {
-	case "feedFollow", "feedListFollow", "feedQuery":
-		return true
-	default:
-		return false
+func NewNewsFeed(idFunc IDFunc) Plugin {
+	return &newsFeedPlugin{
+		ID: idFunc,
 	}
 }
 
-func (p newsFeedPlugin) Handle(w pluginWriter, cmd string, to, id int64, message []byte) error {
+func (*newsFeedPlugin) Name() string {
+	return "Newsfeed"
+}
+
+func (*newsFeedPlugin) Description() string {
+	return "Feeds from SQL queries"
+}
+
+func (n *newsFeedPlugin) Handler(cmd string) (HandlerFunc, bool) {
 	switch cmd {
 	case "feedQuery":
-		return p.feedQuery(w, id, message)
+		return n.feedQuery, true
+	// case "feedListFollow", "feedFollow"
 	default:
-		w.WriteJSON(errorMsg{
-			Msg: "not implemented",
-			To:  to,
-			ID:  id,
-		})
-		return fmt.Errorf("TODO: implement me: %s", cmd)
+		return nil, false
 	}
 }
 
 type (
 	feedQueryRequest struct {
-		CMD          string          `json:"cmd"`
-		ID           int64           `json:"id"`
-		Params       feedQueryParams `json:"params"`
-		WrapperNonce string          `json:"wrapper_nonce"`
+		CMD    string          `json:"cmd"`
+		ID     int64           `json:"id"`
+		Params feedQueryParams `json:"params"`
 	}
 	feedQueryParams struct {
 		DayLimit int `json:"day_limit"`
@@ -70,14 +61,14 @@ type (
 	}
 )
 
-func (newsFeedPlugin) feedQuery(w pluginWriter, id int64, message []byte) error {
+func (n *newsFeedPlugin) feedQuery(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(feedQueryRequest)
 	if err := json.Unmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(feedQueryResponse{
 		CMD: "response",
-		ID:  id,
+		ID:  n.ID(),
 		To:  request.ID,
 		Result: feedQueryResult{
 			Rows:  make([]string, 0),

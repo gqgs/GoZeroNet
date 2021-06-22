@@ -1,20 +1,23 @@
 package plugin
 
+import "github.com/gqgs/go-zeronet/pkg/site"
+
 type pluginWriter interface {
 	WriteJSON(v interface{}) error
 }
 
-type errorMsg struct {
-	Msg string `json:"error"`
-	To  int64  `json:"to"`
-	ID  int64  `json:"id"`
-}
+// Handle parses and handles the message writing the result to w
+type HandlerFunc func(w pluginWriter, site *site.Site, rawMesage []byte) error
+
+// Function that generatesa new ID response
+type IDFunc = func() int64
 
 type Plugin interface {
+	// Name of the plugin.
 	Name() string
+	// Short description of the plugin's functionality.
 	Description() string
-	// Handles returns true if the plugin handles this command
-	Handles(cmd string) bool
-	// Handle parses and handles the message writing the result to w
-	Handle(w pluginWriter, cmd string, to, id int64, message []byte) error
+	// Handler returns true and the handler if plugin handles this command.
+	// It returns nil and false otherwise.
+	Handler(cmd string) (HandlerFunc, bool)
 }

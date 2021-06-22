@@ -14,7 +14,6 @@ import (
 )
 
 type uiWebsocket struct {
-	reqID         int64
 	conn          websocket.Conn
 	log           log.Logger
 	siteManager   site.Manager
@@ -25,10 +24,12 @@ type uiWebsocket struct {
 	channels      map[string]struct{}
 	allChannels   bool
 	plugins       []plugin.Plugin
+	ID            func() int64
 }
 
 func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fileserver.Server,
 	site *site.Site, pubsubManager pubsub.Manager) *uiWebsocket {
+	idFunc := func() int64 { var id int64; return atomic.AddInt64(&id, 1) }
 	return &uiWebsocket{
 		conn:          conn,
 		siteManager:   siteManager,
@@ -39,17 +40,13 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fi
 		channels:      make(map[string]struct{}),
 		allChannels:   false,
 		plugins: []plugin.Plugin{
-			plugin.NewNewsFeed(),
-			plugin.NewOptionalManager(),
-			plugin.NewContentFilter(),
+			plugin.NewNewsFeed(idFunc),
+			plugin.NewOptionalManager(idFunc),
+			plugin.NewContentFilter(idFunc),
 		},
+		ID: idFunc,
 	}
 }
-
-func (w *uiWebsocket) ID() int64 {
-	return atomic.AddInt64(&w.reqID, 1)
-}
-
 func (w *uiWebsocket) Serve() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
