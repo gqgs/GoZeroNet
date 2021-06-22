@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/json"
 
+	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
@@ -101,10 +102,15 @@ func (o *optionalManager) optionalFileInfo(w pluginWriter, site *site.Site, mess
 		return err
 	}
 
+	info, err := site.FileInfo(request.Params.InnerPath)
+	if err != nil && err != database.ErrFileNotFound {
+		return err
+	}
+
 	return w.WriteJSON(optionalFileInfoResponse{
 		CMD:    "response",
 		ID:     o.ID(),
 		To:     request.ID,
-		Result: new(event.FileInfo),
+		Result: info,
 	})
 }

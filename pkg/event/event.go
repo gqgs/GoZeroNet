@@ -9,10 +9,10 @@ type EventBroadcaster interface {
 }
 
 type FileInfo struct {
-	InnerPath    string
-	Hash         string
-	Size         int
-	IsDownloaded bool
+	InnerPath    string `json:"inner_path"`
+	Hash         string `json:"hash"`
+	Size         int    `json:"size"`
+	IsDownloaded bool   `json:"is_downloaded"`
 }
 
 func (e *FileInfo) String() string {

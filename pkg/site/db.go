@@ -1,6 +1,9 @@
 package site
 
-import "github.com/gqgs/go-zeronet/pkg/database"
+import (
+	"github.com/gqgs/go-zeronet/pkg/database"
+	"github.com/gqgs/go-zeronet/pkg/event"
+)
 
 // OpenDB opens a new connection to the site's database.
 // The caller is responsible for calling Close when
@@ -27,4 +30,8 @@ func (s *Site) RebuildDB() error {
 
 func (s *Site) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
 	return s.db.Query(query, args...)
+}
+
+func (s *Site) FileInfo(innerPath string) (*event.FileInfo, error) {
+	return s.contentDB.FileInfo(s.addr, innerPath)
 }
