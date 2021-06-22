@@ -2,7 +2,7 @@ package site
 
 import (
 	"context"
-	"crypto/sha1"
+	"crypto/sha1" // #nosec
 	"errors"
 	"fmt"
 	"io"
@@ -140,7 +140,7 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 // AnnounceTrackers announces to trackers the new peer
 // TODO: debounce this function
 func (s *Site) AnnounceTrackers() {
-	h := sha1.New()
+	h := sha1.New() // #nosec
 	io.WriteString(h, s.addr)
 	params := requestParams{
 		infoHash: h.Sum(nil),

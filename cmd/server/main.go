@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/site"
@@ -43,7 +44,13 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 		return err
 	}
 
-	uiServer, err := uiserver.NewServer(uiServerAddr, siteManager, fileServer, pubsubManager, userManager)
+	contentDB, err := database.NewContentDatabase()
+	if err != nil {
+		return err
+	}
+	defer contentDB.Close()
+
+	uiServer, err := uiserver.NewServer(uiServerAddr, siteManager, fileServer, pubsubManager, userManager, contentDB)
 	if err != nil {
 		return err
 	}

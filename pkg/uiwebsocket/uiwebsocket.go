@@ -5,6 +5,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/gqgs/go-zeronet/pkg/content"
+	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -25,10 +27,11 @@ type uiWebsocket struct {
 	channels      map[string]struct{}
 	allChannels   bool
 	plugins       []plugin.Plugin
+	contentDB     database.ContentDatabase
 }
 
 func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager,
-	fileServer fileserver.Server, site *site.Site, pubsubManager pubsub.Manager) *uiWebsocket {
+	fileServer fileserver.Server, site *site.Site, pubsubManager pubsub.Manager, contentDB database.ContentDatabase) *uiWebsocket {
 	return &uiWebsocket{
 		conn:          conn,
 		siteManager:   siteManager,
@@ -43,6 +46,7 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager,
 			plugin.NewOptionalManager(),
 			plugin.NewContentFilter(),
 		},
+		contentDB: contentDB,
 	}
 }
 
@@ -56,6 +60,9 @@ func (w *uiWebsocket) Serve() {
 
 	w.site.OpenDB()
 	defer w.site.CloseDB()
+
+	contentManager := content.NewManager(w.contentDB, w.pubsubManager)
+	defer contentManager.Close()
 
 	go w.handleSubsub(ctx)
 
@@ -78,13 +85,13 @@ func (w *uiWebsocket) handleSubsub(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case message := <-messageCh:
-			subscribed := w.allChannels || w.site.Address() == message.Source()
+			subscribed := w.allChannels || w.site.Address() == message.Site()
 			if !subscribed {
 				continue
 			}
 
 			w.channelsMutex.RLock()
-			_, joinedChannel := w.channels[message.Queue()]
+			_, joinedChannel := w.channels[message.Event()]
 			w.channelsMutex.RUnlock()
 
 			if !joinedChannel {

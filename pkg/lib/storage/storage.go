@@ -10,19 +10,33 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type Execer interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
 type Storage interface {
 	io.Closer
+	Execer
 	Begin() (Transaction, error)
 	Query(query string, args ...interface{}) ([]map[string]interface{}, error)
+	Scan(query string, args ...interface{}) (*sql.Rows, error)
 }
 
 type Transaction interface {
 	driver.Tx
-	Exec(query string, args ...interface{}) (sql.Result, error)
+	Execer
 }
 
 type sqliteStorage struct {
 	db *sql.DB
+}
+
+func (s *sqliteStorage) Scan(query string, args ...interface{}) (*sql.Rows, error) {
+	return s.db.Query(query, args...)
+}
+
+func (s *sqliteStorage) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return s.db.Exec(query, args...)
 }
 
 func (s *sqliteStorage) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
@@ -85,11 +99,7 @@ func (s *sqliteStorage) Query(query string, args ...interface{}) ([]map[string]i
 }
 
 func (s *sqliteStorage) Begin() (Transaction, error) {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	return tx, nil
+	return s.db.Begin()
 }
 
 func NewStorage(dbName string) (*sqliteStorage, error) {

@@ -1,6 +1,10 @@
 package content
 
 import (
+	"encoding/json"
+
+	"github.com/gqgs/go-zeronet/pkg/database"
+	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 )
@@ -14,24 +18,37 @@ type manager struct {
 	pubsubManager pubsub.Manager
 	queue         <-chan pubsub.Message
 	closeCh       chan struct{}
+	db            database.ContentDatabase
 }
 
-// Createa a new content manager.
+// Creates a new content manager.
 // Caller is responsible for calling close when the manager is no longer needed.
-func NewManager() *manager {
-	pubsubManager := pubsub.NewManager()
-	queue := pubsubManager.Register()
-	return &manager{
+func NewManager(contentDB database.ContentDatabase, pubsubManager pubsub.Manager) *manager {
+	m := &manager{
 		log:           log.New("content_manager"),
 		pubsubManager: pubsubManager,
-		queue:         queue,
+		queue:         pubsubManager.Register(),
 		closeCh:       make(chan struct{}),
+		db:            contentDB,
 	}
+	go m.listen()
+	return m
 }
 
-func (m *manager) Run() {
+func (m *manager) listen() {
 	for msg := range m.queue {
-		m.log.Info(msg)
+		switch msg.Event() {
+		case "file-done":
+			m.log.Debug("file done event")
+			payload := new(event.FileInfo)
+			if err := json.Unmarshal(msg.Body(), payload); err != nil {
+				m.log.Error(err)
+				continue
+			}
+			if err := m.db.UpdateFile(msg.Site(), payload.InnerPath, payload.Hash, payload.Size); err != nil {
+				m.log.Error(err)
+			}
+		}
 	}
 	close(m.closeCh)
 }

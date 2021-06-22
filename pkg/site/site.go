@@ -33,7 +33,8 @@ type Site struct {
 	wrapperNonceMutex sync.RWMutex
 	wrapperNonce      map[string]int64
 	log               log.Logger
-	db                database.Database
+	db                database.SiteDatabase
+	contentDB         database.ContentDatabase
 }
 
 func (s *Site) Peers() map[string]peer.Peer {

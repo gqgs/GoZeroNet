@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/gqgs/go-zeronet/pkg/content"
+	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/user"
@@ -28,8 +30,19 @@ func download(addr string) error {
 		return err
 	}
 
+	contentDB, err := database.NewContentDatabase()
+	if err != nil {
+		return err
+	}
+	defer contentDB.Close()
+
+	contentManager := content.NewManager(contentDB, pubsubManager)
+	defer contentManager.Close()
+
 	newSite.AnnounceTrackers()
 	newSite.AnnouncePex()
+
+	newSite.SetContentDB(contentDB)
 
 	peers := newSite.Peers()
 	log.Println("found ", len(peers), " peers")
@@ -55,8 +68,19 @@ func downloadRecent(addr string) error {
 		return errors.New("site not found")
 	}
 
+	contentDB, err := database.NewContentDatabase()
+	if err != nil {
+		return err
+	}
+	defer contentDB.Close()
+
+	contentManager := content.NewManager(contentDB, pubsubManager)
+	defer contentManager.Close()
+
 	site.AnnounceTrackers()
 	site.AnnouncePex()
+
+	site.SetContentDB(contentDB)
 
 	peers := site.Peers()
 	log.Println("found ", len(peers), " peers")

@@ -30,6 +30,5 @@ func rebuild(addr string) error {
 		return err
 	}
 	defer site.CloseDB()
-
 	return site.RebuildDB()
 }

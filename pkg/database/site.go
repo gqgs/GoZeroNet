@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -14,6 +15,12 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/lib/storage"
 )
+
+type SiteDatabase interface {
+	io.Closer
+	Rebuild() error
+	Query(query string, args ...interface{}) ([]map[string]interface{}, error)
+}
 
 type siteDatabase struct {
 	site    string
