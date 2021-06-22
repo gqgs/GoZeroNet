@@ -6,10 +6,10 @@ type pluginWriter interface {
 	WriteJSON(v interface{}) error
 }
 
-// Handle parses and handles the message writing the result to w
+// HandlerFunc parses and handles the message writing the result to w.
 type HandlerFunc func(w pluginWriter, site *site.Site, rawMesage []byte) error
 
-// Function that generatesa new ID response
+// Function that generates a new ID response.
 type IDFunc = func() int64
 
 type Plugin interface {
