@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -192,4 +193,22 @@ func numToVarInt(n int) []byte {
 	}
 
 	return result
+}
+
+// It returns the ID ZN uses for optional files
+func HashID(hexDigest string) (int, error) {
+	return hashID(hexDigest, 4)
+}
+
+// Given a hex string it returns the first `length` character in base 10.
+func hashID(hexDigest string, length int) (int, error) {
+	if len(hexDigest) < length {
+		return 0, fmt.Errorf("input is too small: %d < %d", len(hexDigest), length)
+	}
+
+	res, err := strconv.ParseInt(hexDigest[:length], 16, 0)
+	if err != nil {
+		return 0, err
+	}
+	return int(res), nil
 }

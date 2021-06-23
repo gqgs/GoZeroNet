@@ -154,3 +154,23 @@ func Test_AuthPrivateKeyKey(t *testing.T) {
 		})
 	}
 }
+func TestHashID(t *testing.T) {
+	tests := []struct {
+		name      string
+		hexDigest string
+		want      int
+	}{
+		{
+			"Given a valid hex string it should return the expected hash id",
+			"ea2c2acb30bd5e1249021976536574dd3f0fd83340e023bb4e78d0d818adf30a",
+			59948,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := HashID(tt.hexDigest)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
