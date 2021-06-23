@@ -5,17 +5,8 @@ import (
 )
 
 type (
-	announcerInfoRequest struct {
-		CMD    string              `json:"cmd"`
-		ID     int64               `json:"id"`
-		Params announcerInfoParams `json:"params"`
-	}
-	announcerInfoParams map[string]string
-
 	announcerInfoResponse struct {
-		CMD    string              `json:"cmd"`
-		ID     int64               `json:"id"`
-		To     int64               `json:"to"`
+		required
 		Result announcerInfoResult `json:"result"`
 	}
 
@@ -25,12 +16,14 @@ type (
 	}
 )
 
-func (w *uiWebsocket) announcerInfo(rawMessage []byte, message Message) error {
+func (w *uiWebsocket) announcerInfo(message Message) error {
 	return w.conn.WriteJSON(announcerInfoResponse{
-		CMD: "response",
-		ID:  w.ID(),
-		To:  message.ID,
-		Result: announcerInfoResult{
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		announcerInfoResult{
 			Address: w.site.Address(),
 			Stats:   w.site.AnnouncerStats(),
 		},

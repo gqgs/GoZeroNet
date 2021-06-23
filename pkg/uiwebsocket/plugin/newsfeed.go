@@ -36,8 +36,7 @@ func (n *newsFeedPlugin) Handler(cmd string) (HandlerFunc, bool) {
 
 type (
 	feedQueryRequest struct {
-		CMD    string          `json:"cmd"`
-		ID     int64           `json:"id"`
+		required
 		Params feedQueryParams `json:"params"`
 	}
 	feedQueryParams struct {
@@ -46,9 +45,7 @@ type (
 	}
 
 	feedQueryResponse struct {
-		CMD    string          `json:"cmd"`
-		ID     int64           `json:"id"`
-		To     int64           `json:"to"`
+		required
 		Result feedQueryResult `json:"result"`
 	}
 
@@ -67,10 +64,12 @@ func (n *newsFeedPlugin) feedQuery(w pluginWriter, site *site.Site, message []by
 		return err
 	}
 	return w.WriteJSON(feedQueryResponse{
-		CMD: "response",
-		ID:  n.ID(),
-		To:  request.ID,
-		Result: feedQueryResult{
+		required{
+			CMD: "response",
+			ID:  n.ID(),
+			To:  request.ID,
+		},
+		feedQueryResult{
 			Rows:  make([]string, 0),
 			Stats: make([]string, 0),
 		},

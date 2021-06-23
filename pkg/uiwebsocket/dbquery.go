@@ -7,19 +7,14 @@ import (
 
 type (
 	dbQueryRequest struct {
-		CMD    string   `json:"cmd"`
-		ID     int64    `json:"id"`
+		required
 		Params []string `json:"params"`
 	}
 
 	dbQueryResponse struct {
-		CMD    string                   `json:"cmd"`
-		ID     int64                    `json:"id"`
-		To     int64                    `json:"to"`
+		required
 		Result []map[string]interface{} `json:"result"`
 	}
-
-	dbQueryResult []string
 )
 
 func (w *uiWebsocket) dbQuery(rawMessage []byte, message Message) error {
@@ -38,9 +33,11 @@ func (w *uiWebsocket) dbQuery(rawMessage []byte, message Message) error {
 	}
 
 	return w.conn.WriteJSON(dbQueryResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: result,
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		result,
 	})
 }

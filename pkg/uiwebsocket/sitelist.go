@@ -5,23 +5,10 @@ import (
 )
 
 type (
-	siteListRequest struct {
-		CMD    string         `json:"cmd"`
-		ID     int64          `json:"id"`
-		Params siteListParams `json:"params"`
-	}
-	siteListParams struct {
-		ConnectionSites bool `json:"connecting_sites"`
-	}
-
 	siteListResponse struct {
-		CMD    string       `json:"cmd"`
-		ID     int64        `json:"id"`
-		To     int64        `json:"to"`
+		required
 		Result []*site.Info `json:"result"`
 	}
-
-	siteListResult string
 )
 
 func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
@@ -31,9 +18,11 @@ func (w *uiWebsocket) siteList(rawMessage []byte, message Message) error {
 	}
 
 	return w.conn.WriteJSON(siteListResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: siteList,
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		siteList,
 	})
 }

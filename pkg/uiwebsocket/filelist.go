@@ -4,8 +4,7 @@ import "encoding/json"
 
 type (
 	fileListRequest struct {
-		CMD    string         `json:"cmd"`
-		ID     int64          `json:"id"`
+		required
 		Params fileListParams `json:"params"`
 	}
 	fileListParams struct {
@@ -13,9 +12,7 @@ type (
 	}
 
 	fileListResponse struct {
-		CMD    string         `json:"cmd"`
-		ID     int64          `json:"id"`
-		To     int64          `json:"to"`
+		required
 		Result fileListResult `json:"result"`
 	}
 
@@ -34,9 +31,11 @@ func (w *uiWebsocket) fileList(rawMessage []byte, message Message) error {
 	}
 
 	return w.conn.WriteJSON(fileListResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: list,
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		list,
 	})
 }

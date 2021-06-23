@@ -21,3 +21,10 @@ type Plugin interface {
 	// It returns nil and false otherwise.
 	Handler(cmd string) (HandlerFunc, bool)
 }
+
+// fields required for every message
+type required struct {
+	CMD string `json:"cmd"`
+	ID  int64  `json:"id"`
+	To  int64  `json:"to"`
+}

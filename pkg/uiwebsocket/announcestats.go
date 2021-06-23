@@ -5,17 +5,8 @@ import (
 )
 
 type (
-	announcerStatsRequest struct {
-		CMD    string               `json:"cmd"`
-		ID     int64                `json:"id"`
-		Params announcerStatsParams `json:"params"`
-	}
-	announcerStatsParams map[string]string
-
 	announcerStatsResponse struct {
-		CMD    string               `json:"cmd"`
-		ID     int64                `json:"id"`
-		To     int64                `json:"to"`
+		required
 		Result announcerStatsResult `json:"result"`
 	}
 
@@ -24,9 +15,11 @@ type (
 
 func (w *uiWebsocket) announcerStats(rawMessage []byte, message Message) error {
 	return w.conn.WriteJSON(announcerStatsResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: w.site.AnnouncerStats(),
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		w.site.AnnouncerStats(),
 	})
 }

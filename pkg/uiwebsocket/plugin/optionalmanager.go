@@ -44,16 +44,13 @@ func (o *optionalManager) Handler(cmd string) (HandlerFunc, bool) {
 
 type (
 	optionalLimitStatsRequest struct {
-		CMD    string                   `json:"cmd"`
-		ID     int64                    `json:"id"`
+		required
 		Params optionalLimitStatsParams `json:"params"`
 	}
 	optionalLimitStatsParams []string
 
 	optionalLimitStatsResponse struct {
-		CMD    string                   `json:"cmd"`
-		ID     int64                    `json:"id"`
-		To     int64                    `json:"to"`
+		required
 		Result optionalLimitStatsResult `json:"result"`
 	}
 
@@ -70,10 +67,12 @@ func (o *optionalManager) optionalLimitStats(w pluginWriter, site *site.Site, me
 		return err
 	}
 	return w.WriteJSON(optionalLimitStatsResponse{
-		CMD: "response",
-		ID:  o.ID(),
-		To:  request.ID,
-		Result: optionalLimitStatsResult{
+		required{
+			CMD: "response",
+			ID:  o.ID(),
+			To:  request.ID,
+		},
+		optionalLimitStatsResult{
 			Free:  540246016,
 			Limit: "10%",
 		},
@@ -82,8 +81,7 @@ func (o *optionalManager) optionalLimitStats(w pluginWriter, site *site.Site, me
 
 type (
 	optionalFileInfoRequest struct {
-		CMD    string                 `json:"cmd"`
-		ID     int64                  `json:"id"`
+		required
 		Params optionalFileInfoParams `json:"params"`
 	}
 	optionalFileInfoParams struct {
@@ -91,9 +89,7 @@ type (
 	}
 
 	optionalFileInfoResponse struct {
-		CMD    string          `json:"cmd"`
-		ID     int64           `json:"id"`
-		To     int64           `json:"to"`
+		required
 		Result *event.FileInfo `json:"result"`
 	}
 )
@@ -110,24 +106,23 @@ func (o *optionalManager) optionalFileInfo(w pluginWriter, site *site.Site, mess
 	}
 
 	return w.WriteJSON(optionalFileInfoResponse{
-		CMD:    "response",
-		ID:     o.ID(),
-		To:     request.ID,
-		Result: info,
+		required{
+			CMD: "response",
+			ID:  o.ID(),
+			To:  request.ID,
+		},
+		info,
 	})
 }
 
 type (
 	optionalHelpListRequest struct {
-		CMD    string            `json:"cmd"`
-		ID     int64             `json:"id"`
+		required
 		Params map[string]string `json:"params"`
 	}
 
 	optionalHelpListResponse struct {
-		CMD    string            `json:"cmd"`
-		ID     int64             `json:"id"`
-		To     int64             `json:"to"`
+		required
 		Result map[string]string `json:"result"`
 	}
 )
@@ -138,15 +133,17 @@ func (o *optionalManager) optionalHelpList(w pluginWriter, site *site.Site, mess
 		return err
 	}
 
-	resp := site.Settings.OptionalHelp
-	if resp == nil {
-		resp = make(map[string]string)
+	params := site.Settings.OptionalHelp
+	if params == nil {
+		params = make(map[string]string)
 	}
 
 	return w.WriteJSON(optionalHelpListResponse{
-		CMD:    "response",
-		ID:     o.ID(),
-		To:     request.ID,
-		Result: resp,
+		required{
+			CMD: "response",
+			ID:  o.ID(),
+			To:  request.ID,
+		},
+		params,
 	})
 }

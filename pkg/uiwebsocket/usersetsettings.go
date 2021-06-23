@@ -4,8 +4,7 @@ import "encoding/json"
 
 type (
 	userSetSettingsRequest struct {
-		CMD    string                `json:"cmd"`
-		ID     int64                 `json:"id"`
+		required
 		Params userSetSettingsParams `json:"params"`
 	}
 	userSetSettingsParams struct {
@@ -13,9 +12,7 @@ type (
 	}
 
 	userSetSettingsResponse struct {
-		CMD    string                `json:"cmd"`
-		ID     int64                 `json:"id"`
-		To     int64                 `json:"to"`
+		required
 		Result userSetSettingsResult `json:"result"`
 	}
 
@@ -33,9 +30,11 @@ func (w *uiWebsocket) userSetSettings(rawMessage []byte, message Message) error 
 	}
 
 	return w.conn.WriteJSON(userSetSettingsResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: "ok",
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		"ok",
 	})
 }

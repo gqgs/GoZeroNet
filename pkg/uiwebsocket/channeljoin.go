@@ -6,8 +6,7 @@ import (
 
 type (
 	channelJoinRequest struct {
-		CMD    string          `json:"cmd"`
-		ID     int64           `json:"id"`
+		required
 		Params json.RawMessage `json:"params"`
 	}
 	channelJoinParams struct {
@@ -15,9 +14,7 @@ type (
 	}
 
 	channelJoinResponse struct {
-		CMD    string            `json:"cmd"`
-		ID     int64             `json:"id"`
-		To     int64             `json:"to"`
+		required
 		Result channelJoinResult `json:"result"`
 	}
 
@@ -44,9 +41,11 @@ func (w *uiWebsocket) channelJoin(rawMessage []byte, message Message) error {
 	w.channelsMutex.Unlock()
 
 	return w.conn.WriteJSON(channelJoinResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: "ok",
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		"ok",
 	})
 }

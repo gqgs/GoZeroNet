@@ -6,8 +6,7 @@ import (
 
 type (
 	channelJoinAllsiteRequest struct {
-		CMD    string                   `json:"cmd"`
-		ID     int64                    `json:"id"`
+		required
 		Params channelJoinAllsiteParams `json:"params"`
 	}
 	channelJoinAllsiteParams struct {
@@ -15,9 +14,7 @@ type (
 	}
 
 	channelJoinAllsiteResponse struct {
-		CMD    string                   `json:"cmd"`
-		ID     int64                    `json:"id"`
-		To     int64                    `json:"to"`
+		required
 		Result channelJoinAllsiteResult `json:"result"`
 	}
 
@@ -37,9 +34,11 @@ func (w *uiWebsocket) channelJoinAllsite(rawMessage []byte, message Message) err
 	w.allChannels = true
 
 	return w.conn.WriteJSON(channelJoinAllsiteResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: "ok",
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		"ok",
 	})
 }

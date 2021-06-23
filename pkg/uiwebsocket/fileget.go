@@ -10,8 +10,7 @@ import (
 
 type (
 	fileGetRequest struct {
-		CMD    string        `json:"cmd"`
-		ID     int64         `json:"id"`
+		required
 		Params fileGetParams `json:"params"`
 	}
 	fileGetParams struct {
@@ -22,9 +21,7 @@ type (
 	}
 
 	fileGetResponse struct {
-		CMD    string `json:"cmd"`
-		ID     int64  `json:"id"`
-		To     int64  `json:"to"`
+		required
 		Result string `json:"result"`
 	}
 )
@@ -55,9 +52,11 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 	}
 
 	return w.conn.WriteJSON(fileGetResponse{
-		CMD:    "response",
-		ID:     w.ID(),
-		To:     message.ID,
-		Result: reader.String(),
+		required{
+			CMD: "response",
+			ID:  w.ID(),
+			To:  message.ID,
+		},
+		reader.String(),
 	})
 }

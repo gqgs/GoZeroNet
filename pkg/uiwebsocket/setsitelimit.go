@@ -7,15 +7,12 @@ import (
 
 type (
 	siteSetLimitRequest struct {
-		CMD    string `json:"cmd"`
-		ID     int64  `json:"id"`
-		Params []int  `json:"params"`
+		required
+		Params []int `json:"params"`
 	}
 
 	siteSetLimitResponse struct {
-		CMD    string             `json:"cmd"`
-		ID     int64              `json:"id"`
-		To     int64              `json:"to"`
+		required
 		Result siteSetLimitResult `json:"result"`
 	}
 
@@ -37,9 +34,11 @@ func (w *uiWebsocket) siteSetLimit(rawMessage []byte, message Message) error {
 	}
 
 	return w.conn.WriteJSON(siteSetLimitResponse{
-		CMD:    "response",
-		To:     message.ID,
-		ID:     w.ID(),
-		Result: "ok",
+		required{
+			CMD: "response",
+			To:  message.ID,
+			ID:  w.ID(),
+		},
+		"ok",
 	})
 }

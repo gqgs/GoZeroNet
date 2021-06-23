@@ -36,8 +36,7 @@ func (c *contentFilter) Handler(cmd string) (HandlerFunc, bool) {
 
 type (
 	filterIncludeListRequest struct {
-		CMD    string                  `json:"cmd"`
-		ID     int64                   `json:"id"`
+		required
 		Params filterIncludeListParams `json:"params"`
 	}
 	filterIncludeListParams struct {
@@ -46,9 +45,7 @@ type (
 	}
 
 	filterIncludeListResponse struct {
-		CMD    string                  `json:"cmd"`
-		ID     int64                   `json:"id"`
-		To     int64                   `json:"to"`
+		required
 		Result filterIncludeListResult `json:"result"`
 	}
 
@@ -61,9 +58,11 @@ func (c *contentFilter) filterIncludeList(w pluginWriter, site *site.Site, messa
 		return err
 	}
 	return w.WriteJSON(filterIncludeListResponse{
-		CMD:    "response",
-		ID:     c.ID(),
-		To:     request.ID,
-		Result: make(filterIncludeListResult, 0),
+		required{
+			CMD: "response",
+			ID:  c.ID(),
+			To:  request.ID,
+		},
+		make(filterIncludeListResult, 0),
 	})
 }

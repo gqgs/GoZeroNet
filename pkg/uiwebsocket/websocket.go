@@ -14,6 +14,13 @@ type Message struct {
 	WrapperNonce string `json:"wrapper_nonce"`
 }
 
+// fields required for every message
+type required struct {
+	CMD string `json:"cmd"`
+	ID  int64  `json:"id"`
+	To  int64  `json:"to"`
+}
+
 type wsHandlerFunc func(rawMessage []byte, message Message) error
 
 func (w *uiWebsocket) handleMessage(rawMessage []byte) {
@@ -47,19 +54,19 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	case "siteSetLimit":
 		return w.adminOnly(w.siteSetLimit)(rawMessage, message)
 	case "userGetSettings":
-		return w.userGetSettings(rawMessage, message)
+		return w.userGetSettings(message)
 	case "userGetGlobalSettings":
-		return w.userGetGlobalSettings(rawMessage, message)
+		return w.userGetGlobalSettings(message)
 	case "userSetSettings":
 		return w.userSetSettings(rawMessage, message)
 	case "siteInfo":
-		return w.siteInfo(rawMessage, message)
+		return w.siteInfo(message)
 	case "serverInfo":
-		return w.serverInfo(rawMessage, message)
+		return w.serverInfo(message)
 	case "serverErrors":
 		return w.adminOnly(w.serverErrors)(rawMessage, message)
 	case "announcerInfo":
-		return w.announcerInfo(rawMessage, message)
+		return w.announcerInfo(message)
 	case "announcerStats":
 		return w.adminOnly(w.announcerStats)(rawMessage, message)
 	case "siteList":
@@ -95,18 +102,18 @@ func (w *uiWebsocket) adminOnly(handler wsHandlerFunc) wsHandlerFunc {
 
 	return func(rawMessage []byte, message Message) error {
 		return w.conn.WriteJSON(serverErrorRsponse{
-			CMD:   "response",
-			ID:    w.ID(),
-			To:    message.ID,
-			Error: "Forbidden",
+			required{
+				CMD: "response",
+				ID:  w.ID(),
+				To:  message.ID,
+			},
+			"Forbidden",
 		})
 	}
 }
 
 type serverErrorRsponse struct {
-	CMD   string `json:"cmd"`
-	ID    int64  `json:"id"`
-	To    int64  `json:"to"`
+	required
 	Error string `json:"error"`
 }
 
