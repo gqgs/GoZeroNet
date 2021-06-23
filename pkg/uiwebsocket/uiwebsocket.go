@@ -3,11 +3,11 @@ package uiwebsocket
 import (
 	"context"
 	"sync"
-	"sync/atomic"
 
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uiwebsocket/plugin"
@@ -27,16 +27,9 @@ type uiWebsocket struct {
 	ID            func() int64
 }
 
-func id() func() int64 {
-	var id int64
-	return func() int64 {
-		return atomic.AddInt64(&id, 1)
-	}
-}
-
 func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fileserver.Server,
 	site *site.Site, pubsubManager pubsub.Manager) *uiWebsocket {
-	idFunc := id()
+	counter := safe.Counter()
 	return &uiWebsocket{
 		conn:          conn,
 		siteManager:   siteManager,
@@ -47,11 +40,11 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fi
 		channels:      make(map[string]struct{}),
 		allChannels:   false,
 		plugins: []plugin.Plugin{
-			plugin.NewNewsFeed(idFunc),
-			plugin.NewOptionalManager(idFunc),
-			plugin.NewContentFilter(idFunc),
+			plugin.NewNewsFeed(counter),
+			plugin.NewOptionalManager(counter),
+			plugin.NewContentFilter(counter),
 		},
-		ID: idFunc,
+		ID: counter,
 	}
 }
 func (w *uiWebsocket) Serve() {
