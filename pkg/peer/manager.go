@@ -11,7 +11,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 )
 
-const waitForconnectedTimeout = time.Second * 10
+const waitForconnectedTimeout = time.Second * 30
 
 type Manager interface {
 	// Returns a connected peer.
