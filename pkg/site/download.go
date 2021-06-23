@@ -18,7 +18,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
-func (s *Site) Download(peerManager peer.Manager) error {
+func (s *Site) Download(peerManager peer.Manager, since time.Time) error {
 	for {
 		p, err := peerManager.GetConnected()
 		if err != nil {
@@ -42,7 +42,7 @@ func (s *Site) Download(peerManager peer.Manager) error {
 		if err := s.SaveSettings(); err != nil {
 			return err
 		}
-		return s.DownloadSince(peerManager, time.Now().AddDate(0, 0, -7))
+		return s.DownloadSince(peerManager, since)
 	}
 }
 

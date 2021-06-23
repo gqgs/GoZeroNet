@@ -12,7 +12,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
-func download(addr string) error {
+func download(addr string, daysAgo int) error {
 	pubsubManager := pubsub.NewManager()
 
 	userManager, err := user.NewManager()
@@ -44,7 +44,7 @@ func download(addr string) error {
 
 	go newSite.Announce()
 
-	if err = newSite.Download(peerManager); err != nil {
+	if err = newSite.Download(peerManager, time.Now().AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
 
@@ -55,7 +55,7 @@ func download(addr string) error {
 	return newSite.RebuildDB()
 }
 
-func downloadRecent(addr string) error {
+func downloadRecent(addr string, daysAgo int) error {
 	pubsubManager := pubsub.NewManager()
 
 	userManager, err := user.NewManager()
@@ -87,7 +87,7 @@ func downloadRecent(addr string) error {
 
 	go site.Announce()
 
-	if err = site.DownloadSince(peerManager, time.Now().AddDate(0, 0, -7)); err != nil {
+	if err = site.DownloadSince(peerManager, time.Now().AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
 
