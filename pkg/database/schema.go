@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gqgs/go-zeronet/pkg/lib/storage"
@@ -247,7 +248,6 @@ func (s *Schema) Queries() []string {
 	queries := []string{
 		"CREATE TABLE _version (key TEXT, value INTEGER)",
 		`CREATE UNIQUE INDEX keyindex ON _version(key)`,
-		fmt.Sprintf(`INSERT INTO _version VALUES ("db", %d)`, s.Version),
 	}
 
 	for tableName, table := range s.Tables {
@@ -261,4 +261,16 @@ func (s *Schema) Queries() []string {
 	}
 
 	return queries
+}
+
+func (s *Schema) MapFunc() (map[*regexp.Regexp]Map, error) {
+	regexFunc := make(map[*regexp.Regexp]Map)
+	for expr, tableMap := range s.Maps {
+		regex, err := regexp.Compile(expr)
+		if err != nil {
+			return nil, fmt.Errorf("regex error (%s): %s ", err, expr)
+		}
+		regexFunc[regex] = tableMap
+	}
+	return regexFunc, nil
 }

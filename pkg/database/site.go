@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
@@ -19,6 +18,7 @@ import (
 type SiteDatabase interface {
 	io.Closer
 	Rebuild() error
+	Update(innerPath ...string) error
 	Query(query string, args ...interface{}) ([]map[string]interface{}, error)
 }
 
@@ -39,10 +39,79 @@ func NewSiteDatabase(site string) (*siteDatabase, error) {
 		return nil, err
 	}
 
-	return &siteDatabase{
+	db := &siteDatabase{
 		site:    site,
 		storage: storage,
-	}, nil
+	}
+
+	if schemaChanged(schema, storage) {
+		if err := db.Rebuild(); err != nil {
+			return nil, err
+		}
+	}
+
+	return db, nil
+}
+
+func (d *siteDatabase) Update(innerPath ...string) error {
+	schema, err := loadDBSchemaFromFile(d.site)
+	if err != nil {
+		return err
+	}
+
+	if schemaChanged(schema, d.storage) {
+		if err := d.Rebuild(); err != nil {
+			return err
+		}
+	}
+
+	regexFunc, err := schema.MapFunc()
+	if err != nil {
+		return err
+	}
+
+	tx, err := d.storage.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, path := range innerPath {
+		for regexFunc, tableMap := range regexFunc {
+			if regexFunc.MatchString(path) {
+				if err := tableMap.ProcessFile(path, tx); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return tx.Commit()
+}
+
+func schemaChanged(schema *Schema, storage storage.Storage) bool {
+	rows, err := storage.Query("SELECT table, version from _version_")
+	if err != nil {
+		return true
+	}
+
+	var table string
+	var version int
+	tableVersion := make(map[string]int)
+	for rows.Next() {
+		if err := rows.Scan(&table, &version); err != nil {
+			return true
+		}
+		tableVersion[table] = version
+	}
+
+	for tableName, tableSchema := range schema.Tables {
+		if tableVersion[tableName] != tableSchema.SchemaChanged {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (d *siteDatabase) Close() error {
@@ -53,7 +122,7 @@ func (d *siteDatabase) Close() error {
 }
 
 func (d *siteDatabase) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
-	return d.storage.Query(query, args...)
+	return d.storage.QueryObjectList(query, args...)
 }
 
 func (d *siteDatabase) Rebuild() error {
@@ -70,13 +139,9 @@ func (d *siteDatabase) Rebuild() error {
 }
 
 func (d *siteDatabase) populate(schema *Schema) error {
-	regexFunc := make(map[*regexp.Regexp]Map)
-	for expr, tableMap := range schema.Maps {
-		regex, err := regexp.Compile(expr)
-		if err != nil {
-			return fmt.Errorf("regex error (%s): %s ", err, expr)
-		}
-		regexFunc[regex] = tableMap
+	regexFunc, err := schema.MapFunc()
+	if err != nil {
+		return err
 	}
 
 	tx, err := d.storage.Begin()

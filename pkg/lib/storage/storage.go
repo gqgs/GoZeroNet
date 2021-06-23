@@ -10,28 +10,34 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Execer interface {
+type execer interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+type queryer interface {
+	Query(query string, args ...interface{}) (*sql.Rows, error)
 }
 
 type Storage interface {
 	io.Closer
-	Execer
+	execer
+	queryer
 	Begin() (Transaction, error)
-	Query(query string, args ...interface{}) ([]map[string]interface{}, error)
-	Scan(query string, args ...interface{}) (*sql.Rows, error)
+	// QueryObjectList is a helper to construct and return an object list of generic type.
+	QueryObjectList(query string, args ...interface{}) ([]map[string]interface{}, error)
 }
 
 type Transaction interface {
 	driver.Tx
-	Execer
+	execer
+	queryer
 }
 
 type sqliteStorage struct {
 	db *sql.DB
 }
 
-func (s *sqliteStorage) Scan(query string, args ...interface{}) (*sql.Rows, error) {
+func (s *sqliteStorage) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	return s.db.Query(query, args...)
 }
 
@@ -39,7 +45,7 @@ func (s *sqliteStorage) Exec(query string, args ...interface{}) (sql.Result, err
 	return s.db.Exec(query, args...)
 }
 
-func (s *sqliteStorage) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
+func (s *sqliteStorage) QueryObjectList(query string, args ...interface{}) ([]map[string]interface{}, error) {
 	rows, err := s.db.Query(query, args...)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,8 @@
 package site
 
 import (
+	"time"
+
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
 )
@@ -34,4 +36,15 @@ func (s *Site) Query(query string, args ...interface{}) ([]map[string]interface{
 
 func (s *Site) FileInfo(innerPath string) (*event.FileInfo, error) {
 	return s.contentDB.FileInfo(s.addr, innerPath)
+}
+
+func (s *Site) UpdateDB(since time.Time) error {
+	updated, err := s.contentDB.GetUpdatedFiles(s.addr, since)
+	if err != nil {
+		return err
+	}
+	if len(updated) == 0 {
+		return nil
+	}
+	return s.db.Update(updated...)
 }

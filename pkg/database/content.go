@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"path"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/event"
@@ -17,10 +18,31 @@ type ContentDatabase interface {
 	UpdateFile(site, innerPath, hash string, size int) error
 	UpdatePeer(site, address string, reputationDelta int) error
 	FileInfo(site, innerPath string) (*event.FileInfo, error)
+	GetUpdatedFiles(site string, since time.Time) ([]string, error)
 }
 
 type contentDatabase struct {
 	storage storage.Storage
+}
+
+func (c *contentDatabase) GetUpdatedFiles(site string, since time.Time) ([]string, error) {
+	const query = "SELECT f.inner_path FROM file f INNER JOIN site s USING(site_id) WHERE s.address = ? AND f.time_added >= ?"
+	rows, err := c.storage.Query(query, site, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var files []string
+	var file string
+	for rows.Next() {
+		if err = rows.Scan(&file); err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+
+	return files, nil
 }
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
@@ -29,7 +51,7 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`
-	rows, err := c.storage.Scan(query, innerPath, site)
+	rows, err := c.storage.Query(query, innerPath, site)
 	if err != nil {
 		return nil, err
 	}

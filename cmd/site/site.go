@@ -44,6 +44,7 @@ func download(addr string, daysAgo int) error {
 
 	go newSite.Announce()
 
+	now := time.Now()
 	if err = newSite.Download(peerManager, time.Now().AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
@@ -52,7 +53,7 @@ func download(addr string, daysAgo int) error {
 		return err
 	}
 	defer newSite.CloseDB()
-	return newSite.RebuildDB()
+	return newSite.UpdateDB(now)
 }
 
 func downloadRecent(addr string, daysAgo int) error {
@@ -87,6 +88,7 @@ func downloadRecent(addr string, daysAgo int) error {
 
 	go site.Announce()
 
+	now := time.Now()
 	if err = site.DownloadSince(peerManager, time.Now().AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
@@ -95,5 +97,5 @@ func downloadRecent(addr string, daysAgo int) error {
 		return err
 	}
 	defer site.CloseDB()
-	return site.RebuildDB()
+	return site.UpdateDB(now)
 }
