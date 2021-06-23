@@ -246,8 +246,8 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 
 func (s *Schema) Queries() []string {
 	queries := []string{
-		"CREATE TABLE _version (key TEXT, value INTEGER)",
-		`CREATE UNIQUE INDEX keyindex ON _version(key)`,
+		"CREATE TABLE _version_ (table TEXT, version INTEGER)",
+		`CREATE UNIQUE INDEX keyindex ON _version_ (key)`,
 	}
 
 	for tableName, table := range s.Tables {
@@ -257,7 +257,7 @@ func (s *Schema) Queries() []string {
 		}
 		queries = append(queries, fmt.Sprintf("CREATE TABLE %s (%s)", tableName, strings.Join(cols, ",")))
 		queries = append(queries, table.Indexes...)
-		queries = append(queries, fmt.Sprintf("INSERT INTO _version VALUES (%q, %d)", tableName, table.SchemaChanged))
+		queries = append(queries, fmt.Sprintf("INSERT INTO _version_ VALUES (%q, %d)", tableName, table.SchemaChanged))
 	}
 
 	return queries
