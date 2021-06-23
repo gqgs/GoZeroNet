@@ -11,6 +11,6 @@ func (e *FileInfo) String() string {
 	return "fileInfo"
 }
 
-func BroadcastFileDone(site string, broadcaster EventBroadcaster, fileInfo *FileInfo) {
+func BroadcastFileInfoUpdate(site string, broadcaster EventBroadcaster, fileInfo *FileInfo) {
 	broadcaster.Broadcast(site, fileInfo)
 }

@@ -15,7 +15,7 @@ var ErrFileNotFound = errors.New("file not found")
 
 type ContentDatabase interface {
 	io.Closer
-	UpdateFile(site, innerPath, hash string, size int) error
+	UpdateFile(site, innerPath, hash string, size int, isDownloaded bool) error
 	UpdatePeer(site, address string, reputationDelta int) error
 	FileInfo(site, innerPath string) (*event.FileInfo, error)
 	GetUpdatedFiles(site string, since time.Time) ([]string, error)
@@ -74,7 +74,7 @@ func (c *contentDatabase) Close() error {
 	return c.storage.Close()
 }
 
-func (c *contentDatabase) UpdateFile(site, innerPath, hash string, size int) error {
+func (c *contentDatabase) UpdateFile(site, innerPath, hash string, size int, isDownloaded bool) error {
 	tx, err := c.storage.Begin()
 	if err != nil {
 		return err
@@ -86,9 +86,11 @@ func (c *contentDatabase) UpdateFile(site, innerPath, hash string, size int) err
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO file (site_id, inner_path, hash, size)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?)`,
-		site, innerPath, hash, size); err != nil {
+		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?)
+		ON CONFLICT (site_id, inner_path, hash) DO UPDATE SET is_downloaded = excluded.is_downloaded
+		`,
+		site, innerPath, hash, size, isDownloaded); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -133,10 +135,10 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE UNIQUE INDEX IF NOT EXISTS peer_key ON peer (site_id, address)`,
 
 		// File
-		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 1, is_pinned INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
+		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE INDEX IF NOT EXISTS file_path ON file (inner_path)`,
 		`CREATE INDEX IF NOT EXISTS file_hash ON file (hash)`,
-		`CREATE UNIQUE INDEX IF NOT EXISTS file_hash ON file (site_id, inner_path, hash)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path, hash)`,
 	}
 
 	tx, err := storage.Begin()

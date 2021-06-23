@@ -169,11 +169,38 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		}
 
 		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
-		event.BroadcastFileDone(s.addr, s.pubsubManager, &event.FileInfo{
+		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
 			InnerPath:    relPath,
 			Hash:         hexDigest,
 			Size:         len(body),
 			IsDownloaded: true,
+		})
+	}
+
+	for filename, file := range content.FilesOptional {
+		filename = path.Join(path.Dir(innerPath), filename)
+		relPath := safe.CleanPath(filename)
+
+		info, err := s.contentDB.FileInfo(s.addr, relPath)
+		switch err {
+		case database.ErrFileNotFound:
+		case nil:
+		default:
+			s.log.WithField("peer", peer).Error(err)
+			continue
+		}
+
+		if len(file.Sha512) != 64 {
+			s.log.WithField("peer", peer).Errorf("invalid hash id length: %d", len(file.Sha512))
+			event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
+			continue
+		}
+
+		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
+			InnerPath:    relPath,
+			Hash:         file.Sha512,
+			Size:         file.Size,
+			IsDownloaded: info.IsDownloaded,
 		})
 	}
 

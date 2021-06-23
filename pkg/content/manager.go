@@ -38,12 +38,12 @@ func (m *manager) listen() {
 	for msg := range m.queue {
 		switch payload := msg.Event().(type) {
 		case *event.FileInfo:
-			m.log.Debug("file done event")
-			if err := m.db.UpdateFile(msg.Site(), payload.InnerPath, payload.Hash, payload.Size); err != nil {
+			m.log.Debug("file update event")
+			if err := m.db.UpdateFile(msg.Site(), payload.InnerPath, payload.Hash, payload.Size, payload.IsDownloaded); err != nil {
 				m.log.Error(err)
 			}
 		case *event.PeerInfo:
-			m.log.Debug("peer info event")
+			m.log.Debug("peer update event")
 			if err := m.db.UpdatePeer(msg.Site(), payload.Address, payload.ReputationDelta); err != nil {
 				m.log.Error(err)
 			}
