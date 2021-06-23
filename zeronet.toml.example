@@ -1,0 +1,18 @@
+language = "en"
+data_dir = "./data/"
+site_size_limit = 10
+validate_database_queries = true
+
+trackers = [
+ "http://h4.trakx.nibba.trade:80/announce",
+  "http://open.acgnxtracker.com:80/announce",
+  "http://tracker.bt4g.com:2095/announce"
+]
+
+content_buffer_size = 50
+websocket_buffer_size = 50
+peer_candidates_buffer_size = 25
+max_connected_peers = 10
+
+connection_deadline = "10s"
+fileserver_deadline = "10s"

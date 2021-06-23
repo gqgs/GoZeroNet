@@ -3,6 +3,7 @@ module github.com/gqgs/go-zeronet
 go 1.16
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
