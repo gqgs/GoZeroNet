@@ -16,8 +16,8 @@ func Test_SchemaQueries(t *testing.T) {
 			"given a regular schema it should generate all the queries",
 			"testdata/mc-dbschema.json",
 			[]string{
-				"CREATE TABLE _version_ (table TEXT, version INTEGER)",
-				"CREATE UNIQUE INDEX keyindex ON _version_ (key)",
+				"CREATE TABLE _version_ (table_name TEXT, version INTEGER)",
+				"CREATE UNIQUE INDEX keyindex ON _version_ (table_name)",
 				`INSERT INTO _version_ VALUES ("posts", 15)`,
 				`INSERT INTO _version_ VALUES ("boards", 12)`,
 				`INSERT INTO _version_ VALUES ("modlogs", 13)`,

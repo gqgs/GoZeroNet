@@ -90,7 +90,7 @@ func (d *siteDatabase) Update(innerPath ...string) error {
 }
 
 func schemaChanged(schema *Schema, storage storage.Storage) bool {
-	rows, err := storage.Query("SELECT table, version from _version_")
+	rows, err := storage.Query("SELECT table_name, version from _version_")
 	if err != nil {
 		return true
 	}

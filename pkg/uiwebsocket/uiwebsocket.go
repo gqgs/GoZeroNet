@@ -52,7 +52,9 @@ func (w *uiWebsocket) Serve() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	w.site.OpenDB()
+	if err := w.site.OpenDB(); err != nil {
+		w.log.Fatal(err)
+	}
 	defer w.site.CloseDB()
 
 	go w.handleSubsub(ctx)
