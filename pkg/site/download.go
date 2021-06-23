@@ -57,6 +57,14 @@ func (s *Site) DownloadSince(since time.Time) error {
 			continue
 		}
 		defer p.Close()
+
+		resp, err := fileserver.Handshake(p, p.String())
+		if err != nil {
+			s.log.WithField("peer", p).Warn(err)
+			continue
+		}
+		s.log.WithField("peer", p).Info(resp)
+
 		if err := s.downloadRecent(p, since); err != nil {
 			s.log.WithField("peer", p).Error(err)
 			continue
@@ -79,7 +87,7 @@ func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
 			s.log.WithField("peer", peer).Error(err)
 			continue
 		}
-		s.log.Debugf("downloaded: %s", innerPath)
+		s.log.Debugf("done: %s", innerPath)
 	}
 	return nil
 }

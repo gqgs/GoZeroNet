@@ -10,7 +10,6 @@ import (
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
-	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/spf13/cast"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -21,12 +20,11 @@ import (
 // Every message is encoded with MessagePack.
 // Every request has 3 parameters: `cmd`, `req_id` and `params`.
 type server struct {
-	l      net.Listener
-	log    log.Logger
-	peerID string
-	addr   string // host:port
-	host   string
-	port   int
+	l    net.Listener
+	log  log.Logger
+	addr string // host:port
+	host string
+	port int
 }
 
 type Server interface{}
@@ -48,12 +46,11 @@ func NewServer(addr string) (*server, error) {
 	config.FileServerPort = port
 
 	return &server{
-		peerID: random.PeerID(),
-		addr:   chosenAddr,
-		port:   port,
-		host:   host,
-		l:      l,
-		log:    log.New("fileserver"),
+		addr: chosenAddr,
+		port: port,
+		host: host,
+		l:    l,
+		log:  log.New("fileserver"),
 	}, nil
 }
 

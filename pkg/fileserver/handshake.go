@@ -1,6 +1,7 @@
 package fileserver
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -46,22 +47,28 @@ type (
 	}
 )
 
-func Handshake(conn net.Conn, addr string, fileServer *server) (*handshakeResponse, error) {
+func Handshake(conn net.Conn, addr string) (*handshakeResponse, error) {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", err, addr)
+	}
+
+	var peerID string
+	if peer, ok := conn.(interface {
+		ID() string
+	}); ok {
+		peerID = peer.ID()
 	}
 
 	encoded, err := msgpack.Marshal(&handshakeRequest{
 		CMD:   "handshake",
 		ReqID: 1,
 		Params: handshakeParams{
-			Crypt:          "tls-rsa",
-			CryptSupported: []string{"tls-rsa"},
-			FileserverPort: fileServer.port,
+			CryptSupported: make([]string, 0),
+			FileserverPort: config.FileServerPort,
 			Protocol:       config.Protocol,
 			PortOpened:     config.PortOpened,
-			PeerID:         fileServer.peerID,
+			PeerID:         peerID,
 			Rev:            config.Rev,
 			UseBinType:     config.UseBinType,
 			Version:        config.Version,
@@ -91,15 +98,21 @@ func handshakeHandler(conn net.Conn, decoder requestDecoder, fileServer *server)
 		return err
 	}
 
+	var peerID string
+	if peer, ok := conn.(interface {
+		ID() string
+	}); ok {
+		peerID = peer.ID()
+	}
+
 	encoded, err := msgpack.Marshal(&handshakeResponse{
 		CMD:            "response",
 		To:             r.ReqID,
-		Crypt:          "tls-rsa",
-		CryptSupported: []string{"tls-rsa"},
+		CryptSupported: make([]string, 0),
 		FileserverPort: fileServer.port,
 		Protocol:       config.Protocol,
 		PortOpened:     config.PortOpened,
-		PeerID:         fileServer.peerID,
+		PeerID:         peerID,
 		Rev:            config.Rev,
 		UseBinType:     config.UseBinType,
 		Version:        config.Version,

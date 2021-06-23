@@ -28,18 +28,18 @@ func Test_Handshake(t *testing.T) {
 	}
 	defer conn.Close()
 
-	resp, err := Handshake(conn, srv.addr, clientFileServer)
+	resp, err := Handshake(conn, srv.addr)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, "response", resp.CMD)
 	assert.Equal(t, 1, resp.To)
-	assert.Equal(t, "tls-rsa", resp.Crypt)
+	assert.Equal(t, "", resp.Crypt)
 	assert.Equal(t, srv.port, resp.FileserverPort)
 	assert.Equal(t, config.Protocol, resp.Protocol)
 	assert.Equal(t, config.PortOpened, resp.PortOpened)
-	assert.Equal(t, srv.peerID, resp.PeerID)
+	assert.Equal(t, "", resp.PeerID)
 	assert.Equal(t, config.Rev, resp.Rev)
 	assert.Equal(t, config.UseBinType, resp.UseBinType)
 	assert.Equal(t, config.Version, resp.Version)

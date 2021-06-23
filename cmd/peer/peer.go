@@ -41,7 +41,7 @@ func handshake(addr string) error {
 	}
 	defer conn.Close()
 
-	resp, err := fileserver.Handshake(conn, addr, srv)
+	resp, err := fileserver.Handshake(conn, addr)
 	jsonDump(resp)
 	return err
 }
