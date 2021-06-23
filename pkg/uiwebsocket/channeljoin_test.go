@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/stretchr/testify/require"
 )
@@ -43,6 +44,7 @@ func Test_channeljoin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ws := new(uiWebsocket)
+			ws.ID = safe.Counter()
 			ws.channels = make(map[string]struct{})
 			mockConn := websocket.NewMockConn(ctrl)
 			mockConn.EXPECT().WriteJSON(gomock.Any())
