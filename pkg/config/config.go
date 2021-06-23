@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	Rev        = 4556
-	Version    = "0.8.0"
+	Rev        = 4555
+	Version    = "0.7.2"
 	Protocol   = "v2"
 	PortOpened = true
 	// UseBinType tells msgpack to use the bin type
@@ -23,7 +23,7 @@ const (
 	RandomIPv4Addr     = "127.0.0.1:"
 	DataDir            = "./data/"
 	Language           = "en"
-	UpdateSite         = "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf"
+	UpdateSite         = "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf" // TODO: ZN updater. We would need a new zite for this.
 	SiteSizeLimit      = 10
 
 	// Validate database queries for correctness
