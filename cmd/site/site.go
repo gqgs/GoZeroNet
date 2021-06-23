@@ -44,7 +44,15 @@ func download(addr string) error {
 
 	go newSite.Announce()
 
-	return newSite.Download(peerManager)
+	if err = newSite.Download(peerManager); err != nil {
+		return err
+	}
+
+	if err := newSite.OpenDB(); err != nil {
+		return err
+	}
+	defer newSite.CloseDB()
+	return newSite.RebuildDB()
 }
 
 func downloadRecent(addr string) error {
@@ -79,5 +87,13 @@ func downloadRecent(addr string) error {
 
 	go site.Announce()
 
-	return site.DownloadSince(peerManager, time.Now().AddDate(0, 0, -7))
+	if err = site.DownloadSince(peerManager, time.Now().AddDate(0, 0, -7)); err != nil {
+		return err
+	}
+
+	if err := site.OpenDB(); err != nil {
+		return err
+	}
+	defer site.CloseDB()
+	return site.RebuildDB()
 }
