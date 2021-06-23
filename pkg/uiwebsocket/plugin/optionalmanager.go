@@ -32,6 +32,8 @@ func (o *optionalManager) Handler(cmd string) (HandlerFunc, bool) {
 		return o.optionalLimitStats, true
 	case "optionalFileInfo":
 		return o.optionalFileInfo, true
+	case "optionalHelpList":
+		return o.optionalHelpList, true
 	// case "optionalFileList", "optionalFilePin", "optionalFileUnpin",
 	// 	"optionalFileDelete", "optionalLimitSet", "optionalHelpList",
 	// 	"optionalHelp", "optionalHelpRemove", "optionalHelpAll":
@@ -112,5 +114,39 @@ func (o *optionalManager) optionalFileInfo(w pluginWriter, site *site.Site, mess
 		ID:     o.ID(),
 		To:     request.ID,
 		Result: info,
+	})
+}
+
+type (
+	optionalHelpListRequest struct {
+		CMD    string            `json:"cmd"`
+		ID     int64             `json:"id"`
+		Params map[string]string `json:"params"`
+	}
+
+	optionalHelpListResponse struct {
+		CMD    string            `json:"cmd"`
+		ID     int64             `json:"id"`
+		To     int64             `json:"to"`
+		Result map[string]string `json:"result"`
+	}
+)
+
+func (o *optionalManager) optionalHelpList(w pluginWriter, site *site.Site, message []byte) error {
+	request := new(optionalHelpListRequest)
+	if err := json.Unmarshal(message, request); err != nil {
+		return err
+	}
+
+	resp := site.Settings.OptionalHelp
+	if resp == nil {
+		resp = make(map[string]string)
+	}
+
+	return w.WriteJSON(optionalHelpListResponse{
+		CMD:    "response",
+		ID:     o.ID(),
+		To:     request.ID,
+		Result: resp,
 	})
 }
