@@ -30,6 +30,9 @@ type siteDatabase struct {
 func NewSiteDatabase(site string) (*siteDatabase, error) {
 	schema, err := loadDBSchemaFromFile(site)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return new(siteDatabase), nil
+		}
 		return nil, err
 	}
 
@@ -115,7 +118,7 @@ func schemaChanged(schema *Schema, storage storage.Storage) bool {
 }
 
 func (d *siteDatabase) Close() error {
-	if d == nil {
+	if d == nil || d.storage == nil {
 		return nil
 	}
 	return d.storage.Close()
