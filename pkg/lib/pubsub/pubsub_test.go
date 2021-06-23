@@ -10,7 +10,7 @@ import (
 
 func Test_Pubsub(t *testing.T) {
 	manager := NewManager()
-	messageCh := manager.Register()
+	messageCh := manager.Register(1)
 	require.Len(t, manager.queue, 1)
 
 	go func() {

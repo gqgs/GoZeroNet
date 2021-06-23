@@ -54,7 +54,7 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
 		site.wrapperNonce = make(map[string]int64)
 		site.pubsubManager = pubsubManager
 		site.user = user
-		site.log = log.New(addr)
+		site.log = log.New("site").WithField("site", addr)
 		site.contentDB = contentDB
 
 		for _, permission := range site.Settings.Permissions {

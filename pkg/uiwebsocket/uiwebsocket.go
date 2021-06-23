@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -67,7 +68,7 @@ func (w *uiWebsocket) Serve() {
 }
 
 func (w *uiWebsocket) handleSubsub(ctx context.Context) {
-	messageCh := w.pubsubManager.Register()
+	messageCh := w.pubsubManager.Register(config.WebsocketBufferSize)
 	defer w.pubsubManager.Unregister(messageCh)
 
 	for {

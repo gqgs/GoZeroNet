@@ -2,12 +2,12 @@ package site
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/content"
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
+	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
@@ -39,13 +39,12 @@ func download(addr string) error {
 	contentManager := content.NewManager(contentDB, pubsubManager)
 	defer contentManager.Close()
 
-	newSite.AnnounceTrackers()
-	newSite.AnnouncePex()
+	peerManager := peer.NewManager(pubsubManager, addr)
+	defer peerManager.Close()
 
-	peers := newSite.Peers()
-	log.Println("found ", len(peers), " peers")
+	go newSite.Announce()
 
-	return newSite.Download()
+	return newSite.Download(peerManager)
 }
 
 func downloadRecent(addr string) error {
@@ -75,11 +74,10 @@ func downloadRecent(addr string) error {
 	contentManager := content.NewManager(contentDB, pubsubManager)
 	defer contentManager.Close()
 
-	site.AnnounceTrackers()
-	site.AnnouncePex()
+	peerManager := peer.NewManager(pubsubManager, addr)
+	defer peerManager.Close()
 
-	peers := site.Peers()
-	log.Println("found ", len(peers), " peers")
+	go site.Announce()
 
-	return site.DownloadSince(time.Now().AddDate(0, 0, -7))
+	return site.DownloadSince(peerManager, time.Now().AddDate(0, 0, -7))
 }

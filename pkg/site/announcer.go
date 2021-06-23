@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/ip"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
@@ -137,6 +138,15 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 	return peers, nil
 }
 
+// Announce announces to all possible destinations
+func (s *Site) Announce() {
+	s.AnnounceTrackers()
+	s.AnnouncePex()
+
+	peers := s.Peers()
+	s.log.Infof("found %d peers", len(peers))
+}
+
 // AnnounceTrackers announces to trackers the new peer
 // TODO: debounce this function
 func (s *Site) AnnounceTrackers() {
@@ -197,6 +207,9 @@ func (s *Site) AnnounceTrackers() {
 			s.peersMutex.Lock()
 			for _, peerAddress := range peers {
 				s.peers[peerAddress] = peer.NewPeer(peerAddress)
+				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
+					Address: peerAddress,
+				})
 			}
 			s.peersMutex.Unlock()
 
@@ -234,9 +247,12 @@ func (s *Site) AnnouncePex() {
 			for _, peerAddr := range resp.Peers {
 				var addr [6]byte
 				copy(addr[:], peerAddr)
-				newPeer := ip.ParseIPv4(addr)
+				newPeerAddr := ip.ParseIPv4(addr)
+				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
+					Address: newPeerAddr,
+				})
 				s.peersMutex.Lock()
-				s.peers[newPeer] = peer.NewPeer(newPeer)
+				s.peers[newPeerAddr] = peer.NewPeer(newPeerAddr)
 				s.peersMutex.Unlock()
 			}
 		}()

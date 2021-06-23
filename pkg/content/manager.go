@@ -1,6 +1,7 @@
 package content
 
 import (
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
@@ -25,7 +26,7 @@ func NewManager(contentDB database.ContentDatabase, pubsubManager pubsub.Manager
 	m := &manager{
 		log:           log.New("content_manager"),
 		pubsubManager: pubsubManager,
-		queue:         pubsubManager.Register(),
+		queue:         pubsubManager.Register(config.ContentBufferSize),
 		closeCh:       make(chan struct{}),
 		db:            contentDB,
 	}
@@ -52,6 +53,7 @@ func (m *manager) listen() {
 }
 
 func (m *manager) Close() {
+	m.log.Debug("closing")
 	m.pubsubManager.Unregister(m.queue)
 	<-m.closeCh
 }

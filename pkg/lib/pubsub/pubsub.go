@@ -2,14 +2,10 @@ package pubsub
 
 import (
 	"sync"
-	"time"
 
-	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 )
-
-const sendTimeout = time.Millisecond * 100
 
 func NewManager() *manager {
 	return &manager{
@@ -36,9 +32,12 @@ type (
 	}
 
 	Manager interface {
-		// Register creates a new subscriber to all event
-		// The client MUST unregister the channel after using it
-		Register() <-chan Message
+		// Register creates a new subscriber to all events.
+		// bufferSize defines the buffer size of the message channel.
+		// If the buffer is full when the manager tries to send a new message
+		// the message will be discarted.
+		// The client MUST unregister the channel after using it.
+		Register(bufferSize int) <-chan Message
 		Unregister(messageCh <-chan Message)
 		Broadcast(site string, event event.Event)
 	}
@@ -52,8 +51,8 @@ func (m *message) Site() string {
 	return m.site
 }
 
-func (m *manager) Register() <-chan Message {
-	messageCh := make(chan Message, config.PubSubQueueSize)
+func (m *manager) Register(bufferSize int) <-chan Message {
+	messageCh := make(chan Message, bufferSize)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.queue[messageCh] = messageCh
@@ -72,6 +71,7 @@ func (m *manager) Broadcast(site string, event event.Event) {
 	defer m.mu.RUnlock()
 	var wg sync.WaitGroup
 	wg.Add(len(m.queue))
+	m.log.WithField("site", site).WithField("event", event).Debug("broadcasting new event")
 	for _, channel := range m.queue {
 		channel := channel
 		go func() {
@@ -81,7 +81,7 @@ func (m *manager) Broadcast(site string, event event.Event) {
 				site:  site,
 				event: event,
 			}:
-			case <-time.After(sendTimeout):
+			default:
 				m.log.Warn("dropped message")
 			}
 		}()

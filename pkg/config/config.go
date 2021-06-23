@@ -18,7 +18,7 @@ const (
 	DefaultFileServerAddr = "127.0.0.1:0"
 	DefaultUIServerAddr   = "127.0.0.1:43111"
 
-	ConnectionDeadline = time.Second * 5
+	ConnectionDeadline = time.Second * 10
 	FileServerDeadline = time.Second * 5
 	RandomIPv4Addr     = "127.0.0.1:"
 	DataDir            = "./data/"
@@ -28,7 +28,11 @@ const (
 
 	// Validate database queries for correctness
 	ValidateDatabaseQueries = true
-	PubSubQueueSize         = 50
+
+	ContentBufferSize        = 50
+	WebsocketBufferSize      = 50
+	PeerCandidatesBufferSize = 25
+	MaxConnectedPeers        = 10
 )
 
 var (

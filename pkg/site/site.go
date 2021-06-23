@@ -113,7 +113,8 @@ func (s *Site) SetSiteLimit(sizeLimit int) error {
 		return err
 	}
 
-	return s.Download()
+	// TODO: return s.Download()
+	return nil
 }
 
 func (s *Site) Address() string {

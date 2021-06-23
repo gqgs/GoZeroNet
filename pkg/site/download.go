@@ -4,7 +4,6 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -19,14 +18,16 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
-func (s *Site) Download() error {
-	for _, p := range s.peers {
-		if err := p.Connect(); err != nil {
-			s.log.WithField("peer", p).Warn(err)
-			continue
+func (s *Site) Download(peerManager peer.Manager) error {
+	for {
+		p, err := peerManager.GetConnected()
+		if err != nil {
+			return fmt.Errorf("could not download files: %s", err)
 		}
-		defer p.Close()
-		if err := s.DownloadContentJSON(p, "content.json"); err != nil {
+
+		err = s.DownloadContentJSON(p, "content.json")
+		peerManager.PutConnected(p)
+		if err != nil {
 			s.log.WithField("peer", p).Error(err)
 			continue
 		}
@@ -41,39 +42,26 @@ func (s *Site) Download() error {
 		if err := s.SaveSettings(); err != nil {
 			return err
 		}
-		if err := s.downloadRecent(p, time.Now().AddDate(0, 0, -7)); err != nil {
-			return err
-		}
-		return s.SaveSettings()
+		return s.DownloadSince(peerManager, time.Now().AddDate(0, 0, -7))
 	}
-
-	return errors.New("could not download site")
 }
 
-func (s *Site) DownloadSince(since time.Time) error {
-	for _, p := range s.peers {
-		if err := p.Connect(); err != nil {
-			s.log.WithField("peer", p).Warn(err)
-			continue
+func (s *Site) DownloadSince(peerManager peer.Manager, since time.Time) error {
+	for {
+		p, err := peerManager.GetConnected()
+		if err != nil {
+			return fmt.Errorf("could not download files: %s", err)
 		}
-		defer p.Close()
 
-		resp, err := fileserver.Handshake(p, p.String())
+		err = s.downloadRecent(p, since)
+		peerManager.PutConnected(p)
 		if err != nil {
 			s.log.WithField("peer", p).Warn(err)
 			continue
 		}
-		s.log.WithField("peer", p).Info(resp)
-
-		if err := s.downloadRecent(p, since); err != nil {
-			s.log.WithField("peer", p).Error(err)
-			continue
-		}
 
 		return s.SaveSettings()
 	}
-
-	return errors.New("could not files")
 }
 
 func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
