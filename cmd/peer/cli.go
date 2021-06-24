@@ -142,6 +142,22 @@ func NewCommand() *cli.Command {
 					},
 				},
 			},
+			{
+				Name: "findHashIds",
+				Action: func(c *cli.Context) error {
+					return findHashIDs(c.String("addr"), c.String("site"), c.StringSlice("sha512")...)
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "site",
+						Required: true,
+					},
+					&cli.StringSliceFlag{
+						Name:     "sha512",
+						Required: true,
+					},
+				},
+			},
 		},
 	}
 }

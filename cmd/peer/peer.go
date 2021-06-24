@@ -8,6 +8,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 )
 
 func ping(addr string) error {
@@ -131,4 +132,25 @@ func update(addr, site, innerPath string) error {
 func jsonDump(v interface{}) {
 	d, _ := json.Marshal(v)
 	fmt.Println(string(d))
+}
+
+func findHashIDs(addr, site string, hashList ...string) error {
+	ids := make([]int, len(hashList))
+	for i, hash := range hashList {
+		id, err := crypto.HashID(hash)
+		if err != nil {
+			return err
+		}
+		ids[i] = id
+	}
+
+	conn, err := connection.NewConnection(addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	resp, err := fileserver.FindHashIDs(conn, site, ids...)
+	jsonDump(resp)
+	return err
 }
