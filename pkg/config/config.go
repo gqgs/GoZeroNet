@@ -2,6 +2,8 @@ package config
 
 import (
 	"os"
+	"path"
+	"runtime"
 	"strings"
 	"time"
 
@@ -23,13 +25,17 @@ type config struct {
 }
 
 func init() {
+	//nolint:dogsled
+	_, configFilename, _, _ := runtime.Caller(0)
+	root := strings.TrimSuffix(configFilename, "pkg/config/config.go")
 	for _, configFile := range []string{"zeronet.toml", "zeronet.toml.example"} {
-		if _, err := os.Stat(configFile); err != nil {
+		filename := path.Join(root, configFile)
+		if _, err := os.Stat(filename); err != nil {
 			continue
 		}
 
 		c := new(config)
-		if _, err := toml.DecodeFile(configFile, c); err != nil {
+		if _, err := toml.DecodeFile(filename, c); err != nil {
 			panic(err)
 		}
 
