@@ -81,7 +81,7 @@ func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
 }
 
 func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
-	resp, err := fileserver.GetFileFull(peer, s.addr, innerPath)
+	resp, err := fileserver.GetFileFull(peer, s.addr, innerPath, 0)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,8 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		return err
 	}
 
-	for filename, file := range content.Files {
+	logger := s.log.WithField("peer", peer)
+	for filename := range content.Files {
 		filename = path.Join(path.Dir(innerPath), filename)
 		relPath := safe.CleanPath(filename)
 
@@ -136,45 +137,17 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		case database.ErrFileNotFound:
 		case nil:
 		default:
-			s.log.WithField("peer", peer).Error(err)
+			logger.Error(err)
 			continue
 		}
 
 		if info.IsDownloaded {
 			continue
 		}
-		resp, err := fileserver.GetFileFull(peer, s.addr, relPath)
-		if err != nil {
-			s.log.WithField("peer", peer).Warn(err)
-			continue
-		}
-		body := resp.Body
-		digest := sha512.Sum512(body)
-		hexDigest := hex.EncodeToString(digest[:32])
-		if hexDigest != file.Sha512 {
-			event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
-			s.log.Warnf("ignoring file with invalid hash. want: %s (%d), got: %s (%d)",
-				file.Sha512, file.Size, hexDigest, len(body))
-			continue
-		}
-		s.Settings.BytesRecv += file.Size
 
-		filePath := path.Join(config.DataDir, s.addr, relPath)
-		if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
-			return err
+		if err := s.downloadFile(peer, filename, info); err != nil {
+			logger.Error(err)
 		}
-
-		if err := os.WriteFile(filePath, body, os.ModePerm); err != nil {
-			return err
-		}
-
-		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
-		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-			InnerPath:    relPath,
-			Hash:         hexDigest,
-			Size:         len(body),
-			IsDownloaded: true,
-		})
 	}
 
 	for filename, file := range content.FilesOptional {
@@ -186,12 +159,12 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		case database.ErrFileNotFound:
 		case nil:
 		default:
-			s.log.WithField("peer", peer).Error(err)
+			logger.Error(err)
 			continue
 		}
 
 		if len(file.Sha512) != 64 {
-			s.log.WithField("peer", peer).Errorf("invalid hash id length: %d", len(file.Sha512))
+			logger.Errorf("invalid hash id length: %d", len(file.Sha512))
 			event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 			continue
 		}
@@ -201,6 +174,8 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			Hash:         file.Sha512,
 			Size:         file.Size,
 			IsDownloaded: info.IsDownloaded,
+			IsPinned:     info.IsPinned,
+			IsOptional:   true,
 		})
 	}
 
@@ -209,6 +184,49 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+func (s *Site) downloadFile(peer peer.Peer, innerPath string, info *event.FileInfo) error {
+	resp, err := fileserver.GetFileFull(peer, s.addr, innerPath, info.Size)
+	if err != nil {
+		return err
+	}
+	body := resp.Body
+	if len(body) != info.Size {
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
+		return fmt.Errorf("ignoring file (%s) with invalid size. want: (%d), got: (%d)",
+			innerPath, info.Size, len(body))
+	}
+
+	digest := sha512.Sum512(body)
+	hexDigest := hex.EncodeToString(digest[:32])
+	if hexDigest != info.Hash {
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
+		return fmt.Errorf("ignoring file (%s) with invalid hash. want: %s (%d), got: %s (%d)",
+			innerPath, info.Hash, info.Size, hexDigest, len(body))
+	}
+	s.Settings.BytesRecv += info.Size
+
+	filePath := path.Join(config.DataDir, s.addr, innerPath)
+	if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(filePath, body, os.ModePerm); err != nil {
+		return err
+	}
+
+	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
+	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
+		InnerPath:    innerPath,
+		Hash:         hexDigest,
+		Size:         len(body),
+		IsDownloaded: true,
+		IsPinned:     info.IsPinned,
+		IsOptional:   info.IsOptional,
+	})
 
 	return nil
 }

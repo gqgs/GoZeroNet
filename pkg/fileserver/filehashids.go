@@ -18,11 +18,11 @@ type (
 	}
 
 	findHashIDsResponse struct {
-		CMD        string         `msgpack:"cmd"`
-		To         int            `msgpack:"to"`
-		Peers      map[int][]byte `msgpack:"peers"`
-		PeersOnion map[int][]byte `msgpack:"peers_onion"`
-		Error      string         `msgpack:"error,omitempty" json:"error,omitempty"`
+		CMD        string           `msgpack:"cmd"`
+		To         int              `msgpack:"to"`
+		Peers      map[int][][]byte `msgpack:"peers"`
+		PeersOnion map[int][][]byte `msgpack:"peers_onion"`
+		Error      string           `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 
@@ -55,8 +55,8 @@ func findHashIDsHandler(conn net.Conn, decoder requestDecoder) error {
 	data, err := msgpack.Marshal(&findHashIDsResponse{
 		CMD:        "response",
 		To:         r.ReqID,
-		Peers:      make(map[int][]byte),
-		PeersOnion: make(map[int][]byte),
+		Peers:      make(map[int][][]byte),
+		PeersOnion: make(map[int][][]byte),
 	})
 	if err != nil {
 		return err

@@ -28,6 +28,37 @@ type (
 	}
 )
 
+// StreamFileFull requests and concatenates all chunks of the file
+func StreamFileFull(conn net.Conn, site, innerPath string, size int) (*getFileResponse, error) {
+	var body []byte
+	var location int
+
+	for {
+		_, reader, err := StreamFile(conn, site, innerPath, location, size)
+		if err != nil {
+			return nil, err
+		}
+		respBody, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(respBody) == 0 {
+			break
+		}
+		body = append(body, respBody...)
+		location += len(body)
+	}
+
+	return &getFileResponse{
+		CMD:      "response",
+		To:       1,
+		Body:     body,
+		Location: location,
+		Size:     len(body),
+	}, nil
+}
+
 func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*streamFileResponse, io.Reader, error) {
 	encoded, err := msgpack.Marshal(&streamFileRequest{
 		CMD:   "streamFile",

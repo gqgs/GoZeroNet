@@ -1,6 +1,7 @@
 package site
 
 import (
+	"context"
 	"errors"
 	"io"
 	"strings"
@@ -190,7 +191,9 @@ func (m *manager) ReadFile(site, innerPath string, dst io.Writer) error {
 		return errors.New("site not found")
 	}
 
-	return s.ReadFile(innerPath, dst)
+	ctx, cancel := context.WithTimeout(context.Background(), config.FileNeedDeadline)
+	defer cancel()
+	return s.ReadFile(ctx, innerPath, dst)
 }
 
 func (m *manager) SiteList() ([]*Info, error) {

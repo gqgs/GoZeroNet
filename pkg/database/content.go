@@ -15,8 +15,8 @@ var ErrFileNotFound = errors.New("file not found")
 
 type ContentDatabase interface {
 	io.Closer
-	UpdateFile(site, innerPath, hash string, size int, isDownloaded bool) error
-	UpdatePeer(site, address string, reputationDelta int) error
+	UpdateFile(site string, fileInfo *event.FileInfo) error
+	UpdatePeer(site string, peerInfo *event.PeerInfo) error
 	FileInfo(site, innerPath string) (*event.FileInfo, error)
 	GetUpdatedFiles(site string, since time.Time) ([]string, error)
 }
@@ -47,7 +47,7 @@ func (c *contentDatabase) GetUpdatedFiles(site string, since time.Time) ([]strin
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
 	query := `
-		SELECT f.inner_path, f.hash, f.size, f.is_downloaded
+		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`
@@ -59,7 +59,7 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 
 	info := new(event.FileInfo)
 	if next := rows.Next(); next {
-		if err := rows.Scan(&info.InnerPath, &info.Hash, &info.Size, &info.IsDownloaded); err != nil {
+		if err := rows.Scan(&info.InnerPath, &info.Hash, &info.Size, &info.IsDownloaded, &info.IsPinned, &info.IsOptional); err != nil {
 			return nil, err
 		}
 		return info, rows.Err()
@@ -74,7 +74,7 @@ func (c *contentDatabase) Close() error {
 	return c.storage.Close()
 }
 
-func (c *contentDatabase) UpdateFile(site, innerPath, hash string, size int, isDownloaded bool) error {
+func (c *contentDatabase) UpdateFile(site string, fileInfo *event.FileInfo) error {
 	tx, err := c.storage.Begin()
 	if err != nil {
 		return err
@@ -86,17 +86,18 @@ func (c *contentDatabase) UpdateFile(site, innerPath, hash string, size int, isD
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?)
-		ON CONFLICT (site_id, inner_path, hash) DO UPDATE SET is_downloaded = excluded.is_downloaded
+		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?)
+		ON CONFLICT (site_id, inner_path, hash) DO
+		UPDATE SET is_downloaded = excluded.is_downloaded, is_pinned = excluded.is_pinned, is_optional = excluded.is_optional
 		`,
-		site, innerPath, hash, size, isDownloaded); err != nil {
+		site, fileInfo.InnerPath, fileInfo.Hash, fileInfo.Size, fileInfo.IsDownloaded, fileInfo.IsPinned, fileInfo.IsOptional); err != nil {
 		return err
 	}
 	return tx.Commit()
 }
 
-func (c *contentDatabase) UpdatePeer(site, address string, reputationDelta int) error {
+func (c *contentDatabase) UpdatePeer(site string, peerInfo *event.PeerInfo) error {
 	tx, err := c.storage.Begin()
 	if err != nil {
 		return err
@@ -112,7 +113,7 @@ func (c *contentDatabase) UpdatePeer(site, address string, reputationDelta int) 
 		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?)
 		ON CONFLICT (site_id, address) DO UPDATE SET reputation = reputation + excluded.reputation
 		`,
-		site, address, reputationDelta); err != nil {
+		site, peerInfo.Address, peerInfo.ReputationDelta); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -135,7 +136,7 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE UNIQUE INDEX IF NOT EXISTS peer_key ON peer (site_id, address)`,
 
 		// File
-		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
+		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE INDEX IF NOT EXISTS file_path ON file (inner_path)`,
 		`CREATE INDEX IF NOT EXISTS file_hash ON file (hash)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path, hash)`,

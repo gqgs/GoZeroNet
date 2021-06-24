@@ -3,6 +3,7 @@ package site
 import (
 	"context"
 	"crypto/sha1" // #nosec
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -125,9 +126,7 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 	for i := 0; i < len(peerList); i += 6 {
 		// TODO: remove copy in 1.17
 		// https://github.com/golang/go/issues/395
-		var addr [6]byte
-		copy(addr[:], peerList[i:i+6])
-		peer := ip.ParseIPv4(addr)
+		peer := ip.ParseIPv4(peerList[i:i+6], binary.BigEndian)
 
 		if skipNotConnectable && strings.HasSuffix(peer, ":1") {
 			continue
@@ -245,9 +244,7 @@ func (s *Site) AnnouncePex() {
 			}
 			s.log.WithField("peer", sitePeer).Infof("found %d peers", len(resp.Peers))
 			for _, peerAddr := range resp.Peers {
-				var addr [6]byte
-				copy(addr[:], peerAddr)
-				newPeerAddr := ip.ParseIPv4(addr)
+				newPeerAddr := ip.ParseIPv4(peerAddr, binary.BigEndian)
 				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
 					Address: newPeerAddr,
 				})

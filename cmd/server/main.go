@@ -41,8 +41,8 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	}
 	defer contentDB.Close()
 
-	contentManager := content.NewManager(contentDB, pubsubManager)
-	defer contentManager.Close()
+	contentWorker := content.NewWorker(contentDB, pubsubManager)
+	defer contentWorker.Close()
 
 	siteManager, err := site.NewManager(pubsubManager, userManager, contentDB)
 	if err != nil {

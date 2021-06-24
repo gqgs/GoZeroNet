@@ -26,3 +26,14 @@ func (e *PeerCandidate) String() string {
 func BroadcastPeerCandidate(site string, broadcaster EventBroadcaster, peerCandidate *PeerCandidate) {
 	broadcaster.Broadcast(site, peerCandidate)
 }
+
+// Signals that the site needs more peers
+type PeersNeed struct{}
+
+func (e *PeersNeed) String() string {
+	return "PeersNeed"
+}
+
+func BroadcastPeersNeed(site string, broadcaster EventBroadcaster, peersNeed *PeersNeed) {
+	broadcaster.Broadcast(site, peersNeed)
+}

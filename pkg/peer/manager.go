@@ -1,7 +1,6 @@
 package peer
 
 import (
-	"errors"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -51,7 +50,8 @@ func (m *manager) GetConnected() (*peer, error) {
 	case connected := <-m.connectedCh:
 		return connected, nil
 	case <-time.After(waitForconnectedTimeout):
-		return nil, errors.New("could not find any connected peers")
+		event.BroadcastPeersNeed(m.site, m.pubsubManager, &event.PeersNeed{})
+		return m.GetConnected()
 	}
 }
 
@@ -89,6 +89,21 @@ func (m *manager) processPeerCandidates() {
 						m.log.WithField("peer", candidate).Warn(err)
 						return
 					}
+					resp, err := fileserver.Ping(peer)
+					if err != nil {
+						peer.Close()
+						m.log.WithField("peer", candidate).Warn(err)
+						return
+					}
+
+					if resp.Body != "Pong!" {
+						peer.Close()
+						m.log.WithField("peer", candidate).Warn("invalid ping response: %s", resp.Body)
+						return
+					}
+
+					m.log.Info("new connected peer")
+
 					m.connectedCh <- peer
 				}()
 			}

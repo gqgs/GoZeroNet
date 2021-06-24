@@ -22,6 +22,7 @@ type config struct {
 	MaxConnectedPeers        int      `toml:"max_connected_peers"`
 	ConnectionDeadline       duration `toml:"connection_deadline"`
 	FileServerDeadline       duration `toml:"fileserver_deadline"`
+	FileNeedDeadline         duration `toml:"file_need_deadline"`
 }
 
 func init() {
@@ -50,6 +51,7 @@ func init() {
 		MaxConnectedPeers = c.MaxConnectedPeers
 		ConnectionDeadline = c.ConnectionDeadline.Duration
 		FileServerDeadline = c.FileServerDeadline.Duration
+		FileNeedDeadline = c.FileNeedDeadline.Duration
 
 		return
 	}
@@ -85,6 +87,7 @@ var (
 	Trackers                 []string
 	ConnectionDeadline       time.Duration
 	FileServerDeadline       time.Duration
+	FileNeedDeadline         time.Duration
 
 	FileServerHost = "127.0.0.1"
 	FileServerPort = 0

@@ -1,6 +1,7 @@
 package site
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"io/fs"
@@ -137,11 +138,31 @@ func (s *Site) DecodeJSON(filename string, v interface{}) error {
 	return json.NewDecoder(file).Decode(v)
 }
 
-func (s *Site) ReadFile(innerPath string, dst io.Writer) error {
+func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) error {
 	path := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
 	file, err := os.Open(path)
 	if err != nil {
-		// TODO: download file
+		if os.IsNotExist(err) {
+			msgCh := s.pubsubManager.Register(10)
+			defer s.pubsubManager.Unregister(msgCh)
+			event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{InnerPath: innerPath})
+			for {
+				select {
+				case <-ctx.Done():
+					return err
+				case msg := <-msgCh:
+					if msg.Site() != s.addr {
+						continue
+					}
+					if updated, ok := msg.Event().(*event.FileInfo); ok {
+						if updated.InnerPath == innerPath && updated.IsDownloaded {
+							s.log.WithField("inner_path", innerPath).Info("file downloaded!")
+							return s.ReadFile(ctx, innerPath, dst)
+						}
+					}
+				}
+			}
+		}
 		return err
 	}
 	defer file.Close()

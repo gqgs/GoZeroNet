@@ -30,9 +30,10 @@ type (
 )
 
 // GetFile requests and concatenates all chunks of the file
-func GetFileFull(conn net.Conn, site, innerPath string) (*getFileResponse, error) {
+func GetFileFull(conn net.Conn, site, innerPath string, size int) (*getFileResponse, error) {
 	var body []byte
 	var location int
+
 	for {
 		resp, err := GetFile(conn, site, innerPath, location, 0)
 		if err != nil {
@@ -47,6 +48,7 @@ func GetFileFull(conn net.Conn, site, innerPath string) (*getFileResponse, error
 		}
 		location = resp.Location
 	}
+
 	return &getFileResponse{
 		CMD:      "response",
 		To:       1,

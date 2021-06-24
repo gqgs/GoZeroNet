@@ -36,8 +36,8 @@ func download(addr string, daysAgo int) error {
 		return err
 	}
 
-	contentManager := content.NewManager(contentDB, pubsubManager)
-	defer contentManager.Close()
+	contentWorker := content.NewWorker(contentDB, pubsubManager)
+	defer contentWorker.Close()
 
 	peerManager := peer.NewManager(pubsubManager, addr)
 	defer peerManager.Close()
@@ -80,8 +80,8 @@ func downloadRecent(addr string, daysAgo int) error {
 		return errors.New("site not found")
 	}
 
-	contentManager := content.NewManager(contentDB, pubsubManager)
-	defer contentManager.Close()
+	contentWorker := content.NewWorker(contentDB, pubsubManager)
+	defer contentWorker.Close()
 
 	peerManager := peer.NewManager(pubsubManager, addr)
 	defer peerManager.Close()

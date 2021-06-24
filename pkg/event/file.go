@@ -5,6 +5,8 @@ type FileInfo struct {
 	Hash         string `json:"hash"`
 	Size         int    `json:"size"`
 	IsDownloaded bool   `json:"is_downloaded"`
+	IsPinned     bool   `json:"is_pinned"`
+	IsOptional   bool   `json:"is_optional"`
 }
 
 func (e *FileInfo) String() string {
@@ -13,4 +15,16 @@ func (e *FileInfo) String() string {
 
 func BroadcastFileInfoUpdate(site string, broadcaster EventBroadcaster, fileInfo *FileInfo) {
 	broadcaster.Broadcast(site, fileInfo)
+}
+
+type FileNeed struct {
+	InnerPath string `json:"inner_path"`
+}
+
+func (e *FileNeed) String() string {
+	return "fileNeed"
+}
+
+func BroadcastFileNeed(site string, broadcaster EventBroadcaster, fileNeed *FileNeed) {
+	broadcaster.Broadcast(site, fileNeed)
 }

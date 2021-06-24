@@ -16,3 +16,4 @@ max_connected_peers = 10
 
 connection_deadline = "10s"
 fileserver_deadline = "10s"
+file_need_deadline = "30s"

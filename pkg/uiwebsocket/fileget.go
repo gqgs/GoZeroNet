@@ -1,11 +1,15 @@
 package uiwebsocket
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"io"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/gqgs/go-zeronet/pkg/config"
 )
 
 type (
@@ -41,8 +45,17 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 		writer = reader
 	}
 
-	if err := w.site.ReadFile(payload.Params.InnerPath, writer); err != nil {
-		// TODO: download file with timeout if required
+	var timeout time.Duration
+	if payload.Params.Required {
+		timeout = config.FileNeedDeadline
+		if payload.Params.Timeout > 0 {
+			timeout = time.Duration(payload.Params.Timeout * uint(time.Second))
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err := w.site.ReadFile(ctx, payload.Params.InnerPath, writer); err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}
