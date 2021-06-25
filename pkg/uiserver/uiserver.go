@@ -116,7 +116,7 @@ func (s *server) Listen(ctx context.Context) {
 func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 	site := chi.URLParam(r, "site")
 	innerPath := strings.TrimPrefix(r.URL.Path, "/"+site)
-	innerPath = strings.TrimSuffix(innerPath, "/")
+	innerPath = strings.Trim(innerPath, "/")
 
 	if innerPath == "" {
 		if err := s.siteManager.RenderIndex(site, "index.html", w); err != nil {
