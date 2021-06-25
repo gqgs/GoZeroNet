@@ -4,6 +4,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -133,9 +134,9 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		relPath := safe.CleanPath(filename)
 
 		info, err := s.contentDB.FileInfo(s.addr, relPath)
-		switch err {
-		case database.ErrFileNotFound:
-		case nil:
+		switch {
+		case errors.Is(err, database.ErrFileNotFound):
+		case err == nil:
 		default:
 			logger.Error(err)
 			continue
@@ -155,9 +156,9 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		relPath := safe.CleanPath(filename)
 
 		info, err := s.contentDB.FileInfo(s.addr, relPath)
-		switch err {
-		case database.ErrFileNotFound:
-		case nil:
+		switch {
+		case errors.Is(err, database.ErrFileNotFound):
+		case err == nil:
 		default:
 			logger.Error(err)
 			continue

@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
@@ -101,7 +102,7 @@ func (o *optionalManager) optionalFileInfo(w pluginWriter, site *site.Site, mess
 	}
 
 	info, err := site.FileInfo(request.Params.InnerPath)
-	if err != nil && err != database.ErrFileNotFound {
+	if err != nil && !errors.Is(err, database.ErrFileNotFound) {
 		return err
 	}
 

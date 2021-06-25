@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"path"
 	"time"
@@ -11,7 +12,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/storage"
 )
 
-var ErrFileNotFound = errors.New("file not found")
+var ErrFileNotFound = errors.New("content: file info not found")
 
 type ContentDatabase interface {
 	io.Closer
@@ -64,7 +65,7 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 		}
 		return info, rows.Err()
 	}
-	return info, ErrFileNotFound
+	return info, fmt.Errorf("%w: %s", ErrFileNotFound, innerPath)
 }
 
 func (c *contentDatabase) Close() error {
