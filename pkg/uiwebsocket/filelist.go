@@ -1,6 +1,8 @@
 package uiwebsocket
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type (
 	fileListRequest struct {

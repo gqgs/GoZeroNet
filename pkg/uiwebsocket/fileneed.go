@@ -1,6 +1,9 @@
 package uiwebsocket
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 type (
 	fileNeedRequest struct {
@@ -23,7 +26,7 @@ func (w *uiWebsocket) fileNeed(rawMessage []byte, message Message) error {
 		return err
 	}
 
-	if err := w.site.FileNeed(payload.Params.InnerPath); err != nil {
+	if err := w.site.FileNeed(strings.TrimSuffix(payload.Params.InnerPath, "|all")); err != nil {
 		return err
 	}
 
