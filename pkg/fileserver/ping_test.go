@@ -9,7 +9,7 @@ import (
 )
 
 func Test_Ping(t *testing.T) {
-	srv, err := NewServer(config.RandomIPv4Addr)
+	srv, err := NewServer(config.RandomIPv4Addr, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,6 +28,5 @@ func Test_Ping(t *testing.T) {
 	}
 
 	assert.Equal(t, "response", resp.CMD)
-	assert.Equal(t, 1, resp.To)
 	assert.Equal(t, "Pong!", resp.Body)
 }

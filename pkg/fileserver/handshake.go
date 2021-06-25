@@ -11,7 +11,7 @@ import (
 type (
 	handshakeRequest struct {
 		CMD    string          `msgpack:"cmd"`
-		ReqID  int             `msgpack:"req_id"`
+		ReqID  int64           `msgpack:"req_id"`
 		Params handshakeParams `msgpack:"params"`
 	}
 
@@ -31,7 +31,7 @@ type (
 
 	handshakeResponse struct {
 		CMD            string   `msgpack:"cmd"`
-		To             int      `msgpack:"to"`
+		To             int64    `msgpack:"to"`
 		Crypt          string   `msgpack:"crypt"`
 		CryptSupported []string `msgpack:"crypt_supported"`
 		FileserverPort int      `msgpack:"fileserver_port"`
@@ -62,7 +62,7 @@ func Handshake(conn net.Conn, addr string) (*handshakeResponse, error) {
 
 	encoded, err := msgpack.Marshal(&handshakeRequest{
 		CMD:   "handshake",
-		ReqID: 1,
+		ReqID: counter(),
 		Params: handshakeParams{
 			CryptSupported: make([]string, 0),
 			FileserverPort: config.FileServerPort,
@@ -87,7 +87,8 @@ func Handshake(conn net.Conn, addr string) (*handshakeResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func handshakeHandler(conn net.Conn, decoder requestDecoder, fileServer *server) error {
+func (s *server) handshakeHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new handshake request")
 	var r handshakeRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
@@ -109,7 +110,7 @@ func handshakeHandler(conn net.Conn, decoder requestDecoder, fileServer *server)
 		CMD:            "response",
 		To:             r.ReqID,
 		CryptSupported: make([]string, 0),
-		FileserverPort: fileServer.port,
+		FileserverPort: config.FileServerPort,
 		Protocol:       config.Protocol,
 		PortOpened:     config.PortOpened,
 		PeerID:         peerID,

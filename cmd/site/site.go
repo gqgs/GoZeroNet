@@ -30,6 +30,7 @@ func download(addr string, daysAgo int) error {
 	if err != nil {
 		return err
 	}
+	defer siteManager.Close()
 
 	newSite, err := siteManager.NewSite(addr)
 	if err != nil {
@@ -74,6 +75,7 @@ func downloadRecent(addr string, daysAgo int) error {
 	if err != nil {
 		return err
 	}
+	defer siteManager.Close()
 
 	site := siteManager.Site(addr)
 	if site == nil {

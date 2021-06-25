@@ -13,7 +13,8 @@ type unknownResponse struct {
 	Error string `msgpack:"error"`
 }
 
-func unknownHandler(conn net.Conn, decoder requestDecoder) error {
+func (s *server) unknownHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new unknown request")
 	reqID, err := decodeKey(decoder, "req_id")
 	if err != nil {
 		return err

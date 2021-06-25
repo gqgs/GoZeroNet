@@ -9,14 +9,14 @@ import (
 )
 
 func Test_Handshake(t *testing.T) {
-	srv, err := NewServer(config.RandomIPv4Addr)
+	srv, err := NewServer(config.RandomIPv4Addr, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer srv.Shutdown()
 	go srv.Listen()
 
-	clientFileServer, err := NewServer(config.RandomIPv4Addr)
+	clientFileServer, err := NewServer(config.RandomIPv4Addr, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,9 +34,7 @@ func Test_Handshake(t *testing.T) {
 	}
 
 	assert.Equal(t, "response", resp.CMD)
-	assert.Equal(t, 1, resp.To)
 	assert.Equal(t, "", resp.Crypt)
-	assert.Equal(t, srv.port, resp.FileserverPort)
 	assert.Equal(t, config.Protocol, resp.Protocol)
 	assert.Equal(t, config.PortOpened, resp.PortOpened)
 	assert.Equal(t, "", resp.PeerID)

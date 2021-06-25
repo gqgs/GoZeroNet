@@ -9,7 +9,7 @@ import (
 type (
 	findHashIDsRequest struct {
 		CMD    string            `msgpack:"cmd"`
-		ReqID  int               `msgpack:"req_id"`
+		ReqID  int64             `msgpack:"req_id"`
 		Params findHashIDsParams `msgpack:"params"`
 	}
 	findHashIDsParams struct {
@@ -19,7 +19,7 @@ type (
 
 	findHashIDsResponse struct {
 		CMD        string           `msgpack:"cmd"`
-		To         int              `msgpack:"to"`
+		To         int64            `msgpack:"to"`
 		Peers      map[int][][]byte `msgpack:"peers"`
 		PeersOnion map[int][][]byte `msgpack:"peers_onion"`
 		Error      string           `msgpack:"error,omitempty" json:"error,omitempty"`
@@ -29,7 +29,7 @@ type (
 func FindHashIDs(conn net.Conn, site string, hashIDs ...int) (*findHashIDsResponse, error) {
 	encoded, err := msgpack.Marshal(&findHashIDsRequest{
 		CMD:   "findHashIds",
-		ReqID: 1,
+		ReqID: counter(),
 		Params: findHashIDsParams{
 			Site:    site,
 			HashIDs: hashIDs,
@@ -47,7 +47,8 @@ func FindHashIDs(conn net.Conn, site string, hashIDs ...int) (*findHashIDsRespon
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func findHashIDsHandler(conn net.Conn, decoder requestDecoder) error {
+func (s *server) findHashIDsHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new findHashIds request")
 	var r findHashIDsRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

@@ -10,7 +10,6 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
-	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uiwebsocket/plugin"
 )
@@ -52,13 +51,6 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fi
 func (w *uiWebsocket) Serve() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	// TODO: move to cmd
-	peerManager := peer.NewManager(w.pubsubManager, w.site.Address())
-	defer peerManager.Close()
-
-	worker := w.site.NewWorker(peerManager)
-	defer worker.Close()
 
 	if err := w.site.OpenDB(); err != nil {
 		w.log.Fatal(err)

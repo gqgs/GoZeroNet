@@ -31,13 +31,13 @@ type worker struct {
 
 // Creates a new site worker.
 // Caller is responsible for calling close when the worker is no longer needed.
-func (s *Site) NewWorker(peerManager peer.Manager) *worker {
+func (s *Site) NewWorker() *worker {
 	w := &worker{
 		log:         log.New("site_worker"),
 		queue:       s.pubsubManager.Register(50),
 		closeCh:     make(chan struct{}),
 		site:        s,
-		peerManager: peerManager,
+		peerManager: s.peerManager,
 		downloading: make(map[string]struct{}),
 	}
 	go w.run()
@@ -50,6 +50,8 @@ func (w *worker) run() {
 		case *event.PeersNeed:
 			w.log.Debug("peer need event")
 			go w.site.Announce()
+		case *event.SiteUpdate:
+			w.log.WithField("inner_path", payload.InnerPath).Debug("site update event")
 		case *event.FileNeed:
 			w.log.Debug("file need event")
 

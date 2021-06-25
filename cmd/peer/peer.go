@@ -30,7 +30,7 @@ func ping(addr string) error {
 }
 
 func handshake(addr string) error {
-	srv, err := fileserver.NewServer(config.RandomIPv4Addr)
+	srv, err := fileserver.NewServer(config.RandomIPv4Addr, nil, nil)
 	if err != nil {
 		return err
 	}

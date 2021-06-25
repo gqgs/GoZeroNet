@@ -27,6 +27,7 @@ func rebuild(addr string) error {
 	if err != nil {
 		return err
 	}
+	defer siteManager.Close()
 
 	site := siteManager.Site(addr)
 	if site == nil {

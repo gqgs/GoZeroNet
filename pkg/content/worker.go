@@ -47,6 +47,11 @@ func (w *worker) run() {
 			if err := w.db.UpdatePeer(msg.Site(), payload); err != nil {
 				w.log.Error(err)
 			}
+		case *event.ContentInfo:
+			w.log.Debug("content update event")
+			if err := w.db.UpdateContent(msg.Site(), payload); err != nil {
+				w.log.Error(err)
+			}
 		}
 	}
 	close(w.closeCh)

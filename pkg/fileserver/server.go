@@ -9,10 +9,15 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
+	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/spf13/cast"
 	"github.com/vmihailenco/msgpack/v5"
 )
+
+var counter = safe.Counter()
 
 // Implements the protocol specified at:
 // https://zeronet.io/docs/help_zeronet/network_protocol/
@@ -20,16 +25,18 @@ import (
 // Every message is encoded with MessagePack.
 // Every request has 3 parameters: `cmd`, `req_id` and `params`.
 type server struct {
-	l    net.Listener
-	log  log.Logger
-	addr string // host:port
-	host string
-	port int
+	l             net.Listener
+	log           log.Logger
+	addr          string // host:port
+	host          string
+	port          int
+	contentDB     database.ContentDatabase
+	pubsubManager pubsub.Manager
 }
 
 type Server interface{}
 
-func NewServer(addr string) (*server, error) {
+func NewServer(addr string, contentDB database.ContentDatabase, pubsubManager pubsub.Manager) (*server, error) {
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
@@ -46,11 +53,13 @@ func NewServer(addr string) (*server, error) {
 	config.FileServerPort = port
 
 	return &server{
-		addr: chosenAddr,
-		port: port,
-		host: host,
-		l:    l,
-		log:  log.New("fileserver"),
+		addr:          chosenAddr,
+		port:          port,
+		host:          host,
+		l:             l,
+		log:           log.New("fileserver"),
+		contentDB:     contentDB,
+		pubsubManager: pubsubManager,
 	}, nil
 }
 
@@ -115,26 +124,26 @@ func (s *server) route(conn net.Conn) error {
 
 	switch cast.ToString(cmd) {
 	case "ping":
-		return pingHandler(conn, decoder)
+		return s.pingHandler(conn, decoder)
 	case "handshake":
-		return handshakeHandler(conn, decoder, s)
+		return s.handshakeHandler(conn, decoder)
 	case "getFile":
-		return getFileHandler(conn, decoder)
+		return s.getFileHandler(conn, decoder)
 	case "streamFile":
-		return streamFileHandler(conn, decoder)
+		return s.streamFileHandler(conn, decoder)
 	case "checkport":
-		return checkPortHandler(conn, decoder, s)
+		return s.checkPortHandler(conn, decoder)
 	case "pex":
-		return pexHandler(conn, decoder)
+		return s.pexHandler(conn, decoder)
 	case "listModified":
-		return listModifiedHandler(conn, decoder)
+		return s.listModifiedHandler(conn, decoder)
 	case "update":
-		return updateHandler(conn, decoder)
+		return s.updateHandler(conn, decoder)
 	case "fileHashIdsHandler":
-		return findHashIDsHandler(conn, decoder)
+		return s.findHashIDsHandler(conn, decoder)
 	default:
 		s.log.WithField("cmd", cmd).Warn("unknown request")
-		return unknownHandler(conn, decoder)
+		return s.unknownHandler(conn, decoder)
 	}
 }
 

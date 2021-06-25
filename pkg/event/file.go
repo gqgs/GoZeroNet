@@ -7,6 +7,7 @@ type FileInfo struct {
 	IsDownloaded bool   `json:"is_downloaded"`
 	IsPinned     bool   `json:"is_pinned"`
 	IsOptional   bool   `json:"is_optional"`
+	Uploaded     int    `json:"uploaded"`
 }
 
 func (e *FileInfo) String() string {

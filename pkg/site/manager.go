@@ -23,6 +23,7 @@ type Manager interface {
 	ReadFile(site, innerPath string, dst io.Writer) error
 	SiteByWrapperKey(wrapperKey string) *Site
 	SiteList() ([]*Info, error)
+	Close()
 }
 
 type manager struct {
@@ -43,6 +44,12 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
 		return nil, err
 	}
 
+	// peerManager := peer.NewManager(w.pubsubManager, w.site.Address())
+	// defer peerManager.Close()
+
+	// worker := w.site.NewWorker(peerManager)
+	// defer worker.Close()
+
 	user := userManager.User()
 	sites := make(map[string]*Site)
 	wrapperKeyMap := make(map[string]*Site)
@@ -57,6 +64,8 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
 		site.user = user
 		site.log = log.New("site").WithField("site", addr)
 		site.contentDB = contentDB
+		site.peerManager = peer.NewManager(pubsubManager, addr)
+		site.workerManager = site.NewWorker()
 
 		for _, permission := range site.Settings.Permissions {
 			if strings.EqualFold(permission, "admin") {
@@ -92,7 +101,8 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.pubsubManager = m.pubsubManager
 	site.log = log.New(addr)
 	site.contentDB = m.contentDB
-
+	site.peerManager = peer.NewManager(m.pubsubManager, addr)
+	site.workerManager = site.NewWorker()
 	site.Settings.Added = time.Now().Unix()
 
 	m.wrapperKeyMap[addr] = site
@@ -208,4 +218,11 @@ func (m *manager) SiteList() ([]*Info, error) {
 		i++
 	}
 	return list, nil
+}
+
+func (m *manager) Close() {
+	for _, site := range m.sites {
+		site.peerManager.Close()
+		site.workerManager.Close()
+	}
 }

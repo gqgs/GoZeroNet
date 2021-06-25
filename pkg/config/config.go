@@ -66,7 +66,8 @@ const (
 	PortOpened = true
 	// UseBinType tells msgpack to use the bin type
 	// instead of the deprecated raw type.
-	UseBinType = true
+	UseBinType       = true
+	FileGetSizeLimit = 512 * 1024
 
 	DefaultFileServerAddr = "127.0.0.1:0"
 	DefaultUIServerAddr   = "127.0.0.1:43111"

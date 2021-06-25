@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strconv"
 )
 
 func ParseIPv4(addr []byte, byteOrder binary.ByteOrder) string {
@@ -17,4 +18,27 @@ func ParseIPv4(addr []byte, byteOrder binary.ByteOrder) string {
 	parsedPort := byteOrder.Uint16(port)
 
 	return fmt.Sprintf("%s:%d", parsedIP, parsedPort)
+}
+
+func PackIPv4(ip string, byteOrder binary.ByteOrder) []byte {
+	host, port, err := net.SplitHostPort(ip)
+	if err != nil {
+		return nil
+	}
+
+	parsedHost := net.ParseIP(host)
+	if parsedHost == nil {
+		return nil
+	}
+	parsedHost = parsedHost.To4()
+
+	i, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		return nil
+	}
+
+	parsedPort := make([]byte, 2)
+	byteOrder.PutUint16(parsedPort, uint16(i))
+
+	return []byte{parsedHost[0], parsedHost[1], parsedHost[2], parsedHost[3], parsedPort[0], parsedPort[1]}
 }

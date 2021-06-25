@@ -18,16 +18,22 @@ type ContentDatabase interface {
 	io.Closer
 	UpdateFile(site string, fileInfo *event.FileInfo) error
 	UpdatePeer(site string, peerInfo *event.PeerInfo) error
+	UpdateContent(site string, contentInfo *event.ContentInfo) error
 	FileInfo(site, innerPath string) (*event.FileInfo, error)
-	GetUpdatedFiles(site string, since time.Time) ([]string, error)
+	UpdatedFiles(site string, since time.Time) ([]string, error)
+	UpdatedContent(site string, since int) (map[string]int, error)
+	Peers(site string) ([]string, error)
 }
 
 type contentDatabase struct {
 	storage storage.Storage
 }
 
-func (c *contentDatabase) GetUpdatedFiles(site string, since time.Time) ([]string, error) {
-	const query = "SELECT f.inner_path FROM file f INNER JOIN site s USING(site_id) WHERE s.address = ? AND f.time_added >= ?"
+func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, error) {
+	const query = `
+		SELECT f.inner_path FROM file f INNER JOIN site s USING(site_id)
+		WHERE s.address = ? AND f.time_added >= ?
+	`
 	rows, err := c.storage.Query(query, site, since)
 	if err != nil {
 		return nil, err
@@ -48,7 +54,7 @@ func (c *contentDatabase) GetUpdatedFiles(site string, since time.Time) ([]strin
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
 	query := `
-		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional
+		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional, f.uploaded
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`
@@ -59,8 +65,8 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 	defer rows.Close()
 
 	info := new(event.FileInfo)
-	if next := rows.Next(); next {
-		if err := rows.Scan(&info.InnerPath, &info.Hash, &info.Size, &info.IsDownloaded, &info.IsPinned, &info.IsOptional); err != nil {
+	if rows.Next() {
+		if err := rows.Scan(&info.InnerPath, &info.Hash, &info.Size, &info.IsDownloaded, &info.IsPinned, &info.IsOptional, &info.Uploaded); err != nil {
 			return nil, err
 		}
 		return info, rows.Err()
@@ -87,12 +93,23 @@ func (c *contentDatabase) UpdateFile(site string, fileInfo *event.FileInfo) erro
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?)
+		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional, uploaded)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (site_id, inner_path, hash) DO
-		UPDATE SET is_downloaded = excluded.is_downloaded, is_pinned = excluded.is_pinned, is_optional = excluded.is_optional
+		UPDATE SET
+			is_downloaded = excluded.is_downloaded,
+			is_pinned = excluded.is_pinned,
+			is_optional = excluded.is_optional,
+			uploaded = excluded.uploaded
 		`,
-		site, fileInfo.InnerPath, fileInfo.Hash, fileInfo.Size, fileInfo.IsDownloaded, fileInfo.IsPinned, fileInfo.IsOptional); err != nil {
+		site, fileInfo.InnerPath,
+		fileInfo.Hash,
+		fileInfo.Size,
+		fileInfo.IsDownloaded,
+		fileInfo.IsPinned,
+		fileInfo.IsOptional,
+		fileInfo.Uploaded,
+	); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -120,6 +137,77 @@ func (c *contentDatabase) UpdatePeer(site string, peerInfo *event.PeerInfo) erro
 	return tx.Commit()
 }
 
+func (c *contentDatabase) UpdateContent(site string, contentInfo *event.ContentInfo) error {
+	tx, err := c.storage.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec("INSERT OR IGNORE INTO site (address) VALUES (?)", site); err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(`
+		INSERT INTO content (site_id, inner_path, modified)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?)
+		ON CONFLICT (site_id, inner_path) DO UPDATE SET modified = modified + excluded.modified
+		`, site, contentInfo.InnerPath, contentInfo.Modified); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (c *contentDatabase) UpdatedContent(site string, since int) (map[string]int, error) {
+	query := `
+		SELECT c.inner_path, c.modified
+		FROM content c INNER JOIN site s USING(site_id)
+		WHERE s.address = ? AND c.modified > ?
+		ORDER BY c.modified DESC
+		LIMIT 100
+	`
+	rows, err := c.storage.Query(query, site, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	contentList := make(map[string]int)
+	if rows.Next() {
+		var innerPath string
+		var modified int
+		if err := rows.Scan(&innerPath, &modified); err != nil {
+			return nil, err
+		}
+		contentList[innerPath] = modified
+	}
+	return contentList, nil
+
+}
+
+func (c *contentDatabase) Peers(site string) ([]string, error) {
+	var peers []string
+	query := `
+		SELECT p.address
+		FROM peer p INNER JOIN site s USING(site_id)
+		WHERE s.address = ?
+	`
+	rows, err := c.storage.Query(query, site)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var peer string
+	if rows.Next() {
+		if err := rows.Scan(&peer); err != nil {
+			return nil, err
+		}
+		peers = append(peers, peer)
+	}
+	return peers, rows.Err()
+}
+
 func NewContentDatabase() (*contentDatabase, error) {
 	dbPath := path.Join(config.DataDir, "content.db")
 	storage, err := storage.NewStorage(dbPath)
@@ -141,6 +229,11 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE INDEX IF NOT EXISTS file_path ON file (inner_path)`,
 		`CREATE INDEX IF NOT EXISTS file_hash ON file (hash)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path, hash)`,
+
+		// Content
+		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS content_key ON content (site_id, inner_path)`,
+		`CREATE INDEX IF NOT EXISTS content_modified ON content (site_id, modified)`,
 	}
 
 	tx, err := storage.Begin()

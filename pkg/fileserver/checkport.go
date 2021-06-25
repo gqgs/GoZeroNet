@@ -3,13 +3,14 @@ package fileserver
 import (
 	"net"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type (
 	checkPortRequest struct {
 		CMD    string          `msgpack:"cmd"`
-		ReqID  int             `msgpack:"req_id"`
+		ReqID  int64           `msgpack:"req_id"`
 		Params checkPortParams `msgpack:"params"`
 	}
 	checkPortParams struct {
@@ -18,7 +19,7 @@ type (
 
 	checkPortResponse struct {
 		CMD        string `msgpack:"cmd"`
-		To         int    `msgpack:"to"`
+		To         int64  `msgpack:"to"`
 		Status     string `msgpack:"status"`
 		IPExternal string `msgpack:"ip_external"`
 		Error      string `msgpack:"error,omitempty" json:"error,omitempty"`
@@ -28,7 +29,7 @@ type (
 func CheckPort(conn net.Conn, port int) (*checkPortResponse, error) {
 	encoded, err := msgpack.Marshal(&checkPortRequest{
 		CMD:   "checkport",
-		ReqID: 1,
+		ReqID: counter(),
 		Params: checkPortParams{
 			Port: port,
 		},
@@ -45,14 +46,15 @@ func CheckPort(conn net.Conn, port int) (*checkPortResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func checkPortHandler(conn net.Conn, decoder requestDecoder, server *server) error {
+func (s *server) checkPortHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new check port request")
 	var r checkPortRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
 
 	status := "closed"
-	if r.Params.Port == server.port {
+	if r.Params.Port == config.FileServerPort {
 		status = "open"
 	}
 	data, err := msgpack.Marshal(&checkPortResponse{

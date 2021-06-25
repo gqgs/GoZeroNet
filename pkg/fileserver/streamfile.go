@@ -1,16 +1,23 @@
 package fileserver
 
 import (
+	"errors"
 	"io"
 	"net"
+	"os"
+	"path"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/database"
+	"github.com/gqgs/go-zeronet/pkg/event"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type (
 	streamFileRequest struct {
 		CMD    string           `msgpack:"cmd"`
-		ReqID  int              `msgpack:"req_id"`
+		ReqID  int64            `msgpack:"req_id"`
 		Params streamFileParams `msgpack:"params"`
 	}
 	streamFileParams struct {
@@ -22,7 +29,7 @@ type (
 
 	streamFileResponse struct {
 		CMD         string `msgpack:"cmd"`
-		To          int    `msgpack:"to"`
+		To          int64  `msgpack:"to"`
 		StreamBytes int    `msgpack:"stream_bytes"`
 		Error       string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
@@ -52,7 +59,6 @@ func StreamFileFull(conn net.Conn, site, innerPath string, size int) (*getFileRe
 
 	return &getFileResponse{
 		CMD:      "response",
-		To:       1,
 		Body:     body,
 		Location: location,
 		Size:     len(body),
@@ -62,7 +68,7 @@ func StreamFileFull(conn net.Conn, site, innerPath string, size int) (*getFileRe
 func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*streamFileResponse, io.Reader, error) {
 	encoded, err := msgpack.Marshal(&streamFileRequest{
 		CMD:   "streamFile",
-		ReqID: 1,
+		ReqID: counter(),
 		Params: streamFileParams{
 			Site:      site,
 			InnerPath: innerPath,
@@ -90,24 +96,51 @@ func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*str
 	return result, io.LimitReader(reader, int64(result.StreamBytes)), nil
 }
 
-func streamFileHandler(conn net.Conn, decoder requestDecoder) error {
-	// TODO: get values from storage + handle reputation + write to stream
+func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new streamFile request")
 	var r streamFileRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
 
-	file := []byte("hello wolrd")
+	var size int
+	var body []byte
+	if info, err := s.contentDB.FileInfo(r.Params.Site, r.Params.InnerPath); err != nil {
+		if !errors.Is(err, database.ErrFileNotFound) {
+			return err
+		}
+	} else {
+		innerPath := path.Join(config.DataDir, r.Params.Site, safe.CleanPath(r.Params.InnerPath))
+		file, err := os.Open(innerPath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
 
-	encoded, err := msgpack.Marshal(&streamFileResponse{
+		body = make([]byte, config.FileGetSizeLimit)
+		size, err = file.ReadAt(body, int64(r.Params.Location))
+		if err != nil && err != io.EOF {
+			return err
+		}
+		body = body[:size]
+
+		info.Uploaded += size
+		event.BroadcastFileInfoUpdate(r.Params.Site, s.pubsubManager, info)
+	}
+
+	data, err := msgpack.Marshal(&streamFileResponse{
 		CMD:         "response",
 		To:          r.ReqID,
-		StreamBytes: len(file),
+		StreamBytes: size,
 	})
 	if err != nil {
 		return err
 	}
 
-	_, err = conn.Write(append(encoded, file...))
+	if _, err = conn.Write(data); err != nil {
+		return err
+	}
+
+	_, err = conn.Write(body)
 	return err
 }

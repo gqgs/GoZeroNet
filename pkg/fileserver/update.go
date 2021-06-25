@@ -3,13 +3,14 @@ package fileserver
 import (
 	"net"
 
+	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type (
 	updateRequest struct {
 		CMD    string       `msgpack:"cmd"`
-		ReqID  int          `msgpack:"req_id"`
+		ReqID  int64        `msgpack:"req_id"`
 		Params updateParams `msgpack:"params"`
 	}
 	updateParams struct {
@@ -20,7 +21,7 @@ type (
 
 	updateResponse struct {
 		CMD   string `msgpack:"cmd"`
-		To    int    `msgpack:"to"`
+		To    int64  `msgpack:"to"`
 		Ok    bool   `msgpack:"ok"`
 		Error string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
@@ -30,7 +31,7 @@ func Update(conn net.Conn, site, innerPath string) (*updateResponse, error) {
 	// TODO: include content.json body + diffs
 	encoded, err := msgpack.Marshal(&updateRequest{
 		CMD:   "update",
-		ReqID: 1,
+		ReqID: counter(),
 		Params: updateParams{
 			Site:      site,
 			InnerPath: innerPath,
@@ -49,12 +50,17 @@ func Update(conn net.Conn, site, innerPath string) (*updateResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func updateHandler(conn net.Conn, decoder requestDecoder) error {
-	// TODO: validate body and update content
+func (s *server) updateHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new update request")
 	var r updateRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
+
+	event.BroadcastSiteUpdate(r.Params.Site, s.pubsubManager, &event.SiteUpdate{
+		InnerPath: r.Params.InnerPath,
+		Body:      r.Params.Body,
+	})
 
 	data, err := msgpack.Marshal(&updateResponse{
 		CMD: "response",

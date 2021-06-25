@@ -39,7 +39,7 @@ func (s *Site) FileInfo(innerPath string) (*event.FileInfo, error) {
 }
 
 func (s *Site) UpdateDB(since time.Time) error {
-	updated, err := s.contentDB.GetUpdatedFiles(s.addr, since)
+	updated, err := s.contentDB.UpdatedFiles(s.addr, since)
 	if err != nil {
 		return err
 	}

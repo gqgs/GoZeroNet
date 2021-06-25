@@ -9,7 +9,7 @@ import (
 type (
 	listModifiedRequest struct {
 		CMD    string             `msgpack:"cmd"`
-		ReqID  int                `msgpack:"req_id"`
+		ReqID  int64              `msgpack:"req_id"`
 		Params listModifiedParams `msgpack:"params"`
 	}
 	listModifiedParams struct {
@@ -19,7 +19,7 @@ type (
 
 	listModifiedResponse struct {
 		CMD           string         `msgpack:"cmd"`
-		To            int            `msgpack:"to"`
+		To            int64          `msgpack:"to"`
 		ModifiedFiles map[string]int `msgpack:"modified_files"`
 		Error         string         `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
@@ -28,7 +28,7 @@ type (
 func ListModified(conn net.Conn, site string, since int) (*listModifiedResponse, error) {
 	encoded, err := msgpack.Marshal(&listModifiedRequest{
 		CMD:   "listModified",
-		ReqID: 1,
+		ReqID: counter(),
 		Params: listModifiedParams{
 			Site:  site,
 			Since: since,
@@ -46,17 +46,22 @@ func ListModified(conn net.Conn, site string, since int) (*listModifiedResponse,
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func listModifiedHandler(conn net.Conn, decoder requestDecoder) error {
+func (s *server) listModifiedHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new list modified request")
 	var r listModifiedRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
 
-	// TODO: list modified files
+	modified, err := s.contentDB.UpdatedContent(r.Params.Site, r.Params.Since)
+	if err != nil {
+		return err
+	}
+
 	data, err := msgpack.Marshal(&listModifiedResponse{
 		CMD:           "response",
 		To:            r.ReqID,
-		ModifiedFiles: make(map[string]int),
+		ModifiedFiles: modified,
 	})
 	if err != nil {
 		return err

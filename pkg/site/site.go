@@ -37,6 +37,8 @@ type Site struct {
 	log               log.Logger
 	db                database.SiteDatabase
 	contentDB         database.ContentDatabase
+	peerManager       peer.Manager
+	workerManager     Worker
 }
 
 func (s *Site) Peers() map[string]peer.Peer {

@@ -116,6 +116,11 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		}
 	}
 
+	event.BroadcastContentInfoUpdate(s.addr, s.pubsubManager, &event.ContentInfo{
+		InnerPath: innerPath,
+		Modified:  int(content.Modified),
+	})
+
 	if innerPath == "content.json" {
 		s.Settings.Modified = int64(content.Modified)
 	}
@@ -129,7 +134,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	}
 
 	logger := s.log.WithField("peer", peer)
-	for filename := range content.Files {
+	for filename, file := range content.Files {
 		filename = path.Join(path.Dir(innerPath), filename)
 		relPath := safe.CleanPath(filename)
 
@@ -145,6 +150,9 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		if info.IsDownloaded {
 			continue
 		}
+
+		info.Hash = file.Sha512
+		info.Size = file.Size
 
 		if err := s.downloadFile(peer, filename, info); err != nil {
 			logger.Error(err)

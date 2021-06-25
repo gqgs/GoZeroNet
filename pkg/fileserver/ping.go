@@ -9,12 +9,12 @@ import (
 type (
 	pingRequest struct {
 		CMD    string              `msgpack:"cmd"`
-		ReqID  int                 `msgpack:"req_id"`
+		ReqID  int64               `msgpack:"req_id"`
 		Params map[string]struct{} `msgpack:"params"`
 	}
 	pingResponse struct {
 		CMD   string `msgpack:"cmd"`
-		To    int    `msgpack:"to"`
+		To    int64  `msgpack:"to"`
 		Body  string `msgpack:"body"`
 		Error string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
@@ -38,7 +38,8 @@ func Ping(conn net.Conn) (*pingResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func pingHandler(conn net.Conn, decoder requestDecoder) error {
+func (s *server) pingHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new ping request")
 	var r pingRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

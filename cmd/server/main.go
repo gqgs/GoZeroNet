@@ -48,8 +48,9 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	if err != nil {
 		return err
 	}
+	defer siteManager.Close()
 
-	fileServer, err := fileserver.NewServer(fileServerAddr)
+	fileServer, err := fileserver.NewServer(fileServerAddr, contentDB, pubsubManager)
 	if err != nil {
 		return err
 	}

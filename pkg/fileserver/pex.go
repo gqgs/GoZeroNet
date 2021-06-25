@@ -1,15 +1,17 @@
 package fileserver
 
 import (
+	"encoding/binary"
 	"net"
 
+	"github.com/gqgs/go-zeronet/pkg/lib/ip"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type (
 	pexRequest struct {
 		CMD    string    `msgpack:"cmd"`
-		ReqID  int       `msgpack:"req_id"`
+		ReqID  int64     `msgpack:"req_id"`
 		Params pexParams `msgpack:"params"`
 	}
 	pexParams struct {
@@ -21,7 +23,7 @@ type (
 
 	pexResponse struct {
 		CMD        string   `msgpack:"cmd"`
-		To         int      `msgpack:"to"`
+		To         int64    `msgpack:"to"`
 		Peers      [][]byte `msgpack:"peers"`
 		PeersOnion [][]byte `msgpack:"peers_onion"`
 		Error      string   `msgpack:"error,omitempty" json:"error,omitempty"`
@@ -29,10 +31,9 @@ type (
 )
 
 func Pex(conn net.Conn, site string, need int) (*pexResponse, error) {
-	// TODO: include peers that the client has
 	encoded, err := msgpack.Marshal(&pexRequest{
 		CMD:   "pex",
-		ReqID: 1,
+		ReqID: counter(),
 		Params: pexParams{
 			Site:       site,
 			Peers:      [][]byte{},
@@ -52,17 +53,29 @@ func Pex(conn net.Conn, site string, need int) (*pexResponse, error) {
 	return result, msgpack.NewDecoder(conn).Decode(result)
 }
 
-func pexHandler(conn net.Conn, decoder requestDecoder) error {
+func (s *server) pexHandler(conn net.Conn, decoder requestDecoder) error {
+	s.log.Debug("new pex request")
 	var r pexRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
 
-	// TODO: include peers that the client has
+	var peers [][]byte
+	peerList, err := s.contentDB.Peers(r.Params.Site)
+	if err != nil {
+		return err
+	}
+	for _, peer := range peerList {
+		packed := ip.PackIPv4(peer, binary.BigEndian)
+		if packed != nil {
+			peers = append(peers, packed)
+		}
+	}
+
 	data, err := msgpack.Marshal(&pexResponse{
 		CMD:        "response",
 		To:         r.ReqID,
-		Peers:      [][]byte{},
+		Peers:      peers,
 		PeersOnion: [][]byte{},
 	})
 	if err != nil {

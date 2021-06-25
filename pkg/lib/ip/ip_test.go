@@ -3,6 +3,8 @@ package ip
 import (
 	"encoding/binary"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseIPv4(t *testing.T) {
@@ -24,4 +26,10 @@ func TestParseIPv4(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPackIPv4(t *testing.T) {
+	ip := "173.47.123.111:15364"
+	packed := PackIPv4(ip, binary.LittleEndian)
+	require.Equal(t, packed, []byte{0xAD, 0x2F, 0x7B, 0x6F, 0x04, 0x3C})
 }

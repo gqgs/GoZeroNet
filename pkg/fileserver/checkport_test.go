@@ -9,7 +9,7 @@ import (
 )
 
 func Test_CheckPort(t *testing.T) {
-	srv, err := NewServer(config.RandomIPv4Addr)
+	srv, err := NewServer(config.RandomIPv4Addr, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,6 @@ func Test_CheckPort(t *testing.T) {
 		}
 
 		assert.Equal(t, "response", resp.CMD)
-		assert.Equal(t, 1, resp.To)
 		assert.Equal(t, "open", resp.Status)
 		assert.Equal(t, conn.LocalAddr().String(), resp.IPExternal)
 	})
@@ -41,7 +40,6 @@ func Test_CheckPort(t *testing.T) {
 		}
 
 		assert.Equal(t, "response", resp.CMD)
-		assert.Equal(t, 1, resp.To)
 		assert.Equal(t, "closed", resp.Status)
 		assert.Equal(t, conn.LocalAddr().String(), resp.IPExternal)
 	})
