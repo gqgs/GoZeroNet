@@ -138,6 +138,18 @@ func (s *Site) DecodeJSON(filename string, v interface{}) error {
 	return json.NewDecoder(file).Decode(v)
 }
 
+func (s *Site) FileNeed(innerPath string) error {
+	path := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{InnerPath: innerPath})
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
 func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) error {
 	path := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
 	file, err := os.Open(path)
