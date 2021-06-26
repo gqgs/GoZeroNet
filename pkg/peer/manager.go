@@ -53,6 +53,7 @@ func (m *manager) GetConnected() *peer {
 		if err := checkPeerConnection(connected); err == nil {
 			return connected
 		}
+		connected.Close()
 	case <-time.After(waitForconnectedTimeout):
 		event.BroadcastPeersNeed(m.site, m.pubsubManager, &event.PeersNeed{})
 	}
