@@ -78,12 +78,13 @@ func (m *manager) processPeerCandidates() {
 					continue
 				}
 
+				m.log.WithField("queue", m.msgCh).Debug("new peer candidate event")
+
 				// already have as many connected pers as we want
 				if len(m.connectedCh) == config.MaxConnectedPeers {
 					continue
 				}
 
-				m.log.Debug("new peer candidate event")
 				go func() {
 					peer := NewPeer(candidate.Address)
 					if err := peer.Connect(); err != nil {
