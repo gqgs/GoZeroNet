@@ -158,7 +158,7 @@ func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) er
 	file, err := os.Open(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			msgCh := s.pubsubManager.Register(10)
+			msgCh := s.pubsubManager.Register("read_file("+innerPath+")", 10)
 			defer s.pubsubManager.Unregister(msgCh)
 			event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{InnerPath: innerPath})
 			for {

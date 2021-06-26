@@ -38,7 +38,7 @@ func NewManager(pubsubManager pubsub.Manager, site string) *manager {
 		pubsubManager: pubsubManager,
 		connectedCh:   make(chan *peer, config.MaxConnectedPeers),
 		doneCh:        make(chan *peer, config.MaxConnectedPeers),
-		msgCh:         pubsubManager.Register(config.PeerCandidatesBufferSize),
+		msgCh:         pubsubManager.Register("peer_manager", config.PeerCandidatesBufferSize),
 		closeCh:       make(chan struct{}),
 	}
 	go m.processPeerCandidates()

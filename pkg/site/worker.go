@@ -34,7 +34,7 @@ type worker struct {
 func (s *Site) NewWorker() *worker {
 	w := &worker{
 		log:         log.New("site_worker"),
-		queue:       s.pubsubManager.Register(50),
+		queue:       s.pubsubManager.Register("site_worker", 50),
 		closeCh:     make(chan struct{}),
 		site:        s,
 		peerManager: s.peerManager,

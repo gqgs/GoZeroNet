@@ -70,7 +70,7 @@ func (w *uiWebsocket) Serve() {
 }
 
 func (w *uiWebsocket) handleSubsub(ctx context.Context) {
-	messageCh := w.pubsubManager.Register(config.WebsocketBufferSize)
+	messageCh := w.pubsubManager.Register("uiwebsocket", config.WebsocketBufferSize)
 	defer w.pubsubManager.Unregister(messageCh)
 
 	for {

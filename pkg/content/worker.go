@@ -28,7 +28,7 @@ func NewWorker(contentDB database.ContentDatabase, pubsubManager pubsub.Manager)
 	w := &worker{
 		log:           log.New("content_worker"),
 		pubsubManager: pubsubManager,
-		queue:         pubsubManager.Register(config.ContentBufferSize),
+		queue:         pubsubManager.Register("content_worker", config.ContentBufferSize),
 		closeCh:       make(chan struct{}),
 		db:            contentDB,
 	}
