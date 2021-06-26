@@ -2,6 +2,7 @@ package peer
 
 import (
 	"bytes"
+	"fmt"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -17,7 +18,7 @@ type Manager interface {
 	// Returns a connected peer.
 	// The caller MUST return the peer after doing using
 	// by calling the PutConnected method.
-	GetConnected() (*peer, error)
+	GetConnected() *peer
 	PutConnected(p *peer)
 	Close()
 }
@@ -46,14 +47,16 @@ func NewManager(pubsubManager pubsub.Manager, site string) *manager {
 	return m
 }
 
-func (m *manager) GetConnected() (*peer, error) {
+func (m *manager) GetConnected() *peer {
 	select {
 	case connected := <-m.connectedCh:
-		return connected, nil
+		if err := checkPeerConnection(connected); err == nil {
+			return connected
+		}
 	case <-time.After(waitForconnectedTimeout):
 		event.BroadcastPeersNeed(m.site, m.pubsubManager, &event.PeersNeed{})
-		return m.GetConnected()
 	}
+	return m.GetConnected()
 }
 
 func (m *manager) PutConnected(p *peer) {
@@ -88,19 +91,12 @@ func (m *manager) processPeerCandidates() {
 				go func() {
 					peer := NewPeer(candidate.Address)
 					if err := peer.Connect(); err != nil {
-						m.log.WithField("peer", candidate).Warn(err)
+						m.log.WithField("peer", peer).Warn(err)
 						return
 					}
-					resp, err := fileserver.Ping(peer)
-					if err != nil {
+					if err := checkPeerConnection(peer); err != nil {
+						m.log.WithField("peer", peer).Warn(err)
 						peer.Close()
-						m.log.WithField("peer", candidate).Warn(err)
-						return
-					}
-
-					if !bytes.Equal(resp.Body, []byte("Pong!")) {
-						peer.Close()
-						m.log.WithField("peer", candidate).Warn("invalid ping response: %s", resp.Body)
 						return
 					}
 
@@ -120,4 +116,17 @@ func (m *manager) processPeerCandidates() {
 			m.connectedCh <- done
 		}
 	}
+}
+
+func checkPeerConnection(peer Peer) error {
+	resp, err := fileserver.Ping(peer)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(resp.Body, []byte("Pong!")) {
+		return fmt.Errorf("invalid ping response: %s", resp.Body)
+	}
+
+	return nil
 }

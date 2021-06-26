@@ -103,10 +103,7 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 		return err
 	}
 
-	p, err := w.peerManager.GetConnected()
-	if err != nil {
-		return err
-	}
+	p := w.peerManager.GetConnected()
 	defer w.peerManager.PutConnected(p)
 
 	resp, err := fileserver.FindHashIDs(p, w.site.addr, hashID)

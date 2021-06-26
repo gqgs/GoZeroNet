@@ -21,12 +21,8 @@ import (
 
 func (s *Site) Download(peerManager peer.Manager, since time.Time) error {
 	for {
-		p, err := peerManager.GetConnected()
-		if err != nil {
-			return fmt.Errorf("could not download files: %s", err)
-		}
-
-		err = s.DownloadContentJSON(p, "content.json")
+		p := peerManager.GetConnected()
+		err := s.DownloadContentJSON(p, "content.json")
 		peerManager.PutConnected(p)
 		if err != nil {
 			s.log.WithField("peer", p).Error(err)
@@ -49,12 +45,8 @@ func (s *Site) Download(peerManager peer.Manager, since time.Time) error {
 
 func (s *Site) DownloadSince(peerManager peer.Manager, since time.Time) error {
 	for {
-		p, err := peerManager.GetConnected()
-		if err != nil {
-			return fmt.Errorf("could not download files: %s", err)
-		}
-
-		err = s.downloadRecent(p, since)
+		p := peerManager.GetConnected()
+		err := s.downloadRecent(p, since)
 		peerManager.PutConnected(p)
 		if err != nil {
 			s.log.WithField("peer", p).Warn(err)
