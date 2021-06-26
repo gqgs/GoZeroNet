@@ -70,20 +70,35 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 		filename = m.FileName
 	}
 
-	jsonRow, err := tx.Exec(`
-		INSERT INTO json (directory, file_name)
-		VALUES (?, ?)
-		ON CONFLICT(directory, file_name) DO UPDATE SET
-		directory = excluded.directory,
-		file_name =  excluded.file_name`,
-		dir, filename)
+	var jsonRowID int64
+	rows, err := tx.Query("SELECT json_id FROM json WHERE directory = ? AND file_name = ?", dir, filename)
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
 
-	jsonRowID, err := jsonRow.LastInsertId()
-	if err != nil {
+	if next := rows.Next(); next {
+		if err := rows.Scan(&jsonRowID); err != nil {
+			return err
+		}
+	}
+
+	if err := rows.Err(); err != nil {
 		return err
+	}
+
+	if jsonRowID == 0 {
+		jsonRow, err := tx.Exec(`
+			INSERT INTO json (directory, file_name)
+			VALUES (?, ?)`, dir, filename)
+		if err != nil {
+			return err
+		}
+
+		jsonRowID, err = jsonRow.LastInsertId()
+		if err != nil {
+			return err
+		}
 	}
 
 	parser, err := simdjson.Parse(file, nil)
