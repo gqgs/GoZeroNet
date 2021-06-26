@@ -50,10 +50,14 @@ func (w *worker) run() {
 		switch payload := msg.Event().(type) {
 		case *event.PeersNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("peer need event")
-			go w.site.Announce()
+			if msg.Site() == w.site.addr {
+				go w.site.Announce()
+			}
 		case *event.SiteUpdate:
-			w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")
-			// TODO: update site
+			if msg.Site() == w.site.addr {
+				// TODO: update site
+				w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")
+			}
 		case *event.FileNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("file need event")
 			wg.Add(1)

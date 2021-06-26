@@ -39,6 +39,7 @@ type Site struct {
 	contentDB         database.ContentDatabase
 	peerManager       peer.Manager
 	workerManager     Worker
+	lastAnnounce      time.Time
 }
 
 func (s *Site) Peers() map[string]peer.Peer {

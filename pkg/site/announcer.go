@@ -139,6 +139,10 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 
 // Announce announces to all possible destinations
 func (s *Site) Announce() {
+	if time.Since(s.lastAnnounce) < time.Minute {
+		return
+	}
+	s.lastAnnounce = time.Now()
 	s.AnnounceTrackers()
 	s.AnnouncePex()
 
@@ -147,7 +151,6 @@ func (s *Site) Announce() {
 }
 
 // AnnounceTrackers announces to trackers the new peer
-// TODO: debounce this function
 func (s *Site) AnnounceTrackers() {
 	h := sha1.New() // #nosec
 	io.WriteString(h, s.addr)
