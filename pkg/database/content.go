@@ -23,6 +23,7 @@ type ContentDatabase interface {
 	UpdatedFiles(site string, since time.Time) ([]string, error)
 	UpdatedContent(site string, since int) (map[string]int, error)
 	Peers(site string) ([]string, error)
+	ContentInfo(site, innerPath string) (*event.ContentInfo, error)
 }
 
 type contentDatabase struct {
@@ -154,10 +155,13 @@ func (c *contentDatabase) UpdateContent(site string, contentInfo *event.ContentI
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO content (site_id, inner_path, modified)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?)
-		ON CONFLICT (site_id, inner_path) DO UPDATE SET modified = modified + excluded.modified
-		`, site, contentInfo.InnerPath, contentInfo.Modified); err != nil {
+		INSERT INTO content (site_id, inner_path, modified, size)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?)
+		ON CONFLICT (site_id, inner_path) DO
+		UPDATE SET
+			modified = modified + excluded.modified,
+			size = size + excluded.size
+		`, site, contentInfo.InnerPath, contentInfo.Modified, contentInfo.Size); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -186,7 +190,7 @@ func (c *contentDatabase) UpdatedContent(site string, since int) (map[string]int
 		}
 		contentList[innerPath] = modified
 	}
-	return contentList, nil
+	return contentList, rows.Err()
 
 }
 
@@ -213,6 +217,33 @@ func (c *contentDatabase) Peers(site string) ([]string, error) {
 	return peers, rows.Err()
 }
 
+func (c *contentDatabase) ContentInfo(site, innerPath string) (*event.ContentInfo, error) {
+	query := `
+		SELECT c.inner_path, c.modified, c.size
+		FROM content c INNER JOIN site s USING(site_id)
+		WHERE s.address = ?
+	`
+	rows, err := c.storage.Query(query, site)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	info := new(event.ContentInfo)
+	if rows.Next() {
+		if err := rows.Scan(&info.InnerPath, &info.Modified, &info.Size); err != nil {
+			return nil, err
+		}
+		return info, nil
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return info, fmt.Errorf("%w: %s", ErrFileNotFound, innerPath)
+}
+
 func NewContentDatabase() (*contentDatabase, error) {
 	dbPath := path.Join(config.DataDir, "content.db")
 	storage, err := storage.NewStorage(dbPath)
@@ -236,7 +267,7 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path, hash)`,
 
 		// Content
-		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER)`,
+		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS content_key ON content (site_id, inner_path)`,
 		`CREATE INDEX IF NOT EXISTS content_modified ON content (site_id, modified)`,
 	}

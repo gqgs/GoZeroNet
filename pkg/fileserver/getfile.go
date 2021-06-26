@@ -1,16 +1,8 @@
 package fileserver
 
 import (
-	"errors"
-	"io"
 	"net"
-	"os"
-	"path"
 
-	"github.com/gqgs/go-zeronet/pkg/config"
-	"github.com/gqgs/go-zeronet/pkg/database"
-	"github.com/gqgs/go-zeronet/pkg/event"
-	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -97,33 +89,9 @@ func (s *server) getFileHandler(conn net.Conn, decoder requestDecoder) error {
 		return err
 	}
 
-	var size int
-	var body []byte
-	var location int
-
-	info, err := s.contentDB.FileInfo(r.Params.Site, r.Params.InnerPath)
+	body, size, location, err := s.readChunk(r.Params.Site, r.Params.InnerPath, r.Params.Location)
 	if err != nil {
-		if !errors.Is(err, database.ErrFileNotFound) {
-			return err
-		}
-	} else {
-		innerPath := path.Join(config.DataDir, r.Params.Site, safe.CleanPath(r.Params.InnerPath))
-		file, err := os.Open(innerPath)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		body = make([]byte, config.FileGetSizeLimit)
-		read, err := file.ReadAt(body, int64(r.Params.Location))
-		if err != nil && err != io.EOF {
-			return err
-		}
-		body = body[:read]
-		size = info.Size
-		location = r.Params.Location + read
-		info.Uploaded += read
-		event.BroadcastFileInfoUpdate(r.Params.Site, s.pubsubManager, info)
+		return err
 	}
 
 	data, err := msgpack.Marshal(&getFileResponse{

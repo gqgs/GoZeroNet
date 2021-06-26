@@ -3,6 +3,7 @@ package event
 type ContentInfo struct {
 	InnerPath string
 	Modified  int
+	Size      int
 }
 
 func (e *ContentInfo) String() string {
