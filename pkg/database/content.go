@@ -159,8 +159,8 @@ func (c *contentDatabase) UpdateContent(site string, contentInfo *event.ContentI
 		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?)
 		ON CONFLICT (site_id, inner_path) DO
 		UPDATE SET
-			modified = modified + excluded.modified,
-			size = size + excluded.size
+			modified = excluded.modified,
+			size = excluded.size
 		`, site, contentInfo.InnerPath, contentInfo.Modified, contentInfo.Size); err != nil {
 		return err
 	}
