@@ -119,6 +119,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	event.BroadcastContentInfoUpdate(s.addr, s.pubsubManager, &event.ContentInfo{
 		InnerPath: innerPath,
 		Modified:  int(content.Modified),
+		Size:      len(resp.Body),
 	})
 
 	if innerPath == "content.json" {

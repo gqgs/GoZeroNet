@@ -91,7 +91,7 @@ func downloadRecent(addr string, daysAgo int) error {
 	go site.Announce()
 
 	now := time.Now()
-	if err = site.DownloadSince(peerManager, time.Now().AddDate(0, 0, -daysAgo)); err != nil {
+	if err = site.DownloadSince(peerManager, now.AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
 

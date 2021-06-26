@@ -50,7 +50,7 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 		files = append(files, file)
 	}
 
-	return files, nil
+	return files, rows.Err()
 }
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {

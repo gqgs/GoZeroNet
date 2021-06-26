@@ -43,6 +43,7 @@ func (s *Site) UpdateDB(since time.Time) error {
 	if err != nil {
 		return err
 	}
+	s.log.WithField("updated", len(updated)).Info("updating database")
 	if len(updated) == 0 {
 		return nil
 	}
