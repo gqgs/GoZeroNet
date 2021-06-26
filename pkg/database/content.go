@@ -21,7 +21,7 @@ type ContentDatabase interface {
 	UpdateContent(site string, contentInfo *event.ContentInfo) error
 	FileInfo(site, innerPath string) (*event.FileInfo, error)
 	UpdatedFiles(site string, since time.Time) ([]string, error)
-	UpdatedContent(site string, since int) (map[string]int, error)
+	UpdatedContent(site string, since time.Time) (map[string]int, error)
 	Peers(site string) ([]string, error)
 	ContentInfo(site, innerPath string) (*event.ContentInfo, error)
 }
@@ -167,7 +167,7 @@ func (c *contentDatabase) UpdateContent(site string, contentInfo *event.ContentI
 	return tx.Commit()
 }
 
-func (c *contentDatabase) UpdatedContent(site string, since int) (map[string]int, error) {
+func (c *contentDatabase) UpdatedContent(site string, since time.Time) (map[string]int, error) {
 	query := `
 		SELECT c.inner_path, c.modified
 		FROM content c INNER JOIN site s USING(site_id)

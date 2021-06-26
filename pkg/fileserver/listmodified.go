@@ -2,6 +2,7 @@ package fileserver
 
 import (
 	"net"
+	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -14,7 +15,7 @@ type (
 	}
 	listModifiedParams struct {
 		Site  string `msgpack:"site"`
-		Since int    `msgpack:"since"`
+		Since int64  `msgpack:"since"`
 	}
 
 	listModifiedResponse struct {
@@ -25,7 +26,7 @@ type (
 	}
 )
 
-func ListModified(conn net.Conn, site string, since int) (*listModifiedResponse, error) {
+func ListModified(conn net.Conn, site string, since int64) (*listModifiedResponse, error) {
 	encoded, err := msgpack.Marshal(&listModifiedRequest{
 		CMD:   "listModified",
 		ReqID: counter(),
@@ -53,7 +54,7 @@ func (s *server) listModifiedHandler(conn net.Conn, decoder requestDecoder) erro
 		return err
 	}
 
-	modified, err := s.contentDB.UpdatedContent(r.Params.Site, r.Params.Since)
+	modified, err := s.contentDB.UpdatedContent(r.Params.Site, time.Unix(r.Params.Since, 0))
 	if err != nil {
 		return err
 	}

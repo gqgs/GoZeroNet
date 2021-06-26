@@ -112,7 +112,7 @@ func listModified(addr, site string, since int) error {
 	}
 	defer conn.Close()
 
-	resp, err := fileserver.ListModified(conn, site, since)
+	resp, err := fileserver.ListModified(conn, site, int64(since))
 	jsonDump(resp)
 	return err
 }

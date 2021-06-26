@@ -66,7 +66,7 @@ func (s *Site) DownloadSince(peerManager peer.Manager, since time.Time) error {
 }
 
 func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
-	resp, err := fileserver.ListModified(peer, s.addr, int(since.Unix()))
+	resp, err := fileserver.ListModified(peer, s.addr, since.Unix())
 	if err != nil {
 		return err
 	}
