@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"io"
+	"sync"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	_ "github.com/mattn/go-sqlite3"
@@ -34,19 +35,26 @@ type Transaction interface {
 }
 
 type sqliteStorage struct {
+	mu sync.RWMutex
 	db *sql.DB
 }
 
 func (s *sqliteStorage) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.db.Query(query, args...)
 }
 
 func (s *sqliteStorage) Exec(query string, args ...interface{}) (sql.Result, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.db.Exec(query, args...)
 }
 
 func (s *sqliteStorage) QueryObjectList(query string, args ...interface{}) ([]map[string]interface{}, error) {
+	s.mu.RLock()
 	rows, err := s.db.Query(query, args...)
+	s.mu.RUnlock()
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +113,8 @@ func (s *sqliteStorage) QueryObjectList(query string, args ...interface{}) ([]ma
 }
 
 func (s *sqliteStorage) Begin() (Transaction, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.db.Begin()
 }
 
@@ -122,5 +132,7 @@ func (s *sqliteStorage) Close() error {
 	if s == nil || s.db == nil {
 		return nil
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.db.Close()
 }
