@@ -45,10 +45,13 @@ type Content struct {
 }
 
 type File struct {
-	PieceSize int    `json:"piece_size,omitempty"`
-	Piecemap  string `json:"piecemap,omitempty"`
-	Sha512    string `json:"sha512"`
-	Size      int    `json:"size"`
+	ContentInnerPath string `json:"content_inner_path,omitempty"`
+	Optional         bool   `json:"optional,omitempty"`
+	PieceSize        int    `json:"piece_size,omitempty"`
+	Piecemap         string `json:"piecemap,omitempty"`
+	RelativePath     string `json:"relative_path,omitempty"`
+	Sha512           string `json:"sha512"`
+	Size             int    `json:"size"`
 }
 
 type Include struct {

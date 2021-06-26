@@ -69,6 +69,10 @@ func Test_isValid(t *testing.T) {
 			"ZeroTalk user content.json",
 			"./testdata/0talk-user-content.json",
 		},
+		{
+			"MC user content.json with extra file fields",
+			"./testdata/mc-user-content-extra-file-fields.json",
+		},
 	}
 
 	for _, tt := range tests {
