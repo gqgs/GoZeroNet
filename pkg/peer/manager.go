@@ -1,6 +1,7 @@
 package peer
 
 import (
+	"bytes"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -96,7 +97,7 @@ func (m *manager) processPeerCandidates() {
 						return
 					}
 
-					if resp.Body != "Pong!" {
+					if !bytes.Equal(resp.Body, []byte("Pong!")) {
 						peer.Close()
 						m.log.WithField("peer", candidate).Warn("invalid ping response: %s", resp.Body)
 						return

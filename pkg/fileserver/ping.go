@@ -15,7 +15,7 @@ type (
 	pingResponse struct {
 		CMD   string `msgpack:"cmd"`
 		To    int64  `msgpack:"to"`
-		Body  string `msgpack:"body"`
+		Body  []byte `msgpack:"body"`
 		Error string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
@@ -47,7 +47,7 @@ func (s *server) pingHandler(conn net.Conn, decoder requestDecoder) error {
 	data, err := msgpack.Marshal(&pingResponse{
 		CMD:  "response",
 		To:   r.ReqID,
-		Body: "Pong!",
+		Body: []byte("Pong!"),
 	})
 	if err != nil {
 		return err

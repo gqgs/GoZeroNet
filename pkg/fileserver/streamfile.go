@@ -31,6 +31,8 @@ type (
 		CMD         string `msgpack:"cmd"`
 		To          int64  `msgpack:"to"`
 		StreamBytes int    `msgpack:"stream_bytes"`
+		Location    int    `msgpack:"location"`
+		Size        int    `msgpack:"size"`
 		Error       string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
@@ -104,8 +106,12 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 	}
 
 	var size int
+	var read int
 	var body []byte
-	if info, err := s.contentDB.FileInfo(r.Params.Site, r.Params.InnerPath); err != nil {
+	var location int
+
+	info, err := s.contentDB.FileInfo(r.Params.Site, r.Params.InnerPath)
+	if err != nil {
 		if !errors.Is(err, database.ErrFileNotFound) {
 			return err
 		}
@@ -118,20 +124,23 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 		defer file.Close()
 
 		body = make([]byte, config.FileGetSizeLimit)
-		size, err = file.ReadAt(body, int64(r.Params.Location))
+		read, err = file.ReadAt(body, int64(r.Params.Location))
 		if err != nil && err != io.EOF {
 			return err
 		}
-		body = body[:size]
-
-		info.Uploaded += size
+		body = body[:read]
+		size = info.Size
+		location = r.Params.Location + read
+		info.Uploaded += read
 		event.BroadcastFileInfoUpdate(r.Params.Site, s.pubsubManager, info)
 	}
 
 	data, err := msgpack.Marshal(&streamFileResponse{
 		CMD:         "response",
 		To:          r.ReqID,
-		StreamBytes: size,
+		StreamBytes: read,
+		Location:    location,
+		Size:        size,
 	})
 	if err != nil {
 		return err

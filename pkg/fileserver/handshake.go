@@ -16,12 +16,12 @@ type (
 	}
 
 	handshakeParams struct {
-		Crypt          string   `msgpack:"crypt"`
+		Crypt          *string  `msgpack:"crypt"`
 		CryptSupported []string `msgpack:"crypt_supported"`
 		FileserverPort int      `msgpack:"fileserver_port"`
 		Onion          string   `msgpack:"onion"`
 		Protocol       string   `msgpack:"protocol"`
-		PortOpened     bool     `msgpack:"port_opened"`
+		PortOpened     *bool    `msgpack:"port_opened"`
 		PeerID         string   `msgpack:"peer_id"`
 		Rev            int      `msgpack:"rev"`
 		TargetIP       string   `msgpack:"target_ip"`
@@ -53,13 +53,7 @@ func Handshake(conn net.Conn, addr string) (*handshakeResponse, error) {
 		return nil, fmt.Errorf("%w: %s", err, addr)
 	}
 
-	var peerID string
-	if peer, ok := conn.(interface {
-		ID() string
-	}); ok {
-		peerID = peer.ID()
-	}
-
+	portOpened := config.PortOpened
 	encoded, err := msgpack.Marshal(&handshakeRequest{
 		CMD:   "handshake",
 		ReqID: counter(),
@@ -67,8 +61,8 @@ func Handshake(conn net.Conn, addr string) (*handshakeResponse, error) {
 			CryptSupported: make([]string, 0),
 			FileserverPort: config.FileServerPort,
 			Protocol:       config.Protocol,
-			PortOpened:     config.PortOpened,
-			PeerID:         peerID,
+			PortOpened:     &portOpened,
+			PeerID:         peerID(conn),
 			Rev:            config.Rev,
 			UseBinType:     config.UseBinType,
 			Version:        config.Version,
@@ -99,13 +93,6 @@ func (s *server) handshakeHandler(conn net.Conn, decoder requestDecoder) error {
 		return err
 	}
 
-	var peerID string
-	if peer, ok := conn.(interface {
-		ID() string
-	}); ok {
-		peerID = peer.ID()
-	}
-
 	encoded, err := msgpack.Marshal(&handshakeResponse{
 		CMD:            "response",
 		To:             r.ReqID,
@@ -113,7 +100,7 @@ func (s *server) handshakeHandler(conn net.Conn, decoder requestDecoder) error {
 		FileserverPort: config.FileServerPort,
 		Protocol:       config.Protocol,
 		PortOpened:     config.PortOpened,
-		PeerID:         peerID,
+		PeerID:         peerID(conn),
 		Rev:            config.Rev,
 		UseBinType:     config.UseBinType,
 		Version:        config.Version,

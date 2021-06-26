@@ -12,6 +12,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
+	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/spf13/cast"
 	"github.com/vmihailenco/msgpack/v5"
@@ -166,4 +167,13 @@ func decodeKey(decoder requestDecoder, key string) (interface{}, error) {
 	}
 	decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
 	return query[0], nil
+}
+
+func peerID(conn net.Conn) string {
+	if peer, ok := conn.(interface {
+		ID() string
+	}); ok {
+		return peer.ID()
+	}
+	return random.PeerID()
 }
