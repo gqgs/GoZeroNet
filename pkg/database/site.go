@@ -18,7 +18,7 @@ import (
 type SiteDatabase interface {
 	io.Closer
 	Rebuild() error
-	Update(innerPath ...string) error
+	Update(innerPaths ...string) error
 	Query(query string, args ...interface{}) ([]map[string]interface{}, error)
 }
 
@@ -56,7 +56,7 @@ func NewSiteDatabase(site string) (*siteDatabase, error) {
 	return db, nil
 }
 
-func (d *siteDatabase) Update(innerPath ...string) error {
+func (d *siteDatabase) Update(innerPaths ...string) error {
 	schema, err := loadDBSchemaFromFile(d.site)
 	if err != nil {
 		return err
@@ -79,7 +79,8 @@ func (d *siteDatabase) Update(innerPath ...string) error {
 	}
 	defer tx.Rollback()
 
-	for _, path := range innerPath {
+	for _, innerPath := range innerPaths {
+		path := path.Join(config.DataDir, d.site, innerPath)
 		for regexFunc, tableMap := range regexFunc {
 			if regexFunc.MatchString(path) {
 				if err := tableMap.ProcessFile(path, tx); err != nil {
