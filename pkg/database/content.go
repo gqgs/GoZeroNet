@@ -69,8 +69,13 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 		if err := rows.Scan(&info.InnerPath, &info.Hash, &info.Size, &info.IsDownloaded, &info.IsPinned, &info.IsOptional, &info.Uploaded); err != nil {
 			return nil, err
 		}
-		return info, rows.Err()
+		return info, nil
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return info, fmt.Errorf("%w: %s", ErrFileNotFound, innerPath)
 }
 
