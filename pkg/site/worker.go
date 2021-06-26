@@ -2,7 +2,7 @@ package site
 
 import (
 	"encoding/binary"
-	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/gqgs/go-zeronet/pkg/event"
@@ -25,7 +25,7 @@ type worker struct {
 	closeCh     chan struct{}
 	site        *Site
 	peerManager peer.Manager
-	mu          sync.Mutex
+	mu          *sync.Mutex
 	downloading map[string]struct{}
 }
 
@@ -33,12 +33,13 @@ type worker struct {
 // Caller is responsible for calling close when the worker is no longer needed.
 func (s *Site) NewWorker() *worker {
 	w := &worker{
-		log:         log.New("site_worker"),
+		log:         log.New("site_worker").WithField("site", s.addr),
 		queue:       s.pubsubManager.Register("site_worker", 50),
 		closeCh:     make(chan struct{}),
 		site:        s,
 		peerManager: s.peerManager,
 		downloading: make(map[string]struct{}),
+		mu:          new(sync.Mutex),
 	}
 	go w.run()
 	return w
@@ -47,17 +48,17 @@ func (s *Site) NewWorker() *worker {
 func (w *worker) run() {
 	var wg sync.WaitGroup
 	for msg := range w.queue {
+		if msg.Site() != w.site.addr {
+			continue
+		}
+
 		switch payload := msg.Event().(type) {
 		case *event.PeersNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("peer need event")
-			if msg.Site() == w.site.addr {
-				go w.site.Announce()
-			}
+			go w.site.Announce()
 		case *event.SiteUpdate:
-			if msg.Site() == w.site.addr {
-				// TODO: update site
-				w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")
-			}
+			// TODO: update site
+			w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")
 		case *event.FileNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("file need event")
 			wg.Add(1)
@@ -138,7 +139,7 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 		}
 	}
 
-	return errors.New("could not download file")
+	return fmt.Errorf("could not download file: %s", fileNeed.InnerPath)
 }
 
 func (w *worker) Close() {

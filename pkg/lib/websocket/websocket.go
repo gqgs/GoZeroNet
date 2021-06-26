@@ -19,7 +19,7 @@ type Conn interface {
 }
 
 type conn struct {
-	mu           sync.Mutex
+	mu           *sync.Mutex
 	internalConn *websocket.Conn
 }
 
@@ -46,6 +46,7 @@ func Upgrade(w http.ResponseWriter, r *http.Request) (Conn, error) {
 		return nil, err
 	}
 	return &conn{
+		mu:           new(sync.Mutex),
 		internalConn: c,
 	}, nil
 }
