@@ -221,9 +221,9 @@ func (c *contentDatabase) ContentInfo(site, innerPath string) (*event.ContentInf
 	query := `
 		SELECT c.inner_path, c.modified, c.size
 		FROM content c INNER JOIN site s USING(site_id)
-		WHERE s.address = ?
+		WHERE s.address = ? and c.inner_path = ?
 	`
-	rows, err := c.storage.Query(query, site)
+	rows, err := c.storage.Query(query, site, innerPath)
 	if err != nil {
 		return nil, err
 	}
