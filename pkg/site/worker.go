@@ -25,7 +25,7 @@ type worker struct {
 	closeCh     chan struct{}
 	site        *Site
 	peerManager peer.Manager
-	mu          sync.RWMutex
+	mu          sync.Mutex
 	downloading map[string]struct{}
 }
 
@@ -45,29 +45,29 @@ func (s *Site) NewWorker() *worker {
 }
 
 func (w *worker) run() {
+	var wg sync.WaitGroup
 	for msg := range w.queue {
 		switch payload := msg.Event().(type) {
 		case *event.PeersNeed:
-			w.log.Debug("peer need event")
+			w.log.WithField("queue", len(w.queue)).Debug("peer need event")
 			go w.site.Announce()
 		case *event.SiteUpdate:
-			w.log.WithField("inner_path", payload.InnerPath).Debug("site update event")
+			w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")
+			// TODO: update site
 		case *event.FileNeed:
-			w.log.Debug("file need event")
-
-			w.mu.RLock()
-			_, downloading := w.downloading[payload.InnerPath]
-			w.mu.RUnlock()
-
-			if downloading {
-				w.log.Debug("already downlading file. skipping ", payload.InnerPath)
-				continue
-			}
-			w.mu.Lock()
-			w.downloading[payload.InnerPath] = struct{}{}
-			w.mu.Unlock()
-
+			w.log.WithField("queue", len(w.queue)).Debug("file need event")
+			wg.Add(1)
 			go func() {
+				defer wg.Done()
+				w.mu.Lock()
+				if _, downloading := w.downloading[payload.InnerPath]; downloading {
+					w.log.Debug("already downlading file. skipping ", payload.InnerPath)
+					w.mu.Unlock()
+					return
+				}
+				w.downloading[payload.InnerPath] = struct{}{}
+				w.mu.Unlock()
+
 				if err := w.downloadFile(payload); err != nil {
 					w.log.Error(err)
 				}
@@ -82,6 +82,9 @@ func (w *worker) run() {
 		}
 	}
 	close(w.closeCh)
+	w.log.Debug("waiting for wg")
+	wg.Wait()
+	w.log.Debug("wg done")
 }
 
 func (w *worker) downloadFile(fileNeed *event.FileNeed) error {

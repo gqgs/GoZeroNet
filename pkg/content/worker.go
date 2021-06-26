@@ -1,6 +1,8 @@
 package content
 
 import (
+	"sync"
+
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
@@ -35,26 +37,42 @@ func NewWorker(contentDB database.ContentDatabase, pubsubManager pubsub.Manager)
 }
 
 func (w *worker) run() {
+	var wg sync.WaitGroup
 	for msg := range w.queue {
 		switch payload := msg.Event().(type) {
 		case *event.FileInfo:
-			w.log.Debug("file update event")
-			if err := w.db.UpdateFile(msg.Site(), payload); err != nil {
-				w.log.Error(err)
-			}
+			w.log.WithField("queue", len(w.queue)).Debug("file update event")
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				if err := w.db.UpdateFile(msg.Site(), payload); err != nil {
+					w.log.Error(err)
+				}
+			}()
 		case *event.PeerInfo:
-			w.log.Debug("peer update event")
-			if err := w.db.UpdatePeer(msg.Site(), payload); err != nil {
-				w.log.Error(err)
-			}
+			w.log.WithField("queue", len(w.queue)).Debug("peer update event")
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				if err := w.db.UpdatePeer(msg.Site(), payload); err != nil {
+					w.log.Error(err)
+				}
+			}()
 		case *event.ContentInfo:
-			w.log.Debug("content update event")
-			if err := w.db.UpdateContent(msg.Site(), payload); err != nil {
-				w.log.Error(err)
-			}
+			w.log.WithField("queue", len(w.queue)).Debug("content update event")
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				if err := w.db.UpdateContent(msg.Site(), payload); err != nil {
+					w.log.Error(err)
+				}
+			}()
 		}
 	}
 	close(w.closeCh)
+	w.log.Debug("waiting for wg")
+	wg.Wait()
+	w.log.Debug("wg done")
 }
 
 func (w *worker) Close() {

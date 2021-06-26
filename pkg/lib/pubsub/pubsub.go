@@ -2,10 +2,13 @@ package pubsub
 
 import (
 	"sync"
+	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 )
+
+const sendTimeout = 100 * time.Millisecond
 
 func NewManager() *manager {
 	return &manager{
@@ -81,7 +84,7 @@ func (m *manager) Broadcast(site string, event event.Event) {
 				site:  site,
 				event: event,
 			}:
-			default:
+			case <-time.After(sendTimeout):
 				m.log.Warn("dropped message")
 			}
 		}()

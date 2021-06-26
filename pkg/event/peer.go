@@ -11,7 +11,7 @@ func (e *PeerInfo) String() string {
 }
 
 func BroadcastPeerInfoUpdate(site string, broadcaster EventBroadcaster, peerInfo *PeerInfo) {
-	broadcaster.Broadcast(site, peerInfo)
+	go broadcaster.Broadcast(site, peerInfo)
 }
 
 // Peers that might be connected to
@@ -24,16 +24,16 @@ func (e *PeerCandidate) String() string {
 }
 
 func BroadcastPeerCandidate(site string, broadcaster EventBroadcaster, peerCandidate *PeerCandidate) {
-	broadcaster.Broadcast(site, peerCandidate)
+	go broadcaster.Broadcast(site, peerCandidate)
 }
 
 // Signals that the site needs more peers
 type PeersNeed struct{}
 
 func (e *PeersNeed) String() string {
-	return "PeersNeed"
+	return "peersNeed"
 }
 
 func BroadcastPeersNeed(site string, broadcaster EventBroadcaster, peersNeed *PeersNeed) {
-	broadcaster.Broadcast(site, peersNeed)
+	go broadcaster.Broadcast(site, peersNeed)
 }

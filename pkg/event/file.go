@@ -15,7 +15,7 @@ func (e *FileInfo) String() string {
 }
 
 func BroadcastFileInfoUpdate(site string, broadcaster EventBroadcaster, fileInfo *FileInfo) {
-	broadcaster.Broadcast(site, fileInfo)
+	go broadcaster.Broadcast(site, fileInfo)
 }
 
 type FileNeed struct {
@@ -27,5 +27,5 @@ func (e *FileNeed) String() string {
 }
 
 func BroadcastFileNeed(site string, broadcaster EventBroadcaster, fileNeed *FileNeed) {
-	broadcaster.Broadcast(site, fileNeed)
+	go broadcaster.Broadcast(site, fileNeed)
 }

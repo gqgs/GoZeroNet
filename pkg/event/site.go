@@ -10,7 +10,7 @@ func (e *SiteChanged) String() string {
 }
 
 func BroadcastSiteChanged(site string, broadcaster EventBroadcaster, siteChanged *SiteChanged) {
-	broadcaster.Broadcast(site, siteChanged)
+	go broadcaster.Broadcast(site, siteChanged)
 }
 
 type SiteUpdate struct {
@@ -19,9 +19,9 @@ type SiteUpdate struct {
 }
 
 func (e *SiteUpdate) String() string {
-	return "SiteUpdate"
+	return "siteUpdate"
 }
 
 func BroadcastSiteUpdate(site string, broadcaster EventBroadcaster, siteUpdate *SiteUpdate) {
-	broadcaster.Broadcast(site, siteUpdate)
+	go broadcaster.Broadcast(site, siteUpdate)
 }
