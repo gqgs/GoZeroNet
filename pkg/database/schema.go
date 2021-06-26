@@ -219,7 +219,7 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 				if _, hasTable := tables[rootElement.Name]; hasTable {
 					colString := strings.Join(cols, ",")
 					holderString := strings.Join(holders, ",")
-					query := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, rootElement.Name, colString, holderString)
+					query := fmt.Sprintf(`INSERT OR REPLACE INTO %s (%s) VALUES (%s)`, rootElement.Name, colString, holderString)
 					result, err := tx.Exec(query, values...)
 					if err != nil {
 						return err
