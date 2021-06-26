@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/bytedance/sonic"
 	"github.com/fasthttp/websocket"
 )
 
@@ -24,16 +25,13 @@ type conn struct {
 }
 
 func (c *conn) WriteJSON(v interface{}) error {
+	data, err := sonic.Marshal(v)
+	if err != nil {
+		return err
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.internalConn.WriteJSON(v)
-}
-
-func (c *conn) Write(data []byte) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	// https://www.rfc-editor.org/rfc/rfc6455.html#section-11.8
-	return c.internalConn.WriteMessage(1, data)
+	return c.internalConn.WriteMessage(websocket.TextMessage, data)
 }
 
 func (c *conn) ReadMessage() (messageType int, message []byte, err error) {
