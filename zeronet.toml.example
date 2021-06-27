@@ -11,7 +11,6 @@ trackers = [
 
 content_buffer_size = 100
 websocket_buffer_size = 50
-peer_candidates_buffer_size = 25
 max_connected_peers = 10
 
 connection_deadline = "10s"

@@ -11,18 +11,17 @@ import (
 )
 
 type config struct {
-	Language                 string   `toml:"language"`
-	DataDir                  string   `toml:"data_dir"`
-	SiteSizeLimit            int      `toml:"site_size_limit"`
-	Trackers                 []string `toml:"trackers"`
-	ValidateDatabaseQueries  bool     `toml:"validate_database_queries"`
-	ContentBufferSize        int      `toml:"content_buffer_size"`
-	WebsocketBufferSize      int      `toml:"websocket_buffer_size"`
-	PeerCandidatesBufferSize int      `toml:"peer_candidates_buffer_size"`
-	MaxConnectedPeers        int      `toml:"max_connected_peers"`
-	ConnectionDeadline       duration `toml:"connection_deadline"`
-	FileServerDeadline       duration `toml:"fileserver_deadline"`
-	FileNeedDeadline         duration `toml:"file_need_deadline"`
+	Language                string   `toml:"language"`
+	DataDir                 string   `toml:"data_dir"`
+	SiteSizeLimit           int      `toml:"site_size_limit"`
+	Trackers                []string `toml:"trackers"`
+	ValidateDatabaseQueries bool     `toml:"validate_database_queries"`
+	ContentBufferSize       int      `toml:"content_buffer_size"`
+	WebsocketBufferSize     int      `toml:"websocket_buffer_size"`
+	MaxConnectedPeers       int      `toml:"max_connected_peers"`
+	ConnectionDeadline      duration `toml:"connection_deadline"`
+	FileServerDeadline      duration `toml:"fileserver_deadline"`
+	FileNeedDeadline        duration `toml:"file_need_deadline"`
 }
 
 func init() {
@@ -47,7 +46,6 @@ func init() {
 		ValidateDatabaseQueries = c.ValidateDatabaseQueries
 		ContentBufferSize = c.ContentBufferSize
 		WebsocketBufferSize = c.WebsocketBufferSize
-		PeerCandidatesBufferSize = c.PeerCandidatesBufferSize
 		MaxConnectedPeers = c.MaxConnectedPeers
 		ConnectionDeadline = c.ConnectionDeadline.Duration
 		FileServerDeadline = c.FileServerDeadline.Duration
@@ -77,18 +75,17 @@ const (
 )
 
 var (
-	SiteSizeLimit            int
-	DataDir                  string
-	Language                 string
-	ContentBufferSize        int
-	WebsocketBufferSize      int
-	PeerCandidatesBufferSize int
-	MaxConnectedPeers        int
-	ValidateDatabaseQueries  bool // Validate database queries for correctness
-	Trackers                 []string
-	ConnectionDeadline       time.Duration
-	FileServerDeadline       time.Duration
-	FileNeedDeadline         time.Duration
+	SiteSizeLimit           int
+	DataDir                 string
+	Language                string
+	ContentBufferSize       int
+	WebsocketBufferSize     int
+	MaxConnectedPeers       int
+	ValidateDatabaseQueries bool // Validate database queries for correctness
+	Trackers                []string
+	ConnectionDeadline      time.Duration
+	FileServerDeadline      time.Duration
+	FileNeedDeadline        time.Duration
 
 	FileServerHost = "127.0.0.1"
 	FileServerPort = 0

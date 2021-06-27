@@ -10,7 +10,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 )
 
-const waitForconnectedTimeout = time.Second * 30
+const waitForconnectedTimeout = time.Second * 10
 
 type Manager interface {
 	// Returns a connected peer.
@@ -37,7 +37,7 @@ func NewManager(pubsubManager pubsub.Manager, site string) *manager {
 		site:          site,
 		pubsubManager: pubsubManager,
 		connectedCh:   make(chan *peer, config.MaxConnectedPeers),
-		msgCh:         pubsubManager.Register("peer_manager", config.PeerCandidatesBufferSize),
+		msgCh:         pubsubManager.Register("peer_manager", config.MaxConnectedPeers),
 		closeCh:       make(chan struct{}),
 	}
 	go m.processPeerCandidates()
