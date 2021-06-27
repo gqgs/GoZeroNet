@@ -69,10 +69,10 @@ func (w *worker) run() {
 			}()
 		}
 	}
-	close(w.closeCh)
 	w.log.Debug("waiting for wg")
 	wg.Wait()
 	w.log.Debug("wg done")
+	close(w.closeCh)
 }
 
 func (w *worker) Close() {

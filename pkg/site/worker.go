@@ -86,10 +86,10 @@ func (w *worker) run() {
 			// create a hard link for this one instead of downloading again
 		}
 	}
-	close(w.closeCh)
 	w.log.Debug("waiting for wg")
 	wg.Wait()
 	w.log.Debug("wg done")
+	close(w.closeCh)
 }
 
 func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
