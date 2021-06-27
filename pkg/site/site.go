@@ -157,8 +157,11 @@ func (s *Site) FileNeed(innerPath string) error {
 
 func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) error {
 	innerPath = safe.CleanPath(innerPath)
-	if _, err := s.contentDB.FileInfo(s.addr, innerPath); err != nil {
-		return err
+
+	if s.hasDB() {
+		if _, err := s.contentDB.FileInfo(s.addr, innerPath); err != nil {
+			return err
+		}
 	}
 
 	path := path.Join(config.DataDir, s.addr, innerPath)

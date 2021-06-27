@@ -26,6 +26,13 @@ func (s *Site) CloseDB() error {
 	return s.db.Close()
 }
 
+func (s *Site) hasDB() bool {
+	if s.db == nil {
+		return false
+	}
+	return s.db.Exists()
+}
+
 func (s *Site) RebuildDB() error {
 	return s.db.Rebuild()
 }

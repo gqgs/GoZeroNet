@@ -20,11 +20,13 @@ type SiteDatabase interface {
 	Rebuild() error
 	Update(innerPaths ...string) error
 	Query(query string, args ...interface{}) ([]map[string]interface{}, error)
+	Exists() bool
 }
 
 type siteDatabase struct {
 	site    string
 	storage storage.Storage
+	exists  bool
 }
 
 func NewSiteDatabase(site string) (*siteDatabase, error) {
@@ -45,6 +47,7 @@ func NewSiteDatabase(site string) (*siteDatabase, error) {
 	db := &siteDatabase{
 		site:    site,
 		storage: storage,
+		exists:  true,
 	}
 
 	if schemaChanged(schema, storage) {
@@ -54,6 +57,10 @@ func NewSiteDatabase(site string) (*siteDatabase, error) {
 	}
 
 	return db, nil
+}
+
+func (d *siteDatabase) Exists() bool {
+	return d.exists
 }
 
 func (d *siteDatabase) Update(innerPaths ...string) error {
