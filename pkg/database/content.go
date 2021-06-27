@@ -38,7 +38,7 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 		SELECT c.inner_path FROM content c INNER JOIN SITE s USING(site_id)
 		WHERE s.address = ? AND c.modified >= ?
 	`
-	rows, err := c.storage.Query(query, site, since, site, since.Unix())
+	rows, err := c.storage.Query(query, site, since.UTC(), site, since.UTC().Unix())
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (c *contentDatabase) UpdatedContent(site string, since time.Time) (map[stri
 		ORDER BY c.modified DESC
 		LIMIT 100
 	`
-	rows, err := c.storage.Query(query, site, since)
+	rows, err := c.storage.Query(query, site, since.UTC())
 	if err != nil {
 		return nil, err
 	}
