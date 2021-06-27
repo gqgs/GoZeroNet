@@ -223,6 +223,8 @@ func (s *Site) downloadFile(peer peer.Peer, innerPath string, info *event.FileIn
 		return err
 	}
 
+	s.log.WithField("inner_path", innerPath).Info("downloaded file!")
+
 	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
 		InnerPath:    innerPath,

@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/database"
 )
 
 type (
@@ -56,7 +57,7 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 	defer cancel()
 
 	if err := w.site.ReadFile(ctx, strings.TrimSuffix(payload.Params.InnerPath, "|all"), writer); err != nil {
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, database.ErrFileNotFound) {
 			return err
 		}
 		if payload.Params.Format != "base64" {
