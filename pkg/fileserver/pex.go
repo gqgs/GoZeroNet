@@ -66,7 +66,7 @@ func (s *server) pexHandler(conn net.Conn, decoder requestDecoder) error {
 		return err
 	}
 	for _, peer := range peerList {
-		packed := ip.PackIPv4(peer, binary.BigEndian)
+		packed := ip.PackIPv4(peer, binary.LittleEndian)
 		if packed != nil {
 			peers = append(peers, packed)
 		}

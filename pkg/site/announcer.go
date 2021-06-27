@@ -247,7 +247,7 @@ func (s *Site) AnnouncePex() {
 			}
 			s.log.WithField("peer", sitePeer).Infof("found %d peers", len(resp.Peers))
 			for _, peerAddr := range resp.Peers {
-				newPeerAddr := ip.ParseIPv4(peerAddr, binary.BigEndian)
+				newPeerAddr := ip.ParseIPv4(peerAddr, binary.LittleEndian)
 				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
 					Address: newPeerAddr,
 				})
