@@ -34,8 +34,11 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 	const query = `
 		SELECT f.inner_path FROM file f INNER JOIN site s USING(site_id)
 		WHERE s.address = ? AND f.time_added >= ?
+		UNION
+		SELECT c.inner_path FROM content c INNER JOIN SITE s USING(site_id)
+		WHERE s.address = ? AND c.modified >= ?
 	`
-	rows, err := c.storage.Query(query, site, since)
+	rows, err := c.storage.Query(query, site, since, site, since.Unix())
 	if err != nil {
 		return nil, err
 	}
