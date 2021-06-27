@@ -1,8 +1,6 @@
 package peer
 
 import (
-	"bytes"
-	"fmt"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -50,7 +48,7 @@ func NewManager(pubsubManager pubsub.Manager, site string) *manager {
 func (m *manager) GetConnected() *peer {
 	select {
 	case connected := <-m.connectedCh:
-		if err := checkPeerConnection(connected); err == nil {
+		if err := connected.CheckConnection(); err == nil {
 			return connected
 		}
 		connected.Close()
@@ -95,7 +93,7 @@ func (m *manager) processPeerCandidates() {
 						m.log.WithField("peer", peer).Warn(err)
 						return
 					}
-					if err := checkPeerConnection(peer); err != nil {
+					if err := peer.CheckConnection(); err != nil {
 						m.log.WithField("peer", peer).Warn(err)
 						peer.Close()
 						return
@@ -117,17 +115,4 @@ func (m *manager) processPeerCandidates() {
 			m.connectedCh <- done
 		}
 	}
-}
-
-func checkPeerConnection(peer Peer) error {
-	resp, err := fileserver.Ping(peer)
-	if err != nil {
-		return err
-	}
-
-	if !bytes.Equal(resp.Body, []byte("Pong!")) {
-		return fmt.Errorf("invalid ping response: %s", resp.Body)
-	}
-
-	return nil
 }

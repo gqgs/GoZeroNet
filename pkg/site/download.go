@@ -63,7 +63,18 @@ func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
 		return err
 	}
 
-	for innerPath := range resp.ModifiedFiles {
+	for innerPath, modified := range resp.ModifiedFiles {
+		if err := peer.CheckConnection(); err != nil {
+			return err
+		}
+
+		if info, err := s.contentDB.ContentInfo(s.addr, innerPath); err == nil {
+			if modified <= info.Modified {
+				s.log.WithField("peer", peer).Debug("skipping outdated or same content.json ", innerPath)
+				continue
+			}
+		}
+
 		if err := s.DownloadContentJSON(peer, innerPath); err != nil {
 			s.log.WithField("peer", peer).Error(err)
 			continue
@@ -96,17 +107,6 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 
 	contentPath := path.Join(config.DataDir, s.addr, safe.CleanPath(content.InnerPath))
-	file, err := os.Open(contentPath)
-	if err == nil {
-		defer file.Close()
-		currentContent := new(Content)
-		if err := json.NewDecoder(file).Decode(currentContent); err == nil {
-			if content.Modified <= currentContent.Modified {
-				s.log.Debugf("outdated %s, skipping...", contentPath)
-				return nil
-			}
-		}
-	}
 
 	event.BroadcastContentInfoUpdate(s.addr, s.pubsubManager, &event.ContentInfo{
 		InnerPath: innerPath,
