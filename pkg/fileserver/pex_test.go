@@ -5,11 +5,20 @@ import (
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/connection"
+	"github.com/gqgs/go-zeronet/pkg/database"
+	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Pex(t *testing.T) {
-	srv, err := NewServer(config.RandomIPv4Addr, nil, nil)
+	pubsubManager := pubsub.NewManager()
+	contentDB, err := database.NewContentDatabase()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer contentDB.Close()
+
+	srv, err := NewServer(config.RandomIPv4Addr, contentDB, pubsubManager)
 	if err != nil {
 		t.Fatal(err)
 	}

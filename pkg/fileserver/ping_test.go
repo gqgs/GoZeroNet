@@ -28,5 +28,5 @@ func Test_Ping(t *testing.T) {
 	}
 
 	assert.Equal(t, "response", resp.CMD)
-	assert.Equal(t, "Pong!", resp.Body)
+	assert.Equal(t, []byte("Pong!"), resp.Body)
 }
