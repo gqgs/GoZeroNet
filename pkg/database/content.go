@@ -36,9 +36,9 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 		WHERE s.address = ? AND f.time_added >= ?
 		UNION
 		SELECT c.inner_path FROM content c INNER JOIN SITE s USING(site_id)
-		WHERE s.address = ? AND c.modified >= ?
+		WHERE s.address = ? AND c.time_added >= ?
 	`
-	rows, err := c.storage.Query(query, site, since.UTC(), site, since.UTC().Unix())
+	rows, err := c.storage.Query(query, site, since.UTC(), site, since.UTC())
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path, hash)`,
 
 		// Content
-		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER)`,
+		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS content_key ON content (site_id, inner_path)`,
 		`CREATE INDEX IF NOT EXISTS content_modified ON content (site_id, modified)`,
 	}
