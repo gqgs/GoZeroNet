@@ -1,0 +1,66 @@
+# GoZeroNet
+Go implementation of the [ZeroNet](http://zeronet.io/) network.
+
+This aims to be compatible with the the _core_ of the [original](https://github.com/HelloZeroNet/ZeroNet) Python implementation.
+
+
+### Status
+
+- [Network protocol](https://zeronet.io/docs/help_zeronet/network_protocol/)
+    - [x] handshake
+    - [x] getFile
+    - [x] streamFile
+    - [x] ping
+    - [x] pex
+    - [x] update
+    - [x] listModified
+    - [ ] getHashfield
+    - [ ] setHashfield
+    - [ ] findHashIds
+    - [x] checkport
+    - [ ] getPieceFields
+    - [ ] setPieceFields
+- [ZeroFrame API](https://zeronet.io/docs/site_development/zeroframe_api_reference/)
+    - [x] Wrapper commands
+    - [ ] as
+    - [x] announcerInfo
+    - [x] announcerStats
+    - [ ] certAdd
+    - [ ] certSelect
+    - [x] channelJoin
+    - [x] channelJoinAllsite
+    - [x] dbQuery
+    - [ ] dirList
+    - [x] fileGet
+    - [x] fileList
+    - [x] fileNeed
+    - [ ] fileQuery
+    - [ ] fileRules
+    - [ ] fileWrite
+    - [ ] ping
+    - [x] siteInfo
+    - [x] siteList
+    - [ ] sitePublish
+    - [ ] siteReload
+    - [ ] siteSign
+    - [ ] siteUpdate
+    - [x] siteSetLimit
+    - [x] userGetSettings
+    - [x] userSetSettings
+    - [x] userGetGlobalSettings
+    - [x] serverShutdown
+- Announcers
+    - [X] HTTP
+    - [ ] UDP
+    - [ ] Zero
+- Files
+    - [x] Required
+    - [x] Optional
+    - [ ] Big
+- [ ] Namecoin
+- [ ] TLS
+- [ ] Hidden service
+
+
+### Is it safe already to use for unstrusted sites?
+Not yet!
