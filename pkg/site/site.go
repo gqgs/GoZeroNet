@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -23,7 +24,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
-var errFileNotFound = errors.New("site: file not found")
+var errFileNotFound = fmt.Errorf("site: %w", os.ErrNotExist)
 
 type Site struct {
 	addr              string
@@ -145,7 +146,7 @@ func (s *Site) DecodeJSON(filename string, v interface{}) error {
 func (s *Site) FileNeed(innerPath string) error {
 	path := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
 	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{InnerPath: innerPath})
 			return nil
 		}
@@ -163,7 +164,7 @@ func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) er
 	path := path.Join(config.DataDir, s.addr, innerPath)
 	file, err := os.Open(path)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return s.broadcastFileNeed(ctx, innerPath, func() error {
 				return s.ReadFile(ctx, innerPath, dst)
 			})
@@ -202,7 +203,7 @@ func (s *Site) ListFiles(innerPath string) ([]string, error) {
 	root := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
 
 	if _, err := os.Stat(root); err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return files, nil
 		}
 		return nil, err
