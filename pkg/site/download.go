@@ -63,18 +63,21 @@ func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
 		return err
 	}
 
+	updated := make([]string, 0, len(resp.ModifiedFiles))
 	for innerPath, modified := range resp.ModifiedFiles {
-		if err := peer.CheckConnection(); err != nil {
-			return err
-		}
-
 		if info, err := s.contentDB.ContentInfo(s.addr, innerPath); err == nil {
 			if modified <= info.Modified {
 				s.log.WithField("peer", peer).Debug("skipping outdated or same content.json ", innerPath)
 				continue
 			}
 		}
+		updated = append(updated, innerPath)
+	}
 
+	for _, innerPath := range updated {
+		if err := peer.CheckConnection(); err != nil {
+			return err
+		}
 		if err := s.DownloadContentJSON(peer, innerPath); err != nil {
 			s.log.WithField("peer", peer).Error(err)
 			continue
