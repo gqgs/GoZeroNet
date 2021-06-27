@@ -1,11 +1,11 @@
 package peer
 
 import (
+	"sync/atomic"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/event"
-	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 )
@@ -25,8 +25,8 @@ type manager struct {
 	log           log.Logger
 	pubsubManager pubsub.Manager
 	site          string
+	connected     int64
 	connectedCh   chan *peer
-	doneCh        chan *peer
 	msgCh         <-chan pubsub.Message
 	closeCh       chan struct{}
 }
@@ -37,7 +37,6 @@ func NewManager(pubsubManager pubsub.Manager, site string) *manager {
 		site:          site,
 		pubsubManager: pubsubManager,
 		connectedCh:   make(chan *peer, config.MaxConnectedPeers),
-		doneCh:        make(chan *peer, config.MaxConnectedPeers),
 		msgCh:         pubsubManager.Register("peer_manager", config.PeerCandidatesBufferSize),
 		closeCh:       make(chan struct{}),
 	}
@@ -52,6 +51,7 @@ func (m *manager) GetConnected() *peer {
 			return connected
 		}
 		connected.Close()
+		atomic.AddInt64(&m.connected, -1)
 	case <-time.After(waitForconnectedTimeout):
 		event.BroadcastPeersNeed(m.site, m.pubsubManager, &event.PeersNeed{})
 	}
@@ -59,7 +59,12 @@ func (m *manager) GetConnected() *peer {
 }
 
 func (m *manager) PutConnected(p *peer) {
-	m.doneCh <- p
+	select {
+	case m.connectedCh <- p:
+	default:
+		p.Close()
+		atomic.AddInt64(&m.connected, -1)
+	}
 }
 
 func (m *manager) Close() {
@@ -82,37 +87,25 @@ func (m *manager) processPeerCandidates() {
 
 				m.log.WithField("queue", len(m.msgCh)).Debug("new peer candidate event")
 
-				// already have as many connected pers as we want
-				if len(m.connectedCh) == config.MaxConnectedPeers {
+				if int(atomic.LoadInt64(&m.connected)) >= config.MaxConnectedPeers {
+					m.log.Debug("already have as many connected pers as we want")
 					continue
 				}
+				atomic.AddInt64(&m.connected, 1)
 
 				go func() {
 					peer := NewPeer(candidate.Address)
+					logger := m.log.WithField("peer", peer)
 					if err := peer.Connect(); err != nil {
-						m.log.WithField("peer", peer).Warn(err)
-						return
-					}
-					if err := peer.CheckConnection(); err != nil {
-						m.log.WithField("peer", peer).Warn(err)
-						peer.Close()
+						logger.Warn(err)
+						atomic.AddInt64(&m.connected, -1)
 						return
 					}
 
-					m.log.Info("new connected peer")
-
+					logger.Info("new connected peer: ", peer)
 					m.connectedCh <- peer
 				}()
 			}
-		case done := <-m.doneCh:
-			if _, err := fileserver.Ping(done); err != nil {
-				m.log.WithField("peer", done).Warnf("closing connection: %s", err)
-				if err := done.Close(); err != nil {
-					m.log.WithField("peer", done).Error(err)
-					continue
-				}
-			}
-			m.connectedCh <- done
 		}
 	}
 }
