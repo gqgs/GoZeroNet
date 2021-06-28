@@ -37,7 +37,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [ ] fileQuery
     - [ ] fileRules
     - [ ] fileWrite
-    - [ ] ping
+    - [x] ping
     - [x] siteInfo
     - [x] siteList
     - [ ] sitePublish
@@ -51,6 +51,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [x] serverShutdown
 - Announcers
     - [X] HTTP
+    - [x] PEX
     - [ ] UDP
     - [ ] Zero
 - Files

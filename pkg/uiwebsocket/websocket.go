@@ -81,6 +81,8 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.dbQuery(rawMessage, message)
 	case "serverShutdown":
 		return w.adminOnly(w.serverShutdown)(rawMessage, message)
+	case "ping":
+		return w.ping(message)
 	}
 
 	for _, plugin := range w.plugins {
