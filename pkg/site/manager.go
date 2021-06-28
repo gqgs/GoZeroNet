@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"path"
 	"strings"
 	"time"
 
@@ -142,6 +143,11 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 
 	site.registerWrapperNonce(wrapperNonce)
 
+	favicon := "uimedia/img/favicon.ico"
+	if info.Content.Favicon != "" {
+		favicon = path.Join(info.Address, info.Content.Favicon)
+	}
+
 	vars := struct {
 		Address                  string
 		AjaxKey                  string
@@ -169,9 +175,9 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 		Address:                  info.Address,
 		AjaxKey:                  info.Settings.AjaxKey,
 		BodyStyle:                bodyStyle,
-		Favicon:                  info.Content.Favicon,
+		Favicon:                  favicon,
 		FileInnerPath:            indexFilename,
-		FileURL:                  info.Address + "/" + indexFilename,
+		FileURL:                  path.Join(info.Address, indexFilename),
 		HomePage:                 "/" + "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D",
 		InnerPath:                indexFilename,
 		Lang:                     config.Language,
