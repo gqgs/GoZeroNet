@@ -16,7 +16,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [x] listModified
     - [ ] getHashfield
     - [ ] setHashfield
-    - [ ] findHashIds
+    - [x] findHashIds
     - [x] checkport
     - [ ] getPieceFields
     - [ ] setPieceFields
@@ -36,7 +36,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [x] fileNeed
     - [ ] fileQuery
     - [ ] fileRules
-    - [ ] fileWrite
+    - [x] fileWrite
     - [x] ping
     - [x] siteInfo
     - [x] siteList

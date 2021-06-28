@@ -164,6 +164,24 @@ func (s *Site) FileNeed(innerPath string) error {
 	return nil
 }
 
+func (s *Site) FileWrite(innerPath string, reader io.Reader) error {
+	innerPath = safe.CleanPath(innerPath)
+	writePath := path.Join(config.DataDir, s.addr, innerPath)
+
+	if err := os.MkdirAll(path.Dir(writePath), os.ModePerm); err != nil {
+		return err
+	}
+
+	file, err := os.Create(writePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, reader)
+	return err
+}
+
 func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) error {
 	innerPath = safe.CleanPath(innerPath)
 
