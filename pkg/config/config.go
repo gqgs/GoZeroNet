@@ -19,6 +19,7 @@ type config struct {
 	ContentBufferSize       int      `toml:"content_buffer_size"`
 	WebsocketBufferSize     int      `toml:"websocket_buffer_size"`
 	MaxConnectedPeers       int      `toml:"max_connected_peers"`
+	DefaultChannelSize      int      `toml:"default_channel_size"`
 	ConnectionDeadline      duration `toml:"connection_deadline"`
 	FileServerDeadline      duration `toml:"fileserver_deadline"`
 	FileNeedDeadline        duration `toml:"file_need_deadline"`
@@ -50,6 +51,7 @@ func init() {
 		ConnectionDeadline = c.ConnectionDeadline.Duration
 		FileServerDeadline = c.FileServerDeadline.Duration
 		FileNeedDeadline = c.FileNeedDeadline.Duration
+		DefaultChannelSize = c.DefaultChannelSize
 
 		return
 	}
@@ -81,6 +83,7 @@ var (
 	ContentBufferSize       int
 	WebsocketBufferSize     int
 	MaxConnectedPeers       int
+	DefaultChannelSize      int
 	ValidateDatabaseQueries bool // Validate database queries for correctness
 	Trackers                []string
 	ConnectionDeadline      time.Duration

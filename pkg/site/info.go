@@ -14,7 +14,7 @@ type Info struct {
 	AddressShort   string        `json:"address_short"`
 	AuthAddress    string        `json:"auth_address"`
 	BadFiles       int           `json:"bad_files"`
-	Events         []interface{} `json:"events,omitempty"`
+	Event          []interface{} `json:"event,omitempty"`
 	CertUserID     string        `json:"cert_user_id"`
 	Peers          int           `json:"peers"`
 	NextSizeLimit  int           `json:"next_size_limit"`

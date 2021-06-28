@@ -56,6 +56,12 @@ func (w *worker) run() {
 		case *event.PeersNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("peer need event")
 			go w.site.Announce()
+		case *event.FileInfo:
+			if payload.IsDownloaded {
+				go w.site.BroadcastSiteChange("file_done", payload.InnerPath)
+			}
+		case *event.ContentInfo:
+			go w.site.BroadcastSiteChange("file_done", payload.InnerPath)
 		case *event.SiteUpdate:
 			// TODO: update site
 			w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")

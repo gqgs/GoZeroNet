@@ -44,10 +44,19 @@ type Site struct {
 	peerManager       peer.Manager
 	workerManager     Worker
 	lastAnnounce      time.Time
+	loading           bool
 }
 
 func (s *Site) Peers() map[string]peer.Peer {
 	return s.peers
+}
+
+func (s *Site) Loading(loading bool) {
+	s.loading = loading
+}
+
+func (s *Site) IsLoading() bool {
+	return s.loading
 }
 
 func (s *Site) HasValidWrapperNonce(wrapperNonce string) bool {
@@ -95,13 +104,13 @@ func (s *Site) IsAdmin() bool {
 	return s.isAdmin
 }
 
-func (s *Site) broadcastSiteChange(events ...interface{}) error {
+func (s *Site) BroadcastSiteChange(events ...interface{}) error {
 	info, err := s.Info()
 	if err != nil {
 		return err
 	}
 
-	info.Events = events
+	info.Event = events
 
 	event.BroadcastSiteChanged(s.addr, s.pubsubManager, &event.SiteChanged{
 		Cmd:    "setSiteInfo",
@@ -117,11 +126,11 @@ func (s *Site) SetSiteLimit(sizeLimit int) error {
 		return err
 	}
 
-	if err := s.broadcastSiteChange(); err != nil {
+	if err := s.BroadcastSiteChange(); err != nil {
 		return err
 	}
 
-	return s.DownloadSince(s.peerManager, time.Now().AddDate(0, -1, 0))
+	return s.DownloadSince(time.Now().AddDate(0, -1, 0))
 }
 
 func (s *Site) Address() string {
@@ -181,7 +190,7 @@ func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) er
 }
 
 func (s *Site) broadcastFileNeed(ctx context.Context, innerPath string, downloadCallback func() error) error {
-	msgCh := s.pubsubManager.Register("file_need("+innerPath+")", 10)
+	msgCh := s.pubsubManager.Register("file_need("+innerPath+")", config.DefaultChannelSize)
 	defer s.pubsubManager.Unregister(msgCh)
 	event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{InnerPath: innerPath})
 	for {

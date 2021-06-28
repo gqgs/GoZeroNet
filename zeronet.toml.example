@@ -9,6 +9,7 @@ trackers = [
   "http://tracker.bt4g.com:2095/announce"
 ]
 
+default_channel_buffer = 10
 content_buffer_size = 100
 websocket_buffer_size = 50
 max_connected_peers = 10

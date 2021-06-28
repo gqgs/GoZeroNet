@@ -14,16 +14,15 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
-	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
-func (s *Site) Download(peerManager peer.Manager, since time.Time) error {
+func (s *Site) Download(since time.Time) error {
 	for {
-		p := peerManager.GetConnected()
+		p := s.peerManager.GetConnected()
 		err := s.DownloadContentJSON(p, "content.json")
-		peerManager.PutConnected(p)
+		s.peerManager.PutConnected(p)
 		if err != nil {
 			s.log.WithField("peer", p).Error(err)
 			continue
@@ -32,22 +31,19 @@ func (s *Site) Download(peerManager peer.Manager, since time.Time) error {
 		s.Settings.Downloaded = time.Now().Unix()
 		s.Settings.Peers = len(s.peers)
 		s.Settings.Serving = true
-		s.Settings.AjaxKey = random.HexString(64)
-		s.Settings.AuthKey = random.HexString(64)
-		s.Settings.WrapperKey = random.HexString(64)
 
 		if err := s.SaveSettings(); err != nil {
 			return err
 		}
-		return s.DownloadSince(peerManager, since)
+		return s.DownloadSince(since)
 	}
 }
 
-func (s *Site) DownloadSince(peerManager peer.Manager, since time.Time) error {
+func (s *Site) DownloadSince(since time.Time) error {
 	for {
-		p := peerManager.GetConnected()
+		p := s.peerManager.GetConnected()
 		err := s.downloadRecent(p, since)
-		peerManager.PutConnected(p)
+		s.peerManager.PutConnected(p)
 		if err != nil {
 			s.log.WithField("peer", p).Warn(err)
 			continue

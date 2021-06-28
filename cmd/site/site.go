@@ -7,7 +7,6 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/content"
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
-	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
@@ -40,13 +39,10 @@ func download(addr string, daysAgo int) error {
 	contentWorker := content.NewWorker(contentDB, pubsubManager)
 	defer contentWorker.Close()
 
-	peerManager := peer.NewManager(pubsubManager, addr)
-	defer peerManager.Close()
-
 	go newSite.Announce()
 
 	now := time.Now()
-	if err = newSite.Download(peerManager, time.Now().AddDate(0, 0, -daysAgo)); err != nil {
+	if err = newSite.Download(time.Now().AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
 
@@ -85,13 +81,10 @@ func downloadRecent(addr string, daysAgo int) error {
 	contentWorker := content.NewWorker(contentDB, pubsubManager)
 	defer contentWorker.Close()
 
-	peerManager := peer.NewManager(pubsubManager, addr)
-	defer peerManager.Close()
-
 	go site.Announce()
 
 	now := time.Now()
-	if err = site.DownloadSince(peerManager, now.AddDate(0, 0, -daysAgo)); err != nil {
+	if err = site.DownloadSince(now.AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
 

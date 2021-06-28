@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -118,6 +120,39 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 	innerPath := strings.TrimPrefix(r.URL.Path, "/"+site)
 	innerPath = strings.Trim(innerPath, "/")
 
+	if s.siteManager.Site(site) == nil {
+		newSite, err := s.siteManager.NewSite(site)
+		if err != nil {
+			s.log.Error(err)
+			return
+		}
+		newSite.Loading(true)
+
+		msgCh := s.pubsubManager.Register("site_downloader", config.DefaultChannelSize)
+		defer s.pubsubManager.Unregister(msgCh)
+
+		go newSite.Announce()
+		go func() {
+			defer newSite.Loading(false)
+
+			if err := newSite.Download(time.Now().AddDate(0, 0, -7)); err != nil {
+				s.log.Error(err)
+				return
+			}
+
+			if err := newSite.OpenDB(); err != nil {
+				s.log.Error(err)
+				return
+			}
+			if err := newSite.RebuildDB(); err != nil {
+				s.log.Error(err)
+				return
+			}
+		}()
+
+		s.waitForContentDownload(msgCh)
+	}
+
 	if innerPath == "" {
 		if err := s.siteManager.RenderIndex(site, "index.html", w); err != nil {
 			s.log.WithField("site", site).Warn(err)
@@ -145,6 +180,22 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.siteManager.ReadFile(site, innerPath, w); err != nil {
 		s.log.WithField("site", site).WithField("innerPath", innerPath).Warn(err)
 		http.Error(w, "not found", http.StatusNotFound)
+	}
+}
+
+func (s *server) waitForContentDownload(msgCh <-chan pubsub.Message) {
+	for {
+		select {
+		case msg := <-msgCh:
+			if payload, ok := msg.Event().(*event.ContentInfo); ok {
+				if payload.InnerPath == "content.json" {
+					s.log.Info("downloaded content.json")
+					return
+				}
+			}
+		case <-time.After(5 * time.Minute):
+			return
+		}
 	}
 }
 

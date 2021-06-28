@@ -133,6 +133,9 @@ func (d *siteDatabase) Close() error {
 }
 
 func (d *siteDatabase) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
+	if d.storage == nil {
+		return make([]map[string]interface{}, 0), nil
+	}
 	return d.storage.QueryObjectList(query, args...)
 }
 

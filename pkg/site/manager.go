@@ -23,6 +23,7 @@ type Manager interface {
 	ReadFile(site, innerPath string, dst io.Writer) error
 	SiteByWrapperKey(wrapperKey string) *Site
 	SiteList() ([]*Info, error)
+	NewSite(addr string) (*Site, error)
 	Close()
 }
 
@@ -43,12 +44,6 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
 	if err != nil {
 		return nil, err
 	}
-
-	// peerManager := peer.NewManager(w.pubsubManager, w.site.Address())
-	// defer peerManager.Close()
-
-	// worker := w.site.NewWorker(peerManager)
-	// defer worker.Close()
 
 	user := userManager.User()
 	sites := make(map[string]*Site)
@@ -105,7 +100,11 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.workerManager = site.NewWorker()
 	site.Settings.Added = time.Now().Unix()
 
-	m.wrapperKeyMap[addr] = site
+	site.Settings.AjaxKey = random.HexString(64)
+	site.Settings.AuthKey = random.HexString(64)
+	site.Settings.WrapperKey = random.HexString(64)
+
+	m.wrapperKeyMap[site.Settings.WrapperKey] = site
 	m.sites[addr] = site
 	return site, nil
 }
@@ -121,7 +120,6 @@ func (m *manager) SiteByWrapperKey(wrapperKey string) *Site {
 func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) error {
 	site, ok := m.sites[siteAddress]
 	if !ok {
-		// TODO: download site
 		return errors.New("site not found")
 	}
 
@@ -174,7 +172,7 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 		Favicon:                  info.Content.Favicon,
 		FileInnerPath:            indexFilename,
 		FileURL:                  info.Address + "/" + indexFilename,
-		HomePage:                 info.Address,
+		HomePage:                 "/" + "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D",
 		InnerPath:                indexFilename,
 		Lang:                     config.Language,
 		Permissions:              info.Settings.Permissions,
@@ -183,7 +181,7 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 		Rev:                      config.Rev,
 		ScriptNonce:              scriptNonce,
 		ServerURL:                "", // only used for proxy requests
-		ShowLoadingScreen:        false,
+		ShowLoadingScreen:        site.IsLoading(),
 		ThemeClass:               theme,
 		Title:                    info.Content.Title,
 		WrapperKey:               info.Settings.WrapperKey,
@@ -197,7 +195,6 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 func (m *manager) ReadFile(site, innerPath string, dst io.Writer) error {
 	s, ok := m.sites[site]
 	if !ok {
-		// TODO: download site
 		return errors.New("site not found")
 	}
 

@@ -221,7 +221,7 @@ func (s *Site) AnnounceTrackers() {
 	wg.Wait()
 
 	s.log.Info("announcing to trackers done")
-	_ = s.broadcastSiteChange("peers_added", addedPeers)
+	_ = s.BroadcastSiteChange("peers_added", addedPeers)
 
 	// TODO: if trackers.json file exists annouce using the trackers defined there
 	// If it doesn't exist use bootstrap trackers in config.Trackers
