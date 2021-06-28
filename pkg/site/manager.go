@@ -219,6 +219,7 @@ func (m *manager) SiteList() ([]*Info, error) {
 
 func (m *manager) Close() {
 	for _, site := range m.sites {
+		site.SaveSettings()
 		site.peerManager.Close()
 		site.workerManager.Close()
 	}
