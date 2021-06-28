@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path"
 
@@ -57,7 +58,7 @@ func loadUserSettingsFromFile() (map[string]*user, error) {
 	userFilePath := path.Join(config.DataDir, "users.json")
 	file, err := os.Open(userFilePath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return make(map[string]*user), nil
 		}
 		return nil, err

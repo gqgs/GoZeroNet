@@ -35,7 +35,6 @@ type Site struct {
 	pubsubManager     pubsub.Manager
 	Settings          *Settings
 	user              user.User
-	isAdmin           bool
 	wrapperNonceMutex sync.RWMutex
 	wrapperNonce      map[string]int64
 	log               log.Logger
@@ -101,7 +100,7 @@ func (s *Site) SaveSettings() error {
 }
 
 func (s *Site) IsAdmin() bool {
-	return s.isAdmin
+	return s.addr == config.HomeSite
 }
 
 func (s *Site) BroadcastSiteChange(events ...interface{}) error {

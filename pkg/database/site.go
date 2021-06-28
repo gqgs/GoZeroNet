@@ -66,6 +66,9 @@ func (d *siteDatabase) Exists() bool {
 func (d *siteDatabase) Update(innerPaths ...string) error {
 	schema, err := loadDBSchemaFromFile(d.site)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
 		return err
 	}
 
@@ -142,6 +145,9 @@ func (d *siteDatabase) Query(query string, args ...interface{}) ([]map[string]in
 func (d *siteDatabase) Rebuild() error {
 	schema, err := loadDBSchemaFromFile(d.site)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
 		return err
 	}
 

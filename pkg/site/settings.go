@@ -2,6 +2,7 @@ package site
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path"
 
@@ -39,7 +40,9 @@ type Settings struct {
 func loadSiteSettingsFromFile() (map[string]*Settings, error) {
 	sitesFile, err := os.Open(path.Join(config.DataDir, "sites.json"))
 	if err != nil {
-		// TODO: ignore error if file not found
+		if errors.Is(err, os.ErrNotExist) {
+			return make(map[string]*Settings), nil
+		}
 		return nil, err
 	}
 	defer sitesFile.Close()

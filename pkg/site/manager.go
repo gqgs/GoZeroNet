@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -62,13 +61,6 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
 		site.contentDB = contentDB
 		site.peerManager = peer.NewManager(pubsubManager, addr)
 		site.workerManager = site.NewWorker()
-
-		for _, permission := range site.Settings.Permissions {
-			if strings.EqualFold(permission, "admin") {
-				site.isAdmin = true
-				break
-			}
-		}
 
 		sites[addr] = site
 		wrapperKeyMap[siteSettings.WrapperKey] = site
@@ -148,6 +140,11 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 		favicon = path.Join(info.Address, info.Content.Favicon)
 	}
 
+	permissions := info.Settings.Permissions
+	if site.IsAdmin() {
+		permissions = []string{"ADMIN"}
+	}
+
 	vars := struct {
 		Address                  string
 		AjaxKey                  string
@@ -178,10 +175,10 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 		Favicon:                  favicon,
 		FileInnerPath:            indexFilename,
 		FileURL:                  path.Join(info.Address, indexFilename),
-		HomePage:                 "/" + "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D",
+		HomePage:                 "/" + config.HomeSite,
 		InnerPath:                indexFilename,
 		Lang:                     config.Language,
-		Permissions:              info.Settings.Permissions,
+		Permissions:              permissions,
 		PostMessageNonceSecurity: info.Content.PostmessageNonceSecurity,
 		QueryString:              "?wrapper_nonce=" + wrapperNonce,
 		Rev:                      config.Rev,

@@ -53,6 +53,10 @@ func init() {
 		FileNeedDeadline = c.FileNeedDeadline.Duration
 		DefaultChannelSize = c.DefaultChannelSize
 
+		if err := os.MkdirAll(path.Dir(DataDir), os.ModePerm); err != nil {
+			panic(err)
+		}
+
 		return
 	}
 
@@ -74,6 +78,7 @@ const (
 
 	RandomIPv4Addr = "127.0.0.1:"
 	UpdateSite     = "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf" // TODO: ZN updater. We would need a new zite for this.
+	HomeSite       = "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D"
 )
 
 var (
