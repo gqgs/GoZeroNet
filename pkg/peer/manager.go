@@ -10,7 +10,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 )
 
-const waitForconnectedTimeout = time.Second * 10
+const waitForconnectedTimeout = time.Second
 
 type Manager interface {
 	// Returns a connected peer.
@@ -54,6 +54,7 @@ func (m *manager) GetConnected() *peer {
 		atomic.AddInt64(&m.connected, -1)
 	case <-time.After(waitForconnectedTimeout):
 		event.BroadcastPeersNeed(m.site, m.pubsubManager, &event.PeersNeed{})
+		time.Sleep(time.Second * 5)
 	}
 	return m.GetConnected()
 }
