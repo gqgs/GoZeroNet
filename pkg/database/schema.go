@@ -181,8 +181,7 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 			}
 		case simdjson.TypeArray:
 			newIter := rootElement.Iter
-			typ := newIter.Advance()
-			if typ == simdjson.TypeObject {
+			for newIter.Advance() == simdjson.TypeObject {
 				obj, err = newIter.Object(obj)
 				if err != nil {
 					return err
