@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -126,7 +128,8 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	}
 
 	logger := s.log.WithField("peer", peer)
-	for filename, file := range content.Files {
+	for _, filename := range sortDownloads(content.Files) {
+		file := content.Files[filename]
 		filename = path.Join(path.Dir(innerPath), filename)
 		relPath := safe.CleanPath(filename)
 
@@ -151,7 +154,8 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		}
 	}
 
-	for filename, file := range content.FilesOptional {
+	for _, filename := range sortDownloads(content.FilesOptional) {
+		file := content.FilesOptional[filename]
 		filename = path.Join(path.Dir(innerPath), filename)
 		relPath := safe.CleanPath(filename)
 
@@ -232,4 +236,39 @@ func (s *Site) downloadFile(peer peer.Peer, innerPath string, info *event.FileIn
 	})
 
 	return nil
+}
+
+func sortDownloads(files map[string]File) []string {
+	var i int
+	filenames := make([]string, len(files))
+	for filename := range files {
+		filenames[i] = filename
+		i++
+	}
+
+	scoreFunc := func(filename string) int {
+		suffixes := []string{
+			"dbschema.json",
+			"index.html",
+			".css",
+			".js",
+			".zip",
+			".png",
+			".json",
+		}
+
+		var priority int
+		for _, suffix := range suffixes {
+			if strings.HasSuffix(filename, suffix) {
+				return priority
+			}
+			priority += 5
+		}
+		return priority
+	}
+
+	sort.Slice(filenames, func(i, j int) bool {
+		return scoreFunc(filenames[i]) < scoreFunc(filenames[j])
+	})
+	return filenames
 }
