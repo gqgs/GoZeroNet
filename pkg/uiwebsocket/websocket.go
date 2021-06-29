@@ -60,7 +60,7 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	case "userSetSettings":
 		return w.userSetSettings(rawMessage, message)
 	case "siteInfo":
-		return w.siteInfo(message)
+		return w.siteInfo(rawMessage, message)
 	case "serverInfo":
 		return w.serverInfo(message)
 	case "serverErrors":
