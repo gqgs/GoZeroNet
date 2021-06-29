@@ -35,6 +35,6 @@ func (w *uiWebsocket) siteUpdate(rawMessage []byte, message Message) error {
 			To:  message.ID,
 			ID:  w.ID(),
 		},
-		"ok",
+		"Updated",
 	})
 }

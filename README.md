@@ -43,7 +43,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [ ] sitePublish
     - [ ] siteReload
     - [ ] siteSign
-    - [ ] siteUpdate
+    - [x] siteUpdate
     - [x] siteSetLimit
     - [x] userGetSettings
     - [x] userSetSettings

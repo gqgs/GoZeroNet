@@ -104,10 +104,11 @@ func (s *Site) IsAdmin() bool {
 	return s.addr == config.HomeSite
 }
 
-func (s *Site) BroadcastSiteChange(events ...interface{}) error {
+func (s *Site) BroadcastSiteChange(events ...interface{}) {
 	info, err := s.Info()
 	if err != nil {
-		return err
+		s.log.Error(err)
+		return
 	}
 
 	info.Event = events
@@ -116,8 +117,6 @@ func (s *Site) BroadcastSiteChange(events ...interface{}) error {
 		Cmd:    "setSiteInfo",
 		Params: info,
 	})
-
-	return nil
 }
 
 func (s *Site) SetSiteLimit(sizeLimit int) error {
@@ -126,9 +125,7 @@ func (s *Site) SetSiteLimit(sizeLimit int) error {
 		return err
 	}
 
-	if err := s.BroadcastSiteChange(); err != nil {
-		return err
-	}
+	s.BroadcastSiteChange()
 
 	return s.DownloadSince(time.Now().AddDate(0, -1, 0))
 }
@@ -255,6 +252,9 @@ func (s *Site) ListFiles(innerPath string) ([]string, error) {
 
 func (s *Site) Update(daysAgo int) error {
 	now := time.Now().UTC()
+	s.BroadcastSiteChange("updating", true)
+	defer s.BroadcastSiteChange("updated", true)
+
 	if err := s.DownloadSince(now.AddDate(0, 0, -daysAgo)); err != nil {
 		return err
 	}
