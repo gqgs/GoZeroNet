@@ -80,6 +80,11 @@ func (w *worker) run() {
 		case *event.SiteUpdate:
 			// TODO: update site
 			w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")
+			go func() {
+				if err := w.site.Update(7); err != nil {
+					w.log.Error(err)
+				}
+			}()
 		case *event.FileNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("file need event")
 			wg.Add(1)

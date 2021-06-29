@@ -109,7 +109,8 @@ func (c *contentDatabase) UpdateFile(site string, fileInfo *event.FileInfo) erro
 			is_downloaded = excluded.is_downloaded,
 			is_pinned = excluded.is_pinned,
 			is_optional = excluded.is_optional,
-			uploaded = excluded.uploaded
+			uploaded = excluded.uploaded,
+			time_added = CURRENT_TIMESTAMP
 		`,
 		site, fileInfo.InnerPath,
 		fileInfo.Hash,
@@ -163,7 +164,8 @@ func (c *contentDatabase) UpdateContent(site string, contentInfo *event.ContentI
 		ON CONFLICT (site_id, inner_path) DO
 		UPDATE SET
 			modified = excluded.modified,
-			size = excluded.size
+			size = excluded.size,
+			time_added = CURRENT_TIMESTAMP
 		`, site, contentInfo.InnerPath, contentInfo.Modified, contentInfo.Size); err != nil {
 		return err
 	}

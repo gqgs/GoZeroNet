@@ -87,15 +87,5 @@ func downloadRecent(addr string, daysAgo int) error {
 	defer contentWorker.Close()
 
 	go site.Announce()
-
-	now := time.Now()
-	if err = site.DownloadSince(now.AddDate(0, 0, -daysAgo)); err != nil {
-		return err
-	}
-
-	if err := site.OpenDB(); err != nil {
-		return err
-	}
-	defer site.CloseDB()
-	return site.UpdateDB(now)
+	return site.Update(daysAgo)
 }

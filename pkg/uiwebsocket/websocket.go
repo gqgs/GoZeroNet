@@ -63,6 +63,8 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.siteInfo(rawMessage, message)
 	case "serverInfo":
 		return w.serverInfo(message)
+	case "siteUpdate":
+		return w.adminOnly(w.siteUpdate)(rawMessage, message)
 	case "serverErrors":
 		return w.adminOnly(w.serverErrors)(rawMessage, message)
 	case "announcerInfo":

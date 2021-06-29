@@ -252,3 +252,14 @@ func (s *Site) ListFiles(innerPath string) ([]string, error) {
 	})
 	return files, err
 }
+
+func (s *Site) Update(daysAgo int) error {
+	now := time.Now().UTC()
+	if err := s.DownloadSince(now.AddDate(0, 0, -daysAgo)); err != nil {
+		return err
+	}
+	if err := s.OpenDB(); err != nil {
+		return err
+	}
+	return s.UpdateDB(now)
+}
