@@ -61,7 +61,7 @@ func (s *server) pexHandler(conn net.Conn, decoder requestDecoder) error {
 	}
 
 	var peers [][]byte
-	peerList, err := s.contentDB.Peers(r.Params.Site)
+	peerList, err := s.contentDB.Peers(r.Params.Site, r.Params.Need)
 	if err != nil {
 		return err
 	}

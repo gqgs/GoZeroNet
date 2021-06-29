@@ -87,9 +87,10 @@ func (m *manager) processPeerCandidates() {
 				}
 
 				m.log.WithField("queue", len(m.msgCh)).Debug("new peer candidate event")
-
 				if int(atomic.LoadInt64(&m.connected)) >= config.MaxConnectedPeers {
-					m.log.Debug("already have as many connected pers as we want")
+					event.BroadcastPeerInfoUpdate(m.site, m.pubsubManager, &event.PeerInfo{
+						Address: candidate.Address,
+					})
 					continue
 				}
 				atomic.AddInt64(&m.connected, 1)

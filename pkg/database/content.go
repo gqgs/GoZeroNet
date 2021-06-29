@@ -22,7 +22,7 @@ type ContentDatabase interface {
 	FileInfo(site, innerPath string) (*event.FileInfo, error)
 	UpdatedFiles(site string, since time.Time) ([]string, error)
 	UpdatedContent(site string, since time.Time) (map[string]int, error)
-	Peers(site string) ([]string, error)
+	Peers(site string, need int) ([]string, error)
 	ContentInfo(site, innerPath string) (*event.ContentInfo, error)
 }
 
@@ -197,14 +197,16 @@ func (c *contentDatabase) UpdatedContent(site string, since time.Time) (map[stri
 
 }
 
-func (c *contentDatabase) Peers(site string) ([]string, error) {
+func (c *contentDatabase) Peers(site string, need int) ([]string, error) {
 	var peers []string
 	query := `
 		SELECT p.address
 		FROM peer p INNER JOIN site s USING(site_id)
-		WHERE s.address = ?
+		WHERE s.address = ? AND p.reputation > 0
+		ORDER BY p.time_added DESC
+		LIMIT ?
 	`
-	rows, err := c.storage.Query(query, site)
+	rows, err := c.storage.Query(query, site, need)
 	if err != nil {
 		return nil, err
 	}
