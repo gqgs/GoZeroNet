@@ -58,9 +58,10 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [x] Required
     - [x] Optional
     - [ ] Big
-- [ ] Namecoin
-- [ ] TLS
+- [ ] UPnP
 - [ ] Hidden service
+- [ ] TLS
+- [ ] Namecoin
 
 
 ### Is it safe already to use for unstrusted sites?
