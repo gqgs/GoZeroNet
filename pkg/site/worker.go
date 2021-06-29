@@ -76,9 +76,12 @@ func (w *worker) run() {
 			}
 		case *event.ContentInfo:
 			w.log.WithField("queue", len(w.queue)).Debug("content info event")
+			if payload.Modified > int(w.site.Settings.Modified) {
+				w.site.Settings.Modified = int64(payload.Modified)
+				w.site.BroadcastSiteChange("updated", true)
+			}
 			go w.site.BroadcastSiteChange("file_done", payload.InnerPath)
 		case *event.SiteUpdate:
-			// TODO: update site
 			w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")
 			go func() {
 				if err := w.site.Update(7); err != nil {
