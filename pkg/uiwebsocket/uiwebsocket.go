@@ -15,6 +15,7 @@ import (
 )
 
 type uiWebsocket struct {
+	ctx           context.Context
 	conn          websocket.Conn
 	log           log.Logger
 	siteManager   site.Manager
@@ -28,10 +29,11 @@ type uiWebsocket struct {
 	ID            func() int64
 }
 
-func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fileserver.Server,
+func NewUIWebsocket(ctx context.Context, conn websocket.Conn, siteManager site.Manager, fileServer fileserver.Server,
 	site *site.Site, pubsubManager pubsub.Manager) *uiWebsocket {
 	counter := safe.Counter()
 	return &uiWebsocket{
+		ctx:           ctx,
 		conn:          conn,
 		siteManager:   siteManager,
 		fileServer:    fileServer,
@@ -49,7 +51,7 @@ func NewUIWebsocket(conn websocket.Conn, siteManager site.Manager, fileServer fi
 	}
 }
 func (w *uiWebsocket) Serve() {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(w.ctx)
 	defer cancel()
 
 	if err := w.site.OpenDB(); err != nil {

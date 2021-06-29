@@ -161,7 +161,7 @@ func (s *Site) AnnounceTrackers() {
 		numWant:  50,
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*30))
+	ctx, cancel := context.WithDeadline(s.ctx, time.Now().Add(time.Second*30))
 	defer cancel()
 
 	now := func() float64 {

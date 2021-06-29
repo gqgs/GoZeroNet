@@ -1,6 +1,7 @@
 package site
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 )
 
 func download(addr string, daysAgo int) error {
+	ctx := context.Background()
+
 	pubsubManager := pubsub.NewManager()
 
 	userManager, err := user.NewManager()
@@ -25,7 +28,7 @@ func download(addr string, daysAgo int) error {
 	}
 	defer contentDB.Close()
 
-	siteManager, err := site.NewManager(pubsubManager, userManager, contentDB)
+	siteManager, err := site.NewManager(ctx, pubsubManager, userManager, contentDB)
 	if err != nil {
 		return err
 	}
@@ -54,6 +57,8 @@ func download(addr string, daysAgo int) error {
 }
 
 func downloadRecent(addr string, daysAgo int) error {
+	ctx := context.Background()
+
 	pubsubManager := pubsub.NewManager()
 
 	userManager, err := user.NewManager()
@@ -67,7 +72,7 @@ func downloadRecent(addr string, daysAgo int) error {
 	}
 	defer contentDB.Close()
 
-	siteManager, err := site.NewManager(pubsubManager, userManager, contentDB)
+	siteManager, err := site.NewManager(ctx, pubsubManager, userManager, contentDB)
 	if err != nil {
 		return err
 	}

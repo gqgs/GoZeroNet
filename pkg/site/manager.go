@@ -28,6 +28,7 @@ type Manager interface {
 }
 
 type manager struct {
+	ctx context.Context
 	// Address -> Site
 	sites map[string]*Site
 	// WrapperKey -> Site
@@ -38,7 +39,7 @@ type manager struct {
 	contentDB     database.ContentDatabase
 }
 
-func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
+func NewManager(ctx context.Context, pubsubManager pubsub.Manager, userManager user.Manager,
 	contentDB database.ContentDatabase) (*manager, error) {
 	settings, err := loadSiteSettingsFromFile()
 	if err != nil {
@@ -61,12 +62,14 @@ func NewManager(pubsubManager pubsub.Manager, userManager user.Manager,
 		site.contentDB = contentDB
 		site.peerManager = peer.NewManager(pubsubManager, addr)
 		site.workerManager = site.NewWorker()
+		site.ctx = ctx
 
 		sites[addr] = site
 		wrapperKeyMap[siteSettings.WrapperKey] = site
 	}
 
 	return &manager{
+		ctx:           ctx,
 		sites:         sites,
 		wrapperKeyMap: wrapperKeyMap,
 		pubsubManager: pubsubManager,
@@ -201,7 +204,7 @@ func (m *manager) ReadFile(site, innerPath string, dst io.Writer) error {
 		return errors.New("site not found")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), config.FileNeedDeadline)
+	ctx, cancel := context.WithTimeout(m.ctx, config.FileNeedDeadline)
 	defer cancel()
 	return s.ReadFile(ctx, innerPath, dst)
 }

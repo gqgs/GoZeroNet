@@ -27,6 +27,7 @@ import (
 var errFileNotFound = fmt.Errorf("site: %w", os.ErrNotExist)
 
 type Site struct {
+	ctx               context.Context
 	addr              string
 	trackersMutex     sync.RWMutex
 	trackers          map[string]*AnnouncerStats

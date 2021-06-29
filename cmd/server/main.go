@@ -44,7 +44,7 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 	contentWorker := content.NewWorker(contentDB, pubsubManager)
 	defer contentWorker.Close()
 
-	siteManager, err := site.NewManager(pubsubManager, userManager, contentDB)
+	siteManager, err := site.NewManager(ctx, pubsubManager, userManager, contentDB)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 		return err
 	}
 
-	uiServer, err := uiserver.NewServer(uiServerAddr, siteManager, fileServer, pubsubManager, userManager)
+	uiServer, err := uiserver.NewServer(ctx, uiServerAddr, siteManager, fileServer, pubsubManager, userManager)
 	if err != nil {
 		return err
 	}

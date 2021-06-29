@@ -25,6 +25,7 @@ import (
 )
 
 type server struct {
+	ctx           context.Context
 	srv           *http.Server
 	log           log.Logger
 	addr          string
@@ -34,7 +35,7 @@ type server struct {
 	userManager   user.Manager
 }
 
-func NewServer(addr string, siteManager site.Manager, fileServer fileserver.Server,
+func NewServer(ctx context.Context, addr string, siteManager site.Manager, fileServer fileserver.Server,
 	pubsubManager pubsub.Manager, userManager user.Manager) (*server, error) {
 	r := chi.NewRouter()
 
@@ -48,6 +49,7 @@ func NewServer(addr string, siteManager site.Manager, fileServer fileserver.Serv
 	config.UIServerPort = port
 
 	s := &server{
+		ctx:  ctx,
 		addr: addr,
 		srv: &http.Server{
 			Addr:    addr,
@@ -92,7 +94,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go uiwebsocket.NewUIWebsocket(conn, s.siteManager, s.fileServer, site, s.pubsubManager).Serve()
+	go uiwebsocket.NewUIWebsocket(s.ctx, conn, s.siteManager, s.fileServer, site, s.pubsubManager).Serve()
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

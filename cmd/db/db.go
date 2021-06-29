@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 
 	"github.com/gqgs/go-zeronet/pkg/database"
@@ -10,6 +11,8 @@ import (
 )
 
 func rebuild(addr string) error {
+	ctx := context.Background()
+
 	pubsubManager := pubsub.NewManager()
 
 	userManager, err := user.NewManager()
@@ -23,7 +26,7 @@ func rebuild(addr string) error {
 	}
 	defer contentDB.Close()
 
-	siteManager, err := site.NewManager(pubsubManager, userManager, contentDB)
+	siteManager, err := site.NewManager(ctx, pubsubManager, userManager, contentDB)
 	if err != nil {
 		return err
 	}
