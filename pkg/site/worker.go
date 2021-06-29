@@ -64,6 +64,7 @@ func (w *worker) run() {
 				continue
 			}
 			for _, peer := range peers {
+				peer := peer
 				event.BroadcastPeerCandidate(w.site.addr, w.site.pubsubManager, &event.PeerCandidate{
 					Address: peer,
 				})
