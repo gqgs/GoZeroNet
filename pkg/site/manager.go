@@ -83,6 +83,7 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 		return site, errors.New("site already exists")
 	}
 	site := new(Site)
+	site.ctx = m.ctx
 	site.addr = addr
 	site.Settings = new(Settings)
 	site.trackers = make(map[string]*AnnouncerStats)
