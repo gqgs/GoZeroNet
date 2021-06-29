@@ -65,7 +65,7 @@ func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
 	for innerPath, modified := range resp.ModifiedFiles {
 		if info, err := s.contentDB.ContentInfo(s.addr, innerPath); err == nil {
 			if modified <= info.Modified {
-				s.log.WithField("peer", peer).Debug("skipping outdated or same content.json ", innerPath)
+				s.log.WithField("peer", peer).Debugf("skipping outdated or same %s: (%d <= %d)", innerPath, modified, info.Modified)
 				continue
 			}
 		}
@@ -142,7 +142,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			continue
 		}
 
-		if info.IsDownloaded {
+		if info.IsDownloaded && info.Hash == file.Sha512 {
 			continue
 		}
 
