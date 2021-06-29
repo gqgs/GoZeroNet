@@ -8,6 +8,8 @@ type FileInfo struct {
 	IsPinned     bool   `json:"is_pinned"`
 	IsOptional   bool   `json:"is_optional"`
 	Uploaded     int    `json:"uploaded"`
+	PieceSize    int    `json:"piece_size"`
+	Piecemap     string `json:"piecemap"`
 }
 
 func (e *FileInfo) String() string {

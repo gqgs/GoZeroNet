@@ -181,6 +181,8 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			IsDownloaded: info.IsDownloaded,
 			IsPinned:     info.IsPinned,
 			IsOptional:   true,
+			PieceSize:    file.PieceSize,
+			Piecemap:     file.Piecemap,
 		})
 	}
 
@@ -233,6 +235,8 @@ func (s *Site) downloadFile(peer peer.Peer, innerPath string, info *event.FileIn
 		IsDownloaded: true,
 		IsPinned:     info.IsPinned,
 		IsOptional:   info.IsOptional,
+		PieceSize:    info.PieceSize,
+		Piecemap:     info.Piecemap,
 	})
 
 	return nil

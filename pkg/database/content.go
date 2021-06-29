@@ -58,7 +58,7 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
 	query := `
-		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional, f.uploaded
+		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`
@@ -70,7 +70,17 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 
 	info := new(event.FileInfo)
 	if rows.Next() {
-		if err := rows.Scan(&info.InnerPath, &info.Hash, &info.Size, &info.IsDownloaded, &info.IsPinned, &info.IsOptional, &info.Uploaded); err != nil {
+		if err := rows.Scan(
+			&info.InnerPath,
+			&info.Hash,
+			&info.Size,
+			&info.IsDownloaded,
+			&info.IsPinned,
+			&info.IsOptional,
+			&info.Uploaded,
+			&info.PieceSize,
+			&info.Piecemap,
+		); err != nil {
 			return nil, err
 		}
 		return info, nil
@@ -90,7 +100,7 @@ func (c *contentDatabase) Close() error {
 	return c.storage.Close()
 }
 
-func (c *contentDatabase) UpdateFile(site string, fileInfo *event.FileInfo) error {
+func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 	tx, err := c.storage.Begin()
 	if err != nil {
 		return err
@@ -102,23 +112,28 @@ func (c *contentDatabase) UpdateFile(site string, fileInfo *event.FileInfo) erro
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional, uploaded)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional, uploaded, piece_size, piecemap)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (site_id, inner_path, hash) DO
 		UPDATE SET
 			is_downloaded = excluded.is_downloaded,
 			is_pinned = excluded.is_pinned,
 			is_optional = excluded.is_optional,
 			uploaded = excluded.uploaded,
+			piece_size = excluded.piece_size,
+			piecemap = excluded.piecemap,
 			time_added = CURRENT_TIMESTAMP
 		`,
-		site, fileInfo.InnerPath,
-		fileInfo.Hash,
-		fileInfo.Size,
-		fileInfo.IsDownloaded,
-		fileInfo.IsPinned,
-		fileInfo.IsOptional,
-		fileInfo.Uploaded,
+		site,
+		info.InnerPath,
+		info.Hash,
+		info.Size,
+		info.IsDownloaded,
+		info.IsPinned,
+		info.IsOptional,
+		info.Uploaded,
+		info.PieceSize,
+		info.Piecemap,
 	); err != nil {
 		return err
 	}
@@ -147,7 +162,7 @@ func (c *contentDatabase) UpdatePeer(site string, peerInfo *event.PeerInfo) erro
 	return tx.Commit()
 }
 
-func (c *contentDatabase) UpdateContent(site string, contentInfo *event.ContentInfo) error {
+func (c *contentDatabase) UpdateContent(site string, info *event.ContentInfo) error {
 	tx, err := c.storage.Begin()
 	if err != nil {
 		return err
@@ -166,7 +181,12 @@ func (c *contentDatabase) UpdateContent(site string, contentInfo *event.ContentI
 			modified = excluded.modified,
 			size = excluded.size,
 			time_added = CURRENT_TIMESTAMP
-		`, site, contentInfo.InnerPath, contentInfo.Modified, contentInfo.Size); err != nil {
+		`,
+		site,
+		info.InnerPath,
+		info.Modified,
+		info.Size,
+	); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -268,7 +288,7 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE UNIQUE INDEX IF NOT EXISTS peer_key ON peer (site_id, address)`,
 
 		// File
-		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
+		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, piece_size INTEGER, piecemap TEXT)`,
 		`CREATE INDEX IF NOT EXISTS file_path ON file (inner_path)`,
 		`CREATE INDEX IF NOT EXISTS file_hash ON file (hash)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path, hash)`,
