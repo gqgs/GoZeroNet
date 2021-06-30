@@ -152,9 +152,6 @@ func (s *Site) Announce() {
 
 // AnnounceTrackers announces to trackers the new peer
 func (s *Site) AnnounceTrackers() {
-	if time.Since(s.lastAnnounce) < time.Second*30 {
-		return
-	}
 	h := sha1.New() // #nosec
 	io.WriteString(h, s.addr)
 	params := requestParams{
