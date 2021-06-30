@@ -66,6 +66,8 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 		signal.Notify(sigint, os.Interrupt)
 		<-sigint
 
+		cancel()
+
 		if err := fileServer.Shutdown(); err != nil {
 			log.Printf("HTTP server Shutdown: %v", err)
 		}
@@ -73,8 +75,6 @@ func serve(ctx context.Context, fileServerAddr, uiServerAddr string) error {
 		if err := uiServer.Shutdown(ctx); err != nil {
 			log.Printf("HTTP server Shutdown: %v", err)
 		}
-
-		cancel()
 
 		idleConnsClosed <- struct{}{}
 		idleConnsClosed <- struct{}{}
