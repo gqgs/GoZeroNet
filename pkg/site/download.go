@@ -274,6 +274,7 @@ func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
 	}
 
 	if err := s.verifyFile(peer, resp.Body, info); err != nil {
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 		return err
 	}
 
