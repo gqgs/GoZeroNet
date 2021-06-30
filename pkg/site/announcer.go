@@ -139,7 +139,7 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 
 // Announce announces to all possible destinations
 func (s *Site) Announce() {
-	if time.Since(s.lastAnnounce) < time.Minute {
+	if time.Since(s.lastAnnounce) < time.Second*30 {
 		return
 	}
 	s.lastAnnounce = time.Now()
@@ -152,6 +152,9 @@ func (s *Site) Announce() {
 
 // AnnounceTrackers announces to trackers the new peer
 func (s *Site) AnnounceTrackers() {
+	if time.Since(s.lastAnnounce) < time.Second*30 {
+		return
+	}
 	h := sha1.New() // #nosec
 	io.WriteString(h, s.addr)
 	params := requestParams{
