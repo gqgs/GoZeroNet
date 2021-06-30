@@ -59,7 +59,7 @@ func (w *uiWebsocket) Serve() {
 	}
 	defer w.site.CloseDB()
 
-	go w.handleSubsub(ctx)
+	go w.handlePubsub(ctx)
 
 	for {
 		_, rawMessage, err := w.conn.ReadMessage()
@@ -71,7 +71,7 @@ func (w *uiWebsocket) Serve() {
 	}
 }
 
-func (w *uiWebsocket) handleSubsub(ctx context.Context) {
+func (w *uiWebsocket) handlePubsub(ctx context.Context) {
 	messageCh := w.pubsubManager.Register("uiwebsocket", config.WebsocketBufferSize)
 	defer w.pubsubManager.Unregister(messageCh)
 
