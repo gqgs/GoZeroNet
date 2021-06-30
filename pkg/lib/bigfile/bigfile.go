@@ -23,6 +23,7 @@ func (h *hash) DecodeMsgpack(dec *msgpack.Decoder) error {
 	return nil
 }
 
+// Hashes returns the SHA512/256 hashes for the specified file.
 func (s *PieceMap) Hashes(file string) ([]string, error) {
 	var hashes []string
 
@@ -37,6 +38,9 @@ func (s *PieceMap) Hashes(file string) ([]string, error) {
 	return hashes, nil
 }
 
+// ParsePieceMap parses a messagepack encoded piecemap as
+// specified in the documentation bellow:
+// https://zeronet.io/docs/help_zeronet/network_protocol/#bigfile-piecemap
 func ParsePieceMap(r io.Reader) (*PieceMap, error) {
 	pieceMap := new(PieceMap)
 	return pieceMap, msgpack.NewDecoder(r).Decode(&pieceMap)
