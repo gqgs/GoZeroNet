@@ -1,6 +1,7 @@
 package site
 
 import (
+	"bytes"
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
@@ -16,6 +17,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/bigfile"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
@@ -127,6 +129,13 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		return err
 	}
 
+	pieceMap := func(innerPath, pieceMap string) string {
+		if pieceMap == "" {
+			return ""
+		}
+		return safe.CleanPath(path.Join(path.Dir(innerPath), pieceMap))
+	}
+
 	logger := s.log.WithField("peer", peer)
 	for _, filename := range sortDownloads(content.Files) {
 		file := content.Files[filename]
@@ -146,11 +155,14 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			continue
 		}
 
+		info.InnerPath = relPath
 		info.Hash = file.Sha512
 		info.Size = file.Size
+		info.PieceSize = file.PieceSize
+		info.Piecemap = pieceMap(innerPath, file.Piecemap)
 
-		if err := s.downloadFile(peer, filename, info); err != nil {
-			logger.Error(err)
+		if err := s.downloadFile(peer, info); err != nil {
+			logger.WithField("inner_path", info.InnerPath).Error(err)
 		}
 	}
 
@@ -182,7 +194,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 			IsPinned:     info.IsPinned,
 			IsOptional:   true,
 			PieceSize:    file.PieceSize,
-			Piecemap:     file.Piecemap,
+			Piecemap:     pieceMap(innerPath, file.Piecemap),
 		})
 	}
 
@@ -195,43 +207,97 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	return nil
 }
 
-func (s *Site) downloadFile(peer peer.Peer, innerPath string, info *event.FileInfo) error {
-	resp, err := fileserver.GetFileFull(peer, s.addr, innerPath, info.Size)
+func (s *Site) verifyFile(peer peer.Peer, body []byte, info *event.FileInfo) error {
+	isBigFile := info.PieceSize > 0
+	if !isBigFile {
+		return s.verifyDownload(body, info.Size, info.Hash)
+	}
+
+	pieceInfo, err := s.contentDB.FileInfo(s.addr, info.Piecemap)
 	if err != nil {
 		return err
 	}
-	body := resp.Body
-	if len(body) != info.Size {
-		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
-		return fmt.Errorf("ignoring file (%s) with invalid size. want: (%d), got: (%d)",
-			innerPath, info.Size, len(body))
+
+	pieceResp, err := fileserver.GetFileFull(peer, s.addr, pieceInfo.InnerPath, info.Size)
+	if err != nil {
+		return err
+	}
+
+	if err := s.verifyDownload(pieceResp.Body, pieceInfo.Size, pieceInfo.Hash); err != nil {
+		return err
+	}
+
+	pieceMap, err := bigfile.ParsePieceMap(bytes.NewReader(pieceResp.Body))
+	if err != nil {
+		return err
+	}
+
+	hashes, err := pieceMap.Hashes(path.Base(info.InnerPath))
+	if err != nil {
+		return err
+	}
+
+	var pieces [][]byte
+	for len(body) > info.PieceSize {
+		pieces = append(pieces, body[:info.PieceSize])
+		body = body[info.PieceSize:]
+	}
+	pieces = append(pieces, body)
+
+	for i, piece := range pieces {
+		if err := s.verifyDownload(pieces[i], len(piece), hashes[i]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Site) verifyDownload(body []byte, size int, hash string) error {
+	if len(body) != size {
+		return fmt.Errorf("ignoring file with invalid size. want: (%d), got: (%d)", size, len(body))
 	}
 
 	digest := sha512.Sum512(body)
 	hexDigest := hex.EncodeToString(digest[:32])
-	if hexDigest != info.Hash {
-		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
-		return fmt.Errorf("ignoring file (%s) with invalid hash. want: %s (%d), got: %s (%d)",
-			innerPath, info.Hash, info.Size, hexDigest, len(body))
+	if hexDigest != hash {
+		return fmt.Errorf("ignoring file with invalid hash. want: %s (%d), got: %s (%d)", hash, size, hexDigest, len(body))
 	}
+
+	return nil
+}
+
+func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
+	resp, err := fileserver.GetFileFull(peer, s.addr, info.InnerPath, info.Size)
+	if err != nil {
+		return err
+	}
+
+	if err := s.verifyFile(peer, resp.Body, info); err != nil {
+		return err
+	}
+
 	s.Settings.BytesRecv += info.Size
 
-	filePath := path.Join(config.DataDir, s.addr, innerPath)
+	filePath := path.Join(config.DataDir, s.addr, info.InnerPath)
 	if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(filePath, body, os.ModePerm); err != nil {
+	if err := os.WriteFile(filePath, resp.Body, os.ModePerm); err != nil {
 		return err
 	}
 
-	s.log.WithField("inner_path", innerPath).Info("downloaded file!")
+	s.log.WithField("inner_path", info.InnerPath).Info("downloaded file!")
+
+	digest := sha512.Sum512(resp.Body)
+	hexDigest := hex.EncodeToString(digest[:32])
 
 	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-		InnerPath:    innerPath,
+		InnerPath:    info.InnerPath,
 		Hash:         hexDigest,
-		Size:         len(body),
+		Size:         len(resp.Body),
 		IsDownloaded: true,
 		IsPinned:     info.IsPinned,
 		IsOptional:   info.IsOptional,

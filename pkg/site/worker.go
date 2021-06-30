@@ -12,7 +12,6 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/ip"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
-	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
 
@@ -156,7 +155,7 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 				defer w.peerManager.PutConnected(newPeer)
 
 				w.log.Debugf("downloading file %s from %s", fileNeed.InnerPath, newPeer)
-				if err := w.site.downloadFile(newPeer, safe.CleanPath(fileNeed.InnerPath), info); err != nil {
+				if err := w.site.downloadFile(newPeer, info); err != nil {
 					w.log.WithField("peer", newPeer).Warn(err)
 					continue
 				}
