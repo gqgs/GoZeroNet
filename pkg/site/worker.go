@@ -78,7 +78,6 @@ func (w *worker) run() {
 			w.log.WithField("queue", len(w.queue)).Debug("content info event")
 			if payload.Modified > int(w.site.Settings.Modified) {
 				w.site.Settings.Modified = int64(payload.Modified)
-				w.site.BroadcastSiteChange("updated", true)
 			}
 			go w.site.BroadcastSiteChange("file_done", payload.InnerPath)
 		case *event.SiteUpdate:
