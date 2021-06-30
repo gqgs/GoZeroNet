@@ -99,7 +99,7 @@ func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Location", "/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D")
+	w.Header().Add("Location", config.HomeSite)
 	w.WriteHeader(http.StatusMovedPermanently)
 }
 
