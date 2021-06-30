@@ -30,7 +30,7 @@ func Test_isValid(t *testing.T) {
 			"./testdata/0blog-user-content.json",
 		},
 		{
-			"MC root.json",
+			"MC root content.json",
 			"./testdata/mc-root-content.json",
 		},
 		{
@@ -42,7 +42,7 @@ func Test_isValid(t *testing.T) {
 			"./testdata/mc-user-content.json",
 		},
 		{
-			"0ch root.json",
+			"0ch root content.json",
 			"./testdata/0ch-root-content.json",
 		},
 		{
@@ -58,7 +58,7 @@ func Test_isValid(t *testing.T) {
 			"./testdata/0ch-archive-content.json",
 		},
 		{
-			"ZeroTalk root.json",
+			"ZeroTalk root content.json",
 			"./testdata/0talk-root-content.json",
 		},
 		{
@@ -72,6 +72,10 @@ func Test_isValid(t *testing.T) {
 		{
 			"MC user content.json with extra file fields",
 			"./testdata/mc-user-content-extra-file-fields.json",
+		},
+		{
+			"ZeroUp root content.json",
+			"./testdata/0up-root-content.json",
 		},
 	}
 

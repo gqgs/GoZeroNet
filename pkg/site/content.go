@@ -22,7 +22,7 @@ type Content struct {
 	Cloneable                *bool                  `json:"cloneable,omitempty"`
 	ClonedFrom               string                 `json:"cloned_from,omitempty"`
 	DefaultPage              string                 `json:"default_page,omitempty"`
-	Description              string                 `json:"description,omitempty"`
+	Description              json.RawMessage        `json:"description,omitempty"`
 	Domain                   string                 `json:"domain,omitempty"`
 	Favicon                  string                 `json:"favicon,omitempty"`
 	Files                    map[string]File        `json:"files"`
