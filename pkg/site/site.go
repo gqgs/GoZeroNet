@@ -35,7 +35,7 @@ type Site struct {
 	peers             map[string]peer.Peer
 	pubsubManager     pubsub.Manager
 	Settings          *Settings
-	user              user.User
+	user              *user.User
 	wrapperNonceMutex sync.RWMutex
 	wrapperNonce      map[string]int64
 	log               log.Logger
@@ -134,7 +134,7 @@ func (s *Site) Address() string {
 	return s.addr
 }
 
-func (s *Site) User() user.User {
+func (s *Site) User() *user.User {
 	return s.user
 }
 

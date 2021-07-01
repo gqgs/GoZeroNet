@@ -10,30 +10,22 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 )
 
-type User interface {
-	AuthAddress(addr string) string
-	CertUserID(addr string) string
-	SiteSettings(addr string) map[string]interface{}
-	SetSiteSettings(addr string, settings map[string]interface{}) error
-	GlobalSettings() GlobalSettings
-}
-
 type manager struct {
-	users map[string]*user
+	users map[string]*User
 }
 
 type Manager interface {
-	User() User
+	User() *User
 }
 
-func (m *manager) User() User {
+func (m *manager) User() *User {
 	// For now return the first user
 	for _, user := range m.users {
 		return user
 	}
 
 	// user doesn't exist
-	user := new(user)
+	user := new(User)
 	user.Sites = make(map[string]*Site)
 	user.MasterSeed = crypto.NewPrivateKey(crypto.Hex)
 	addr, _ := crypto.PrivateKeyToAddress(user.MasterSeed)
@@ -54,18 +46,18 @@ func NewManager() (*manager, error) {
 	return &manager{users}, nil
 }
 
-func loadUserSettingsFromFile() (map[string]*user, error) {
+func loadUserSettingsFromFile() (map[string]*User, error) {
 	userFilePath := path.Join(config.DataDir, "users.json")
 	file, err := os.Open(userFilePath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return make(map[string]*user), nil
+			return make(map[string]*User), nil
 		}
 		return nil, err
 	}
 	defer file.Close()
 
-	users := make(map[string]*user)
+	users := make(map[string]*User)
 	return users, json.NewDecoder(file).Decode(&users)
 }
 
@@ -80,6 +72,7 @@ type Cert struct {
 type Site struct {
 	AuthAddress    string                 `json:"auth_address"`
 	AuthPrivatekey string                 `json:"auth_privatekey"`
+	Cert           string                 `json:"cert"`
 	Settings       map[string]interface{} `json:"settings"`
 }
 
@@ -88,7 +81,7 @@ type GlobalSettings struct {
 	UseSystemTheme bool   `json:"use_system_theme"`
 }
 
-type user struct {
+type User struct {
 	addr       string
 	Certs      map[string]Cert  `json:"certs"`
 	MasterSeed string           `json:"master_seed"`
@@ -96,30 +89,30 @@ type user struct {
 	Sites      map[string]*Site `json:"sites"`
 }
 
-func (u *user) AuthAddress(addr string) string {
+func (u *User) AuthAddress(addr string) string {
 	if u.Sites[addr] == nil {
 		return ""
 	}
 	return u.Sites[addr].AuthAddress
 }
 
-func (u *user) CertUserID(addr string) string {
+func (u *User) CertUserID(addr string) string {
 	// TODO: implement me
 	return ""
 }
 
-func (u *user) SiteSettings(addr string) map[string]interface{} {
+func (u *User) SiteSettings(addr string) map[string]interface{} {
 	if u.Sites[addr] == nil {
 		return nil
 	}
 	return u.Sites[addr].Settings
 }
 
-func (u *user) GlobalSettings() GlobalSettings {
+func (u *User) GlobalSettings() GlobalSettings {
 	return u.Settings
 }
 
-func (u *user) SetSiteSettings(addr string, settings map[string]interface{}) error {
+func (u *User) SetSiteSettings(addr string, settings map[string]interface{}) error {
 	users, err := loadUserSettingsFromFile()
 	if err != nil {
 		return err
