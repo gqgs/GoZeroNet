@@ -138,13 +138,19 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 }
 
 // Announce announces to all possible destinations
-func (s *Site) Announce() {
+func (s *Site) Announce(fn ...func()) {
 	if time.Since(s.lastAnnounce) < time.Second*30 {
 		return
 	}
 	s.lastAnnounce = time.Now()
-	s.AnnounceTrackers()
-	s.AnnouncePex()
+	if len(fn) == 0 {
+		s.AnnounceTrackers()
+		s.AnnouncePex()
+	} else {
+		for _, f := range fn {
+			f()
+		}
+	}
 
 	peers := s.Peers()
 	s.log.Infof("found %d peers", len(peers))
