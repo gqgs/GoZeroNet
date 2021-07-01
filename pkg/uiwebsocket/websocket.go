@@ -89,6 +89,8 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 		return w.adminOnly(w.serverShutdown)(rawMessage, message)
 	case "ping":
 		return w.ping(message)
+	case "response":
+		return w.response(rawMessage)
 	}
 
 	for _, plugin := range w.plugins {

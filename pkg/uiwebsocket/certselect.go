@@ -64,6 +64,14 @@ func (w *uiWebsocket) certSelect(rawMessage []byte) error {
 	}
 
 	id := w.ID()
+
+	w.waitingMutex.Lock()
+	w.waitingResponses[id] = func(cert string) error {
+		w.log.Debug("implement me: ", cert)
+		return nil
+	}
+	w.waitingMutex.Unlock()
+
 	if err := w.conn.WriteJSON(notificationResponse{
 		required{
 			CMD: "notification",

@@ -15,18 +15,20 @@ import (
 )
 
 type uiWebsocket struct {
-	ctx           context.Context
-	conn          websocket.Conn
-	log           log.Logger
-	siteManager   site.Manager
-	fileServer    fileserver.Server
-	site          *site.Site
-	pubsubManager pubsub.Manager
-	channelsMutex sync.RWMutex
-	channels      map[string]struct{}
-	allChannels   bool
-	plugins       []plugin.Plugin
-	ID            func() int64
+	ctx              context.Context
+	conn             websocket.Conn
+	log              log.Logger
+	siteManager      site.Manager
+	fileServer       fileserver.Server
+	site             *site.Site
+	pubsubManager    pubsub.Manager
+	channelsMutex    sync.RWMutex
+	channels         map[string]struct{}
+	allChannels      bool
+	plugins          []plugin.Plugin
+	ID               func() int64
+	waitingMutex     sync.Mutex
+	waitingResponses map[int64]func(string) error
 }
 
 func NewUIWebsocket(ctx context.Context, conn websocket.Conn, siteManager site.Manager, fileServer fileserver.Server,
@@ -47,7 +49,8 @@ func NewUIWebsocket(ctx context.Context, conn websocket.Conn, siteManager site.M
 			plugin.NewOptionalManager(counter),
 			plugin.NewContentFilter(counter),
 		},
-		ID: counter,
+		ID:               counter,
+		waitingResponses: make(map[int64]func(string) error),
 	}
 }
 func (w *uiWebsocket) Serve() {
