@@ -14,6 +14,10 @@ type (
 	certSelectParams struct {
 		AcceptedDomains []string `json:"accepted_domains"`
 	}
+	certSelectResponse struct {
+		required
+		Result string `json:"result"`
+	}
 
 	notificationResponse struct {
 		required
@@ -26,7 +30,7 @@ type (
 	}
 )
 
-func (w *uiWebsocket) certSelect(rawMessage []byte) error {
+func (w *uiWebsocket) certSelect(rawMessage []byte, message Message) error {
 	payload := new(certSelectRequest)
 	if err := json.Unmarshal(rawMessage, payload); err != nil {
 		return err
@@ -58,7 +62,7 @@ func (w *uiWebsocket) certSelect(rawMessage []byte) error {
 		}
 		if domain == currentSizeDomain {
 			css += "active "
-			title += " <small>({_[currently selected]})</small>"
+			title += " <small>(currently selected)</small>"
 		}
 		body += fmt.Sprintf("<a href='#Select+account' class='select select-close cert %s' title='%s'>%s</a>", css, domain, title)
 	}
@@ -67,8 +71,18 @@ func (w *uiWebsocket) certSelect(rawMessage []byte) error {
 
 	w.waitingMutex.Lock()
 	w.waitingResponses[id] = func(cert string) error {
-		w.log.Debug("implement me: ", cert)
-		return nil
+		if err := user.UpdateCert(w.site.Address(), cert); err != nil {
+			return err
+		}
+		w.site.BroadcastSiteChange("cert_changed", cert)
+		return w.conn.WriteJSON(certSelectResponse{
+			required{
+				CMD: "response",
+				ID:  w.ID(),
+				To:  message.ID,
+			},
+			"ok",
+		})
 	}
 	w.waitingMutex.Unlock()
 

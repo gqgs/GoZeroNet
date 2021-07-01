@@ -139,3 +139,27 @@ func (u *User) SetSiteSettings(addr string, settings map[string]interface{}) err
 	userFilePath := path.Join(config.DataDir, "users.json")
 	return os.WriteFile(userFilePath, data, os.ModePerm)
 }
+
+func (u *User) SaveSettings() error {
+	users, err := loadUserSettingsFromFile()
+	if err != nil {
+		return err
+	}
+	users[u.addr] = u
+
+	data, err := json.Marshal(users)
+	if err != nil {
+		return err
+	}
+
+	userFilePath := path.Join(config.DataDir, "users.json")
+	return os.WriteFile(userFilePath, data, os.ModePerm)
+}
+
+func (u *User) UpdateCert(addr, cert string) error {
+	if u.Sites[addr] == nil {
+		return nil
+	}
+	u.Sites[addr].Cert = cert
+	return u.SaveSettings()
+}

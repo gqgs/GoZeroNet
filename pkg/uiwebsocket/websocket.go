@@ -48,7 +48,7 @@ func (w *uiWebsocket) handleMessage(rawMessage []byte) {
 func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	switch message.CMD {
 	case "certSelect":
-		return w.certSelect(rawMessage)
+		return w.certSelect(rawMessage, message)
 	case "channelJoin":
 		return w.channelJoin(rawMessage, message)
 	case "channelJoinAllsite":
