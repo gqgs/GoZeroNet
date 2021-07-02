@@ -95,17 +95,10 @@ type User struct {
 }
 
 func (u *User) AuthAddress(addr string) string {
-	if u.Sites[addr] == nil {
-		return ""
-	}
 	return u.Sites[addr].AuthAddress
 }
 
 func (u *User) CertUserID(addr string) string {
-	if u.Sites[addr] == nil {
-		return ""
-	}
-
 	if u.Certs[u.Sites[addr].Cert].AuthUserName == "" {
 		return ""
 	}
@@ -114,9 +107,6 @@ func (u *User) CertUserID(addr string) string {
 }
 
 func (u *User) SiteSettings(addr string) map[string]interface{} {
-	if u.Sites[addr] == nil {
-		return nil
-	}
 	return u.Sites[addr].Settings
 }
 
@@ -128,16 +118,6 @@ func (u *User) SetSiteSettings(addr string, settings map[string]interface{}) err
 	users, err := loadUserSettingsFromFile()
 	if err != nil {
 		return err
-	}
-
-	if u.Sites[addr] == nil {
-		u.Sites[addr] = new(Site)
-		if u.Sites[addr].AuthPrivatekey, err = crypto.AuthPrivateKey(u.MasterSeed, addr); err != nil {
-			return err
-		}
-		if u.Sites[addr].AuthAddress, err = crypto.PrivateKeyToAddress(u.Sites[addr].AuthPrivatekey); err != nil {
-			return err
-		}
 	}
 
 	u.Sites[addr].Settings = settings
@@ -169,17 +149,33 @@ func (u *User) SaveSettings() error {
 }
 
 func (u *User) UpdateCert(addr, cert string) error {
-	if u.Sites[addr] == nil {
-		return errors.New("site not found")
-	}
 	u.Sites[addr].Cert = cert
 	return u.SaveSettings()
 }
 
-func (u *User) AddCert(addr, domain, authType, authUserName, certSign string, force bool) error {
-	if u.Sites[addr] == nil {
-		return errors.New("site not found")
+func (u *User) AddSite(addr string) error {
+	users, err := loadUserSettingsFromFile()
+	if err != nil {
+		return err
 	}
+
+	if u.Sites[addr] != nil {
+		return nil
+	}
+
+	u.Sites[addr] = new(Site)
+	if u.Sites[addr].AuthPrivatekey, err = crypto.AuthPrivateKey(u.MasterSeed, addr); err != nil {
+		return err
+	}
+	if u.Sites[addr].AuthAddress, err = crypto.PrivateKeyToAddress(u.Sites[addr].AuthPrivatekey); err != nil {
+		return err
+	}
+	users[u.addr] = u
+
+	return u.SaveSettings()
+}
+
+func (u *User) AddCert(addr, domain, authType, authUserName, certSign string, force bool) error {
 	cert, exists := u.Certs[domain]
 	if exists && !force {
 		if cert.AuthType == authType &&

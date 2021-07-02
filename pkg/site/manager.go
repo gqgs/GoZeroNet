@@ -64,6 +64,10 @@ func NewManager(ctx context.Context, pubsubManager pubsub.Manager, userManager u
 		site.workerManager = site.NewWorker()
 		site.ctx = ctx
 
+		if err := user.AddSite(addr); err != nil {
+			return nil, err
+		}
+
 		sites[addr] = site
 		wrapperKeyMap[siteSettings.WrapperKey] = site
 	}
@@ -100,6 +104,10 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.Settings.AjaxKey = random.HexString(64)
 	site.Settings.AuthKey = random.HexString(64)
 	site.Settings.WrapperKey = random.HexString(64)
+
+	if err := site.user.AddSite(addr); err != nil {
+		return nil, err
+	}
 
 	m.wrapperKeyMap[site.Settings.WrapperKey] = site
 	m.sites[addr] = site

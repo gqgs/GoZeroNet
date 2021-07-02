@@ -36,6 +36,8 @@ func (s *Site) Info() (*Info, error) {
 		certUserID = &cert
 	}
 
+	s.postmessageNonceSecurity = content.PostmessageNonceSecurity
+
 	return &Info{
 		Address:        s.addr,
 		AddressHash:    addressHash(s.addr),

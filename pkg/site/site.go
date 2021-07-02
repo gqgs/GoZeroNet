@@ -27,24 +27,25 @@ import (
 var errFileNotFound = fmt.Errorf("site: %w", os.ErrNotExist)
 
 type Site struct {
-	ctx               context.Context
-	addr              string
-	trackersMutex     sync.RWMutex
-	trackers          map[string]*AnnouncerStats
-	peersMutex        sync.RWMutex
-	peers             map[string]peer.Peer
-	pubsubManager     pubsub.Manager
-	Settings          *Settings
-	user              *user.User
-	wrapperNonceMutex sync.RWMutex
-	wrapperNonce      map[string]int64
-	log               log.Logger
-	db                database.SiteDatabase
-	contentDB         database.ContentDatabase
-	peerManager       peer.Manager
-	workerManager     Worker
-	lastAnnounce      time.Time
-	loading           bool
+	ctx                      context.Context
+	addr                     string
+	trackersMutex            sync.RWMutex
+	trackers                 map[string]*AnnouncerStats
+	peersMutex               sync.RWMutex
+	peers                    map[string]peer.Peer
+	pubsubManager            pubsub.Manager
+	Settings                 *Settings
+	user                     *user.User
+	wrapperNonceMutex        sync.RWMutex
+	wrapperNonce             map[string]int64
+	log                      log.Logger
+	db                       database.SiteDatabase
+	contentDB                database.ContentDatabase
+	peerManager              peer.Manager
+	workerManager            Worker
+	lastAnnounce             time.Time
+	loading                  bool
+	postmessageNonceSecurity bool
 }
 
 func (s *Site) Peers() map[string]peer.Peer {
@@ -57,6 +58,10 @@ func (s *Site) Loading(loading bool) {
 
 func (s *Site) IsLoading() bool {
 	return s.loading
+}
+
+func (s *Site) PostmessageNonceSecurity() bool {
+	return s.postmessageNonceSecurity
 }
 
 func (s *Site) HasValidWrapperNonce(wrapperNonce string) bool {

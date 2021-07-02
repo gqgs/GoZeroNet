@@ -11,7 +11,7 @@ import (
 type (
 	siteInfoRequest struct {
 		required
-		Params siteInfoParams `json:"params"`
+		Params json.RawMessage `json:"params"`
 	}
 
 	siteInfoParams struct {
@@ -34,14 +34,22 @@ func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
 		return err
 	}
 
-	fileInfo, err := w.site.FileInfo(payload.Params.FileStatus)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
+	params := new(siteInfoParams)
+	if err := json.Unmarshal(payload.Params, params); err != nil {
+		if err := json.Unmarshal(payload.Params, &params.FileStatus); err != nil {
 			return err
 		}
-	} else {
-		if fileInfo.IsDownloaded {
-			info.Event = []interface{}{"file_done", payload.Params.FileStatus}
+	}
+	if len(params.FileStatus) > 0 {
+		fileInfo, err := w.site.FileInfo(params.FileStatus)
+		if err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		} else {
+			if fileInfo.IsDownloaded {
+				info.Event = []interface{}{"file_done", params.FileStatus}
+			}
 		}
 	}
 

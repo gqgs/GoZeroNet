@@ -32,7 +32,7 @@ func (w *uiWebsocket) handleMessage(rawMessage []byte) {
 		return
 	}
 
-	if isInnerFrameCmd(message) {
+	if w.site.PostmessageNonceSecurity() && isInnerFrameCmd(message) {
 		if !w.site.HasValidWrapperNonce(message.WrapperNonce) {
 			w.log.WithField("wrapper_nonce", message.WrapperNonce).
 				WithField("cmd", message.CMD).

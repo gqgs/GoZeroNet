@@ -16,7 +16,7 @@ import (
 type (
 	fileGetRequest struct {
 		required
-		Params fileGetParams `json:"params"`
+		Params json.RawMessage `json:"params"`
 	}
 	fileGetParams struct {
 		InnerPath string `json:"inner_path"`
@@ -37,9 +37,16 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 		return err
 	}
 
+	params := new(fileGetParams)
+	if err := json.Unmarshal(payload.Params, params); err != nil {
+		if err := json.Unmarshal(payload.Params, &params.InnerPath); err != nil {
+			return err
+		}
+	}
+
 	var writer io.Writer
 	reader := new(strings.Builder)
-	if payload.Params.Format == "base64" {
+	if params.Format == "base64" {
 		writer = base64.NewEncoder(base64.StdEncoding, reader)
 		defer writer.(io.Closer).Close()
 	} else {
@@ -47,20 +54,20 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 	}
 
 	var timeout time.Duration
-	if payload.Params.Required {
+	if params.Required {
 		timeout = config.FileNeedDeadline
-		if payload.Params.Timeout > 0 {
-			timeout = time.Duration(payload.Params.Timeout * uint(time.Second))
+		if params.Timeout > 0 {
+			timeout = time.Duration(params.Timeout * uint(time.Second))
 		}
 	}
 	ctx, cancel := context.WithTimeout(w.ctx, timeout)
 	defer cancel()
 
-	if err := w.site.ReadFile(ctx, strings.TrimSuffix(payload.Params.InnerPath, "|all"), writer); err != nil {
+	if err := w.site.ReadFile(ctx, strings.TrimSuffix(params.InnerPath, "|all"), writer); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
-		if payload.Params.Format != "base64" {
+		if params.Format != "base64" {
 			writer.Write([]byte("{}"))
 		}
 	}
