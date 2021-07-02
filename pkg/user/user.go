@@ -10,6 +10,11 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 )
 
+var (
+	ErrCertNotChanged    = errors.New("user: cert not changed")
+	ErrCertAlreadyExists = errors.New("user: cert already exists")
+)
+
 type manager struct {
 	users map[string]*User
 }
@@ -165,8 +170,34 @@ func (u *User) SaveSettings() error {
 
 func (u *User) UpdateCert(addr, cert string) error {
 	if u.Sites[addr] == nil {
-		return nil
+		return errors.New("site not found")
 	}
 	u.Sites[addr].Cert = cert
+	return u.SaveSettings()
+}
+
+func (u *User) AddCert(addr, domain, authType, authUserName, certSign string, force bool) error {
+	if u.Sites[addr] == nil {
+		return errors.New("site not found")
+	}
+	cert, exists := u.Certs[domain]
+	if exists && !force {
+		if cert.AuthType == authType &&
+			cert.AuthUserName == authUserName &&
+			cert.CertSign == certSign {
+			return ErrCertNotChanged
+		}
+		return ErrCertAlreadyExists
+	}
+
+	cert.AuthPrivatekey = u.Sites[addr].AuthPrivatekey
+	cert.AuthAddress = u.Sites[addr].AuthAddress
+	cert.AuthType = authType
+	cert.AuthUserName = authUserName
+	cert.CertSign = certSign
+
+	u.Certs[domain] = cert
+	u.Sites[addr].Cert = domain
+
 	return u.SaveSettings()
 }

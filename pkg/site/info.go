@@ -15,7 +15,7 @@ type Info struct {
 	AuthAddress    string        `json:"auth_address"`
 	BadFiles       int           `json:"bad_files"`
 	Event          []interface{} `json:"event,omitempty"`
-	CertUserID     string        `json:"cert_user_id"`
+	CertUserID     *string       `json:"cert_user_id"`
 	Peers          int           `json:"peers"`
 	NextSizeLimit  int           `json:"next_size_limit"`
 	SizeLimit      int           `json:"size_limit"`
@@ -31,12 +31,17 @@ func (s *Site) Info() (*Info, error) {
 		return nil, err
 	}
 
+	var certUserID *string
+	if cert := s.user.CertUserID(s.addr); len(cert) > 0 {
+		certUserID = &cert
+	}
+
 	return &Info{
 		Address:        s.addr,
 		AddressHash:    addressHash(s.addr),
 		AddressShort:   addressShort(s.addr),
 		AuthAddress:    s.user.AuthAddress(s.addr),
-		CertUserID:     s.user.CertUserID(s.addr),
+		CertUserID:     certUserID,
 		Peers:          len(s.peers),
 		SizeLimit:      sizeLimit(s.Settings.SizeLimit),
 		NextSizeLimit:  nextSizeLimit(s.Settings.Size),

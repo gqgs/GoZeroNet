@@ -68,13 +68,19 @@ func (w *uiWebsocket) certSelect(rawMessage []byte, message Message) error {
 	}
 
 	id := w.ID()
-
 	w.waitingMutex.Lock()
-	w.waitingResponses[id] = func(cert string) error {
-		if err := user.UpdateCert(w.site.Address(), cert); err != nil {
+	w.waitingResponses[id] = func(rawMessage []byte) error {
+		type request struct {
+			Cert string `json:"result"`
+		}
+		payload := new(request)
+		if err := json.Unmarshal(rawMessage, payload); err != nil {
 			return err
 		}
-		w.site.BroadcastSiteChange("cert_changed", cert)
+		if err := user.UpdateCert(w.site.Address(), payload.Cert); err != nil {
+			return err
+		}
+		w.site.BroadcastSiteChange("cert_changed", payload.Cert)
 		return w.conn.WriteJSON(certSelectResponse{
 			required{
 				CMD: "response",

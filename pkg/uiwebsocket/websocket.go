@@ -12,9 +12,11 @@ type Message struct {
 	ID           int64  `json:"id"`
 	CMD          string `json:"cmd"`
 	WrapperNonce string `json:"wrapper_nonce"`
+	To           int64  `json:"to"`
 }
 
 // fields required for every message
+//easyjson:skip
 type required struct {
 	CMD string `json:"cmd"`
 	ID  int64  `json:"id"`
@@ -47,6 +49,8 @@ func (w *uiWebsocket) handleMessage(rawMessage []byte) {
 
 func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	switch message.CMD {
+	case "certAdd":
+		return w.certAdd(rawMessage, message)
 	case "certSelect":
 		return w.certSelect(rawMessage, message)
 	case "channelJoin":
@@ -90,7 +94,7 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 	case "ping":
 		return w.ping(message)
 	case "response":
-		return w.response(rawMessage)
+		return w.response(rawMessage, message)
 	}
 
 	for _, plugin := range w.plugins {

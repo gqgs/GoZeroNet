@@ -25,7 +25,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [ ] as
     - [x] announcerInfo
     - [x] announcerStats
-    - [ ] certAdd
+    - [x] certAdd
     - [x] certSelect
     - [x] channelJoin
     - [x] channelJoinAllsite

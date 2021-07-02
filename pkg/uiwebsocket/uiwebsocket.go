@@ -28,7 +28,7 @@ type uiWebsocket struct {
 	plugins          []plugin.Plugin
 	ID               func() int64
 	waitingMutex     sync.Mutex
-	waitingResponses map[int64]func(string) error
+	waitingResponses map[int64]func([]byte) error
 }
 
 func NewUIWebsocket(ctx context.Context, conn websocket.Conn, siteManager site.Manager, fileServer fileserver.Server,
@@ -50,7 +50,7 @@ func NewUIWebsocket(ctx context.Context, conn websocket.Conn, siteManager site.M
 			plugin.NewContentFilter(counter),
 		},
 		ID:               counter,
-		waitingResponses: make(map[int64]func(string) error),
+		waitingResponses: make(map[int64]func([]byte) error),
 	}
 }
 func (w *uiWebsocket) Serve() {
