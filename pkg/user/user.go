@@ -65,7 +65,7 @@ type Cert struct {
 	AuthAddress    string `json:"auth_address"`
 	AuthPrivatekey string `json:"auth_privatekey"`
 	AuthType       string `json:"auth_type"`
-	AuthuserName   string `json:"auth_user_name"`
+	AuthUserName   string `json:"auth_user_name"`
 	CertSign       string `json:"cert_sign"`
 }
 
@@ -97,8 +97,15 @@ func (u *User) AuthAddress(addr string) string {
 }
 
 func (u *User) CertUserID(addr string) string {
-	// TODO: implement me
-	return ""
+	if u.Sites[addr] == nil {
+		return ""
+	}
+
+	if u.Certs[u.Sites[addr].Cert].AuthUserName == "" {
+		return ""
+	}
+
+	return u.Certs[u.Sites[addr].Cert].AuthUserName + "@" + u.Sites[addr].Cert
 }
 
 func (u *User) SiteSettings(addr string) map[string]interface{} {

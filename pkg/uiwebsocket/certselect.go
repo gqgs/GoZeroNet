@@ -55,7 +55,7 @@ func (w *uiWebsocket) certSelect(rawMessage []byte, message Message) error {
 	body += "<a href='#Select+account' class='select select-close cert'><b>No certificate</b></a>"
 	for domain, cert := range user.Certs {
 		var css string
-		account := cert.AuthuserName + "@" + domain
+		account := cert.AuthUserName + "@" + domain
 		title := fmt.Sprintf("<b>%s</b>", account)
 		if _, ok := accepted[domain]; !ok {
 			css += "disabled "
