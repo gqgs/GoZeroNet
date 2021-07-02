@@ -143,7 +143,7 @@ func (u *User) SetSiteSettings(addr string, settings map[string]interface{}) err
 	u.Sites[addr].Settings = settings
 	users[u.addr] = u
 
-	data, err := json.Marshal(users)
+	data, err := json.MarshalIndent(users, "", " ")
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (u *User) SaveSettings() error {
 	}
 	users[u.addr] = u
 
-	data, err := json.Marshal(users)
+	data, err := json.MarshalIndent(users, "", " ")
 	if err != nil {
 		return err
 	}

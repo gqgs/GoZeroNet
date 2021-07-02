@@ -91,7 +91,7 @@ func (s *Site) SaveSettings() error {
 
 	settings[s.addr] = s.Settings
 
-	encoded, err := json.Marshal(settings)
+	encoded, err := json.MarshalIndent(settings, "", " ")
 	if err != nil {
 		return err
 	}
