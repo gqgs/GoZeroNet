@@ -1,6 +1,8 @@
 package peer
 
 import (
+	"context"
+	"errors"
 	"sync/atomic"
 	"time"
 
@@ -16,7 +18,7 @@ type Manager interface {
 	// Returns a connected peer.
 	// The caller MUST return the peer after doing using
 	// by calling the PutConnected method.
-	GetConnected() *peer
+	GetConnected(ctx context.Context) (*peer, error)
 	PutConnected(p *peer)
 	Close()
 }
@@ -44,11 +46,13 @@ func NewManager(pubsubManager pubsub.Manager, site string) *manager {
 	return m
 }
 
-func (m *manager) GetConnected() *peer {
+func (m *manager) GetConnected(ctx context.Context) (*peer, error) {
 	select {
+	case <-ctx.Done():
+		return nil, errors.New("context canceled")
 	case connected := <-m.connectedCh:
 		if err := connected.CheckConnection(); err == nil {
-			return connected
+			return connected, nil
 		}
 		connected.Close()
 		atomic.AddInt64(&m.connected, -1)
@@ -56,7 +60,7 @@ func (m *manager) GetConnected() *peer {
 		event.BroadcastPeersNeed(m.site, m.pubsubManager, &event.PeersNeed{})
 		time.Sleep(time.Second * 5)
 	}
-	return m.GetConnected()
+	return m.GetConnected(ctx)
 }
 
 func (m *manager) PutConnected(p *peer) {

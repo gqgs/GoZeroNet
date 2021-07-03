@@ -24,8 +24,11 @@ import (
 
 func (s *Site) Download(since time.Time) error {
 	for {
-		p := s.peerManager.GetConnected()
-		err := s.DownloadContentJSON(p, "content.json")
+		p, err := s.peerManager.GetConnected(s.ctx)
+		if err != nil {
+			return err
+		}
+		err = s.DownloadContentJSON(p, "content.json")
 		s.peerManager.PutConnected(p)
 		if err != nil {
 			s.log.WithField("peer", p).Error(err)
@@ -45,8 +48,11 @@ func (s *Site) Download(since time.Time) error {
 
 func (s *Site) DownloadSince(since time.Time) error {
 	for {
-		p := s.peerManager.GetConnected()
-		err := s.downloadRecent(p, since)
+		p, err := s.peerManager.GetConnected(s.ctx)
+		if err != nil {
+			return err
+		}
+		err = s.downloadRecent(p, since)
 		s.peerManager.PutConnected(p)
 		if err != nil {
 			s.log.WithField("peer", p).Warn(err)
