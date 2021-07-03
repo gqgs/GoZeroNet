@@ -11,6 +11,7 @@ import (
 )
 
 type config struct {
+	LogLevel                string   `toml:"log_level"`
 	Language                string   `toml:"language"`
 	DataDir                 string   `toml:"data_dir"`
 	SiteSizeLimit           int      `toml:"site_size_limit"`
@@ -52,6 +53,7 @@ func init() {
 		FileServerDeadline = c.FileServerDeadline.Duration
 		FileNeedDeadline = c.FileNeedDeadline.Duration
 		DefaultChannelSize = c.DefaultChannelSize
+		LogLevel = c.LogLevel
 
 		if err := os.MkdirAll(path.Dir(DataDir), os.ModePerm); err != nil {
 			panic(err)
@@ -82,6 +84,7 @@ const (
 )
 
 var (
+	LogLevel                string
 	SiteSizeLimit           int
 	DataDir                 string
 	Language                string

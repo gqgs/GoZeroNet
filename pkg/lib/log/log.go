@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	nested "github.com/antonfisher/nested-logrus-formatter"
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -61,7 +62,12 @@ func New(scope string) Logger {
 		TimestampFormat: "15:04:05",
 	})
 
-	switch strings.ToLower(os.Getenv("LOG_LEVEL")) {
+	logLevel := config.LogLevel
+	if len(os.Getenv("LOG_LEVEL")) > 0 {
+		logLevel = os.Getenv("LOG_LEVEL")
+	}
+
+	switch strings.ToLower(logLevel) {
 	case "trace":
 		l.ReportCaller = true
 		l.SetLevel(logrus.TraceLevel)
