@@ -89,3 +89,33 @@ func downloadRecent(addr string, daysAgo int) error {
 	go site.Announce()
 	return site.Update(daysAgo)
 }
+
+func verify(addr, innerPath string) error {
+	ctx := context.Background()
+
+	pubsubManager := pubsub.NewManager()
+
+	userManager, err := user.NewManager()
+	if err != nil {
+		return err
+	}
+
+	contentDB, err := database.NewContentDatabase()
+	if err != nil {
+		return err
+	}
+	defer contentDB.Close()
+
+	siteManager, err := site.NewManager(ctx, pubsubManager, userManager, contentDB)
+	if err != nil {
+		return err
+	}
+	defer siteManager.Close()
+
+	site := siteManager.Site(addr)
+	if site == nil {
+		return errors.New("site not found")
+	}
+
+	return site.Verify(innerPath)
+}

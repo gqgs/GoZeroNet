@@ -32,6 +32,18 @@ func NewCommand() *cli.Command {
 					return downloadRecent(c.String("site"), c.Int("since"))
 				},
 			},
+			{
+				Name: "verify",
+				Action: func(c *cli.Context) error {
+					return verify(c.String("site"), c.String("inner_path"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "inner_path",
+						Required: true,
+					},
+				},
+			},
 		},
 	}
 }

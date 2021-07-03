@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -259,4 +260,30 @@ func (s *Site) Update(daysAgo int) error {
 		return err
 	}
 	return s.UpdateDB(now)
+}
+
+// Verify verifies a content.json file.
+// It returns nil if the file is valid.
+func (s *Site) Verify(innerPath string) error {
+	s.log.WithField("inner_path", innerPath).Debug("verifying file")
+	if !strings.HasSuffix(innerPath, "content.json") {
+		return errors.New("can only verifiy content.json files")
+	}
+	path := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
+	contentFile, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer contentFile.Close()
+
+	content := new(Content)
+	if err := json.NewDecoder(contentFile).Decode(content); err != nil {
+		return err
+	}
+
+	if content.isValid() {
+		return nil
+	}
+
+	return errors.New("content file is invalid")
 }
