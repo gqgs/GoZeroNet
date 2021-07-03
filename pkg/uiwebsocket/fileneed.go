@@ -1,7 +1,6 @@
 package uiwebsocket
 
 import (
-	"encoding/json"
 	"strings"
 )
 
@@ -22,7 +21,7 @@ type (
 
 func (w *uiWebsocket) fileNeed(rawMessage []byte, message Message) error {
 	payload := new(fileNeedRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

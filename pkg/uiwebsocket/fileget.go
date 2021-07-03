@@ -33,13 +33,13 @@ type (
 
 func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 	payload := new(fileGetRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
 	params := new(fileGetParams)
-	if err := json.Unmarshal(payload.Params, params); err != nil {
-		if err := json.Unmarshal(payload.Params, &params.InnerPath); err != nil {
+	if err := jsonUnmarshal(payload.Params, params); err != nil {
+		if err := jsonUnmarshal(payload.Params, &params.InnerPath); err != nil {
 			return err
 		}
 	}

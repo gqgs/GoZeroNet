@@ -23,13 +23,13 @@ type (
 
 func (w *uiWebsocket) channelJoin(rawMessage []byte, message Message) error {
 	payload := new(channelJoinRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
 	var params channelJoinParams
-	if err := json.Unmarshal(payload.Params, &params); err != nil {
-		if err := json.Unmarshal(payload.Params, &params.Channels); err != nil {
+	if err := jsonUnmarshal(payload.Params, &params); err != nil {
+		if err := jsonUnmarshal(payload.Params, &params.Channels); err != nil {
 			return err
 		}
 	}

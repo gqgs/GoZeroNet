@@ -2,7 +2,6 @@ package uiwebsocket
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"strings"
 )
 
@@ -24,7 +23,7 @@ type (
 
 func (w *uiWebsocket) fileWrite(rawMessage []byte, message Message) error {
 	payload := new(fileWriteRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

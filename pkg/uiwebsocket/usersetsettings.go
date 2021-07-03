@@ -1,7 +1,5 @@
 package uiwebsocket
 
-import "encoding/json"
-
 type (
 	userSetSettingsRequest struct {
 		required
@@ -21,7 +19,7 @@ type (
 
 func (w *uiWebsocket) userSetSettings(rawMessage []byte, message Message) error {
 	payload := new(userSetSettingsRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

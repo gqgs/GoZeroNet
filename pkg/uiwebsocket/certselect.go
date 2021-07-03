@@ -1,7 +1,6 @@
 package uiwebsocket
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -32,7 +31,7 @@ type (
 
 func (w *uiWebsocket) certSelect(rawMessage []byte, message Message) error {
 	payload := new(certSelectRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
@@ -74,7 +73,7 @@ func (w *uiWebsocket) certSelect(rawMessage []byte, message Message) error {
 			Cert string `json:"result"`
 		}
 		payload := new(request)
-		if err := json.Unmarshal(rawMessage, payload); err != nil {
+		if err := jsonUnmarshal(rawMessage, payload); err != nil {
 			return err
 		}
 		if err := user.UpdateCert(w.site.Address(), payload.Cert); err != nil {

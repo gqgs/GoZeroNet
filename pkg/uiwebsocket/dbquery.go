@@ -1,7 +1,6 @@
 package uiwebsocket
 
 import (
-	"encoding/json"
 	"errors"
 )
 
@@ -19,7 +18,7 @@ type (
 
 func (w *uiWebsocket) dbQuery(rawMessage []byte, message Message) error {
 	payload := new(dbQueryRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

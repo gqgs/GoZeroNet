@@ -1,8 +1,6 @@
 package uiwebsocket
 
 import (
-	"encoding/json"
-
 	"github.com/gqgs/go-zeronet/pkg/event"
 )
 
@@ -23,7 +21,7 @@ type (
 
 func (w *uiWebsocket) siteUpdate(rawMessage []byte, message Message) error {
 	payload := new(siteUpdateRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

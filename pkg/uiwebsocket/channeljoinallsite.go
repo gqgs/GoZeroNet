@@ -1,9 +1,5 @@
 package uiwebsocket
 
-import (
-	"encoding/json"
-)
-
 type (
 	channelJoinAllsiteRequest struct {
 		required
@@ -23,7 +19,7 @@ type (
 
 func (w *uiWebsocket) channelJoinAllsite(rawMessage []byte, message Message) error {
 	payload := new(channelJoinAllsiteRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

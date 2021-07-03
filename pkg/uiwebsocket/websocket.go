@@ -20,6 +20,8 @@ type required struct {
 	To  int64  `json:"to"`
 }
 
+var jsonUnmarshal = sonic.Unmarshal
+
 type wsHandlerFunc func(rawMessage []byte, message Message) error
 
 func (w *uiWebsocket) handleMessage(rawMessage []byte) {
@@ -104,7 +106,7 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 
 func decode(payload []byte) (Message, error) {
 	var message Message
-	err := sonic.Unmarshal(payload, &message)
+	err := jsonUnmarshal(payload, &message)
 	return message, err
 }
 

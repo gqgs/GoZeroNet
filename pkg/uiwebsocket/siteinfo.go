@@ -25,7 +25,7 @@ type (
 
 func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
 	payload := new(siteInfoRequest)
-	if err := json.Unmarshal(rawMessage, payload); err != nil {
+	if err := jsonUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
@@ -35,8 +35,8 @@ func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
 	}
 
 	params := new(siteInfoParams)
-	if err := json.Unmarshal(payload.Params, params); err != nil {
-		if err := json.Unmarshal(payload.Params, &params.FileStatus); err != nil {
+	if err := jsonUnmarshal(payload.Params, params); err != nil {
+		if err := jsonUnmarshal(payload.Params, &params.FileStatus); err != nil {
 			return err
 		}
 	}
