@@ -87,6 +87,25 @@ func AuthPrivateKey(seed string, address string) (string, error) {
 	return base58CheckEncode(key), nil
 }
 
+// Sign signs the message with the given private key.
+func Sign(message []byte, privateKey string) (base64Sign string, err error) {
+	keyBytes, _, err := base58.CheckDecode(privateKey)
+	if err != nil {
+		return "", err
+	}
+	privKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), keyBytes)
+
+	sign, err := secp256k1.Sign(hash(message), privKey.Serialize())
+	if err != nil {
+		return "", err
+	}
+
+	// coincurve stuff
+	sign = append([]byte{sign[64] + 27}, sign[0:64]...)
+
+	return base64.StdEncoding.EncodeToString(sign), nil
+}
+
 // IsValidSignature return true if message was signed with key related to address.
 func IsValidSignature(message []byte, base64Sign, address string) bool {
 	pubkey, err := RecoverPublicKey(message, base64Sign)

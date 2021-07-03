@@ -174,3 +174,26 @@ func TestHashID(t *testing.T) {
 		})
 	}
 }
+func TestSign(t *testing.T) {
+	tests := []struct {
+		name          string
+		message       []byte
+		privateKey    string
+		wantSignature string
+	}{
+		{
+			"given a message it should return the expected signature",
+			[]byte("1:1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D"),
+			"5KRDwnpby7hk3fn2Giov61BTPggwyYqnJSCgopRdprtqqNbgPXo",
+			"G6YZwyYQSoPC4VSlFrinM9WXOrCGSsUB6CkXl8Vub0kKUNQmLv6ItuNM4ECeMW9kkJgE1FheqjDM9Ow4cKZ/ZZY=",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sign, err := Sign(tt.message, tt.privateKey)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantSignature, sign)
+		})
+	}
+}

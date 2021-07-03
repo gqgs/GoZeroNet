@@ -44,6 +44,18 @@ func NewCommand() *cli.Command {
 					},
 				},
 			},
+			{
+				Name: "sign",
+				Action: func(c *cli.Context) error {
+					return sign(c.String("site"), c.String("inner_path"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "inner_path",
+						Required: true,
+					},
+				},
+			},
 		},
 	}
 }

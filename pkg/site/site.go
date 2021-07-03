@@ -1,7 +1,10 @@
 package site
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +14,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -18,7 +22,9 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
+	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
+	"github.com/gqgs/go-zeronet/pkg/lib/parser"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/peer"
@@ -266,6 +272,7 @@ func (s *Site) Update(daysAgo int) error {
 // It returns nil if the file is valid.
 func (s *Site) Verify(innerPath string) error {
 	s.log.WithField("inner_path", innerPath).Debug("verifying file")
+
 	if !strings.HasSuffix(innerPath, "content.json") {
 		return errors.New("can only verifiy content.json files")
 	}
@@ -276,14 +283,142 @@ func (s *Site) Verify(innerPath string) error {
 	}
 	defer contentFile.Close()
 
-	content := new(Content)
-	if err := json.NewDecoder(contentFile).Decode(content); err != nil {
+	c := new(Content)
+	if err := json.NewDecoder(contentFile).Decode(c); err != nil {
 		return err
 	}
 
-	if content.isValid() {
+	if c.isValid() {
 		return nil
 	}
 
 	return errors.New("content file is invalid")
+}
+
+// Sign signs a content.json file.
+func (s *Site) Sign(innerPath, privateKey string) error {
+	s.log.WithField("inner_path", innerPath).Debug("signing file")
+
+	if !strings.HasSuffix(innerPath, "content.json") {
+		return errors.New("can only verifiy content.json files")
+	}
+	filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
+	contentFile, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer contentFile.Close()
+
+	c := new(Content)
+	if err := json.NewDecoder(contentFile).Decode(c); err != nil {
+		return err
+	}
+
+	if innerPath == "content.json" {
+		signers := make([]string, len(c.Signs))
+		var i int
+		for addr := range c.Signs {
+			signers[i] = addr
+			i++
+		}
+		signerdMsg := fmt.Sprintf("%d:%s", c.SignsRequired, strings.Join(signers, ","))
+		c.SignersSign, err = crypto.Sign([]byte(signerdMsg), privateKey)
+		if err != nil {
+			return err
+		}
+	}
+
+	files := make(map[string]File)
+	filesOptional := make(map[string]File)
+
+	ignoreRegex, err := regexp.Compile(c.Ignore)
+	if err != nil {
+		return err
+	}
+
+	optionalRegex, err := regexp.Compile(c.Optional)
+	if err != nil {
+		return err
+	}
+
+	root := path.Join(config.DataDir, s.addr)
+
+	err = filepath.WalkDir(filepath.Dir(filePath), func(path string, info fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		relativePath := strings.TrimPrefix(path, root)
+		relativePath = strings.TrimLeft(relativePath, "/")
+
+		if strings.HasPrefix(relativePath, ".") || ignoreRegex.MatchString(relativePath) {
+			return nil
+		}
+
+		fileData, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		hasher := sha512.New()
+		if _, err := hasher.Write(fileData); err != nil {
+			return err
+		}
+
+		file := File{
+			Size:   len(fileData),
+			Sha512: hex.EncodeToString(hasher.Sum(nil))[:64],
+		}
+
+		if optionalRegex.MatchString(relativePath) {
+			filesOptional[relativePath] = file
+		} else {
+			files[relativePath] = file
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	signs := c.Signs
+
+	c.Signs = nil
+	c.Modified = float64(time.Now().Unix())
+	c.Files = files
+	c.FilesOptional = filesOptional
+
+	contentJSON, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	contentJSON, err = parser.FixJSONSpacing(bytes.NewReader(contentJSON))
+	if err != nil {
+		return err
+	}
+
+	sign, err := crypto.Sign(contentJSON, privateKey)
+	if err != nil {
+		return err
+	}
+	address, err := crypto.PrivateKeyToAddress(privateKey)
+	if err != nil {
+		return err
+	}
+
+	signs[address] = sign
+
+	c.Signs = signs
+
+	content, err := json.MarshalIndent(c, "", " ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filePath, content, os.ModePerm)
 }
