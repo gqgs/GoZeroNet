@@ -57,7 +57,8 @@ This aims to be compatible with the the _core_ of the [original](https://github.
 - Files
     - [x] Required
     - [x] Optional
-    - [x] Big
+    - [x] Big (download)
+    - [ ] Big (upload)
 - [ ] UPnP
 - [ ] Hidden service
 - [ ] TLS

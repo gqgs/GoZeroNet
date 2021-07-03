@@ -369,6 +369,7 @@ func (s *Site) Sign(innerPath, privateKey string) error {
 			return err
 		}
 
+		// TODO: handle bigfiles
 		file := File{
 			Size:   len(fileData),
 			Sha512: hex.EncodeToString(hasher.Sum(nil))[:64],
