@@ -12,7 +12,6 @@ require (
 	github.com/fasthttp/websocket v1.4.3
 	github.com/go-chi/chi v1.5.4
 	github.com/golang/mock v1.3.1
-	github.com/mailru/easyjson v0.7.7
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/minio/simdjson-go v0.2.2
 	github.com/sirupsen/logrus v1.8.1

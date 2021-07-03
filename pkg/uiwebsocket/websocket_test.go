@@ -1,6 +1,30 @@
 package uiwebsocket
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func Benchmark_decode(b *testing.B) {
+	const data = `{
+			"cmd": "fileGet",
+			"params": {
+				"inner_path": "data/users/1DJEfWgdJ3rGnqCrKwLrBdQGodRaEBkAry/6e2ae2cc67be7a03005a672aef84f1a9e3cf403a.png",
+				"required": true,
+				"format": "base64"
+			},
+			"wrapper_nonce": "719f6898d280b45d89c864021a5f2c8f74f253c08d2f14caba8988de71c11f14",
+			"id": 100
+		}`
+	for i := 0; i < b.N; i++ {
+		result, err := decode([]byte(data))
+		require.NoError(b, err)
+		require.Equal(b, int64(100), result.ID)
+		require.Equal(b, "719f6898d280b45d89c864021a5f2c8f74f253c08d2f14caba8988de71c11f14", result.WrapperNonce)
+		require.Equal(b, "fileGet", result.CMD)
+	}
+}
 
 func Test_decode(t *testing.T) {
 	tests := []struct {

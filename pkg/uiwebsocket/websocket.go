@@ -3,10 +3,8 @@ package uiwebsocket
 import (
 	"errors"
 
-	"github.com/mailru/easyjson"
+	"github.com/bytedance/sonic"
 )
-
-//go:generate go run github.com/mailru/easyjson/easyjson -all
 
 type Message struct {
 	ID           int64  `json:"id"`
@@ -16,7 +14,6 @@ type Message struct {
 }
 
 // fields required for every message
-//easyjson:skip
 type required struct {
 	CMD string `json:"cmd"`
 	ID  int64  `json:"id"`
@@ -107,7 +104,7 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 
 func decode(payload []byte) (Message, error) {
 	var message Message
-	err := easyjson.Unmarshal(payload, &message)
+	err := sonic.Unmarshal(payload, &message)
 	return message, err
 }
 
