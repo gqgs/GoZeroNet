@@ -32,6 +32,13 @@ func NewConnection(addr string) (net.Conn, error) {
 	}, nil
 }
 
+func NewTraceConn(conn net.Conn) traceConn {
+	return traceConn{
+		conn,
+		log.New("connection"),
+	}
+}
+
 type traceConn struct {
 	net.Conn
 	log log.Logger

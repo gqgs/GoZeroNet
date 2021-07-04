@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
@@ -91,6 +92,10 @@ func (s *server) Listen() {
 			s.log.Error(e)
 			continue
 		}
+		if config.Debug {
+			go s.handleConn(connection.NewTraceConn(conn))
+			continue
+		}
 		go s.handleConn(conn)
 	}
 }
@@ -139,7 +144,7 @@ func (s *server) route(conn net.Conn) error {
 		return s.listModifiedHandler(conn, decoder)
 	case "update":
 		return s.updateHandler(conn, decoder)
-	case "fileHashIds":
+	case "findHashIds":
 		return s.findHashIDsHandler(conn, decoder)
 	case "getHashfield":
 		return s.getHashfieldHandler(conn, decoder)
