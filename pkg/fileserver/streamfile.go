@@ -105,6 +105,7 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
+	s.log.Debugf("streaming file %s at %d", r.Params.InnerPath, r.Params.Location)
 
 	body, size, location, err := s.readChunk(r.Params.Site, r.Params.InnerPath, r.Params.Location)
 	if err != nil {

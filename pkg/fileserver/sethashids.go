@@ -14,7 +14,7 @@ type (
 	}
 	setHashfieldParams struct {
 		Site         string `msgpack:"site"`
-		HashfieldRaw []byte `msgpack:"hashfield_raw"`
+		HashfieldRaw string `msgpack:"hashfield_raw"`
 	}
 
 	setHashfieldResponse struct {

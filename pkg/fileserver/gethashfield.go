@@ -19,7 +19,7 @@ type (
 	getHashfieldResponse struct {
 		CMD          string `msgpack:"cmd"`
 		To           int64  `msgpack:"to"`
-		HashfieldRaw []byte `msgpack:"hashfield_raw"`
+		HashfieldRaw string `msgpack:"hashfield_raw"`
 	}
 )
 
@@ -35,7 +35,7 @@ func (s *server) getHashfieldHandler(conn net.Conn, decoder requestDecoder) erro
 	data, err := msgpack.Marshal(&getHashfieldResponse{
 		CMD:          "response",
 		To:           r.ReqID,
-		HashfieldRaw: []byte{},
+		HashfieldRaw: "",
 	})
 	if err != nil {
 		return err

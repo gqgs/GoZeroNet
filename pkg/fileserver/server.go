@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"strconv"
-	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/database"
@@ -103,7 +102,7 @@ func (s *server) handleConn(conn net.Conn) {
 		Debug("new connection")
 
 	defer conn.Close()
-	conn.SetDeadline(time.Now().Add(config.FileServerDeadline))
+	// conn.SetDeadline(time.Now().Add(config.FileServerDeadline))
 
 	for {
 		if err := s.route(conn); err != nil {
@@ -146,9 +145,9 @@ func (s *server) route(conn net.Conn) error {
 		return s.getHashfieldHandler(conn, decoder)
 	case "setHashfield":
 		return s.setHashfieldHandler(conn, decoder)
-	case "getPieceFields":
+	case "getPiecefields":
 		return s.getPieceFieldsHandler(conn, decoder)
-	case "setPieceFields":
+	case "setPiecefields":
 		return s.setPieceFieldsHandler(conn, decoder)
 	default:
 		s.log.WithField("cmd", cmd).Warn("unknown request")
