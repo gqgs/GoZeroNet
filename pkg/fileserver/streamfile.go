@@ -105,12 +105,14 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
-	s.log.Debugf("streaming file %s at %d", r.Params.InnerPath, r.Params.Location)
+	s.log.Debugf("streaming file %s at %d/%d", r.Params.InnerPath, r.Params.Location, r.Params.FileSize)
 
 	body, size, location, err := s.readChunk(r.Params.Site, r.Params.InnerPath, r.Params.Location)
 	if err != nil {
 		return err
 	}
+
+	s.log.Debug("path, body, size, location: ", r.Params.InnerPath, len(body), size, location)
 
 	data, err := msgpack.Marshal(&streamFileResponse{
 		CMD:         "response",
