@@ -52,6 +52,7 @@ type Site struct {
 	peerManager              peer.Manager
 	workerManager            Worker
 	lastAnnounce             time.Time
+	lastUpdate               time.Time
 	loading                  bool
 	postmessageNonceSecurity bool
 }
@@ -261,7 +262,12 @@ func (s *Site) FileDelete(innerPath string) error {
 }
 
 func (s *Site) Update(daysAgo int) error {
+	if time.Since(s.lastUpdate) < time.Minute {
+		return nil
+	}
 	now := time.Now().UTC()
+	s.lastUpdate = now
+
 	s.BroadcastSiteChange("updating", true)
 	defer s.BroadcastSiteChange("updated", true)
 
@@ -389,6 +395,7 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		}
 
 		innerPath := strings.TrimPrefix(path, siteRoot)
+		innerPath = strings.TrimLeft(innerPath, "/")
 		innerPaths = append(innerPaths, innerPath)
 		fileInfo, _ := s.contentDB.FileInfo(s.addr, innerPath)
 		fileInfo.Hash = hash
