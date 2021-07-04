@@ -106,6 +106,14 @@ func (u *User) CertUserID(addr string) string {
 	return u.Certs[u.Sites[addr].Cert].AuthUserName + "@" + u.Sites[addr].Cert
 }
 
+func (u *User) AuthType(addr string) string {
+	return u.Certs[u.Sites[addr].Cert].AuthType
+}
+
+func (u *User) CertSign(addr string) string {
+	return u.Certs[u.Sites[addr].Cert].CertSign
+}
+
 func (u *User) SiteSettings(addr string) map[string]interface{} {
 	return u.Sites[addr].Settings
 }

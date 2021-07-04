@@ -347,9 +347,12 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		return err
 	}
 
-	root := path.Join(config.DataDir, s.addr)
+	var innerPaths []string
 
-	err = filepath.WalkDir(filepath.Dir(filePath), func(path string, info fs.DirEntry, err error) error {
+	siteRoot := filepath.Join(config.DataDir, s.addr)
+	root := filepath.Dir(filePath)
+
+	err = filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -361,7 +364,9 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		relativePath := strings.TrimPrefix(path, root)
 		relativePath = strings.TrimLeft(relativePath, "/")
 
-		if strings.HasPrefix(relativePath, ".") || ignoreRegex.MatchString(relativePath) {
+		if strings.HasPrefix(relativePath, ".") ||
+			ignoreRegex.MatchString(relativePath) ||
+			strings.HasSuffix(relativePath, "content.json") {
 			return nil
 		}
 
@@ -387,6 +392,8 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 			files[relativePath] = file
 		}
 
+		innerPaths = append(innerPaths, strings.TrimPrefix(path, siteRoot))
+
 		return nil
 	})
 	if err != nil {
@@ -403,8 +410,8 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 	c.InnerPath = innerPath
 
 	if user != nil {
-		c.CertAuthType = user.Certs[s.addr].AuthType
-		c.CertSign = user.Certs[s.addr].CertSign
+		c.CertAuthType = user.AuthType(s.addr)
+		c.CertSign = user.CertSign(s.addr)
 		c.CertUserID = user.CertUserID(s.addr)
 	}
 
@@ -439,7 +446,19 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filePath, content, os.ModePerm)
+	if err := os.WriteFile(filePath, content, os.ModePerm); err != nil {
+		return err
+	}
+
+	if err := s.db.Update(innerPaths...); err != nil {
+		return err
+	}
+
+	return s.contentDB.UpdateContent(s.addr, &event.ContentInfo{
+		InnerPath: innerPath,
+		Modified:  int(c.Modified),
+		Size:      len(content),
+	})
 }
 
 func (s *Site) Publish(innerPath string) error {
@@ -459,7 +478,7 @@ func (s *Site) Publish(innerPath string) error {
 			continue
 		}
 
-		logger := s.log.WithField("peer", connected)
+		logger := s.log.WithField("peer", connected).WithField("i", i)
 		logger.Info("publishing update")
 		resp, err := fileserver.Update(connected, s.addr, innerPath)
 		if err != nil {
