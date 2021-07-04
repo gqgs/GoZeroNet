@@ -2,9 +2,12 @@ package peer
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net"
+	"strings"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
@@ -37,6 +40,10 @@ func (p *peer) Connect() error {
 		return nil
 	}
 
+	if p.isBlacklisted() {
+		return errors.New("cannot connect to blacklisted peer")
+	}
+
 	conn, err := connection.NewConnection(p.addr)
 	if err != nil {
 		return err
@@ -45,6 +52,10 @@ func (p *peer) Connect() error {
 	p.connected = true
 	p.Conn = conn
 	return nil
+}
+
+func (p *peer) isBlacklisted() bool {
+	return strings.HasSuffix(p.addr, fmt.Sprintf(":%d", config.FileServerPort))
 }
 
 func (p *peer) Close() error {
