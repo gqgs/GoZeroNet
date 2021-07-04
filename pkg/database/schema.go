@@ -135,6 +135,9 @@ func (m *Map) ProcessFile(innerPath string, tx storage.Transaction) error {
 	tables := make(map[string]struct{})
 	for _, table := range m.ToTable {
 		tables[table] = struct{}{}
+		if _, err := tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE json_id = ?", table), jsonRowID); err != nil {
+			return err
+		}
 	}
 
 	jsonFields := make(map[string]struct{})
