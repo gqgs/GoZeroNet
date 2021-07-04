@@ -114,7 +114,7 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 	if _, err := tx.Exec(`
 		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional, uploaded, piece_size, piecemap)
 		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT (site_id, inner_path, hash) DO
+		ON CONFLICT (site_id, inner_path) DO
 		UPDATE SET
 			is_downloaded = excluded.is_downloaded,
 			is_pinned = excluded.is_pinned,
@@ -122,7 +122,8 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 			uploaded = excluded.uploaded,
 			piece_size = excluded.piece_size,
 			piecemap = excluded.piecemap,
-			time_added = CURRENT_TIMESTAMP
+			time_added = CURRENT_TIMESTAMP,
+			hash = excluded.hash
 		`,
 		site,
 		info.InnerPath,
@@ -291,7 +292,7 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, piece_size INTEGER, piecemap TEXT)`,
 		`CREATE INDEX IF NOT EXISTS file_path ON file (inner_path)`,
 		`CREATE INDEX IF NOT EXISTS file_hash ON file (hash)`,
-		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path, hash)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path)`,
 
 		// Content
 		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
