@@ -254,6 +254,11 @@ func (s *Site) ListFiles(innerPath string) ([]string, error) {
 	return files, err
 }
 
+func (s *Site) FileDelete(innerPath string) error {
+	filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
+	return os.Remove(filePath)
+}
+
 func (s *Site) Update(daysAgo int) error {
 	now := time.Now().UTC()
 	s.BroadcastSiteChange("updating", true)

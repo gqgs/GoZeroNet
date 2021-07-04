@@ -31,6 +31,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [x] channelJoinAllsite
     - [x] dbQuery
     - [ ] dirList
+    - [x] fileDelete
     - [x] fileGet
     - [x] fileList
     - [x] fileNeed
