@@ -348,6 +348,7 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 	}
 
 	var innerPaths []string
+	var fileInfos []*event.FileInfo
 
 	siteRoot := filepath.Join(config.DataDir, s.addr)
 	root := filepath.Dir(filePath)
@@ -381,18 +382,29 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		}
 
 		// TODO: handle bigfiles
+		hash := hex.EncodeToString(hasher.Sum(nil))[:64]
 		file := File{
 			Size:   len(fileData),
-			Sha512: hex.EncodeToString(hasher.Sum(nil))[:64],
+			Sha512: hash,
 		}
+
+		innerPath := strings.TrimPrefix(path, siteRoot)
+		innerPaths = append(innerPaths, innerPath)
+		fileInfo, _ := s.contentDB.FileInfo(s.addr, innerPath)
+		fileInfo.Hash = hash
+		fileInfo.Size = len(fileData)
+		fileInfo.IsDownloaded = true
+		fileInfo.InnerPath = innerPath
 
 		if optionalRegex.MatchString(relativePath) {
 			filesOptional[relativePath] = file
+			fileInfo.IsOptional = true
 		} else {
 			files[relativePath] = file
+			fileInfo.IsOptional = false
 		}
 
-		innerPaths = append(innerPaths, strings.TrimPrefix(path, siteRoot))
+		fileInfos = append(fileInfos, fileInfo)
 
 		return nil
 	})
@@ -450,6 +462,12 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		return err
 	}
 
+	for _, fileInfo := range fileInfos {
+		if err := s.contentDB.UpdateFile(s.addr, fileInfo); err != nil {
+			return err
+		}
+	}
+
 	if err := s.db.Update(innerPaths...); err != nil {
 		return err
 	}
@@ -474,7 +492,7 @@ func (s *Site) Publish(innerPath string) error {
 			return err
 		}
 
-		if _, alreadyPublished := published[connected.ID()]; alreadyPublished {
+		if _, alreadyPublished := published[connected.String()]; alreadyPublished {
 			continue
 		}
 
@@ -486,7 +504,7 @@ func (s *Site) Publish(innerPath string) error {
 			continue
 		}
 		logger.Info("updated published ", resp.Ok)
-		published[connected.ID()] = struct{}{}
+		published[connected.String()] = struct{}{}
 	}
 	return nil
 }
