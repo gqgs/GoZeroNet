@@ -12,11 +12,11 @@ func NewCommand() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "file_server_addr",
-				Value: config.DefaultFileServerAddr,
+				Value: config.FileServerAddress,
 			},
 			&cli.StringFlag{
 				Name:  "ui_server_addr",
-				Value: config.DefaultUIServerAddr,
+				Value: config.UIServerAddress,
 			},
 		},
 		Action: func(c *cli.Context) error {

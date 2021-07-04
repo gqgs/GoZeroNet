@@ -18,3 +18,6 @@ max_connected_peers = 10
 connection_deadline = "10s"
 fileserver_deadline = "10s"
 file_need_deadline = "30s"
+
+fileserver_address = "0.0.0.0:0"
+uiserver_address = "127.0.0.1:43111"

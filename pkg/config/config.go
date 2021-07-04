@@ -24,6 +24,8 @@ type config struct {
 	ConnectionDeadline      duration `toml:"connection_deadline"`
 	FileServerDeadline      duration `toml:"fileserver_deadline"`
 	FileNeedDeadline        duration `toml:"file_need_deadline"`
+	FileServerAddress       string   `toml:"fileserver_address"`
+	UIServerAddress         string   `toml:"uiserver_address"`
 }
 
 func init() {
@@ -54,6 +56,8 @@ func init() {
 		FileNeedDeadline = c.FileNeedDeadline.Duration
 		DefaultChannelSize = c.DefaultChannelSize
 		LogLevel = c.LogLevel
+		FileServerAddress = c.FileServerAddress
+		UIServerAddress = c.UIServerAddress
 
 		if err := os.MkdirAll(path.Dir(DataDir), os.ModePerm); err != nil {
 			panic(err)
@@ -75,9 +79,6 @@ const (
 	UseBinType       = true
 	FileGetSizeLimit = 512 * 1024
 
-	DefaultFileServerAddr = "127.0.0.1:0"
-	DefaultUIServerAddr   = "127.0.0.1:43111"
-
 	RandomIPv4Addr = "127.0.0.1:"
 	UpdateSite     = "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf" // TODO: ZN updater. We would need a new zite for this.
 	HomeSite       = "1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D"
@@ -97,6 +98,8 @@ var (
 	ConnectionDeadline      time.Duration
 	FileServerDeadline      time.Duration
 	FileNeedDeadline        time.Duration
+	FileServerAddress       string
+	UIServerAddress         string
 
 	FileServerHost = "127.0.0.1"
 	FileServerPort = 0
