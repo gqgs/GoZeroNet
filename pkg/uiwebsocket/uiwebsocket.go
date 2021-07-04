@@ -67,7 +67,9 @@ func (w *uiWebsocket) Serve() {
 	for {
 		_, rawMessage, err := w.conn.ReadMessage()
 		if err != nil {
-			w.log.Error(err)
+			if !websocket.IsCloseError(err) {
+				w.log.Error(err)
+			}
 			return
 		}
 		go w.handleMessage(rawMessage)

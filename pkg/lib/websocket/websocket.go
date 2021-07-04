@@ -24,6 +24,10 @@ type conn struct {
 	internalConn *websocket.Conn
 }
 
+func IsCloseError(err error) bool {
+	return websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNormalClosure)
+}
+
 func (c *conn) WriteJSON(v interface{}) error {
 	data, err := sonic.Marshal(v)
 	if err != nil {
