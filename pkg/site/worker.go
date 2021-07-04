@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
@@ -56,18 +55,6 @@ func (w *worker) run() {
 		case *event.PeersNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("peer need event")
 			go w.site.Announce()
-
-			peers, err := w.site.contentDB.Peers(w.site.addr, config.MaxConnectedPeers)
-			if err != nil {
-				w.log.Error(err)
-				continue
-			}
-			for _, peer := range peers {
-				peer := peer
-				event.BroadcastPeerCandidate(w.site.addr, w.site.pubsubManager, &event.PeerCandidate{
-					Address: peer,
-				})
-			}
 
 		case *event.FileInfo:
 			w.log.WithField("queue", len(w.queue)).Debug("file info event")
