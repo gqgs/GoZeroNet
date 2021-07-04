@@ -179,7 +179,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		})
 
 		if err := s.downloadFile(peer, info); err != nil {
-			logger.WithField("inner_path", info.InnerPath).Error(err)
+			return err
 		}
 	}
 
@@ -272,13 +272,13 @@ func (s *Site) verifyFile(peer peer.Peer, body []byte, info *event.FileInfo) err
 
 func (s *Site) verifyDownload(body []byte, size int, hash string) error {
 	if len(body) != size {
-		return fmt.Errorf("ignoring file with invalid size. want: (%d), got: (%d)", size, len(body))
+		return fmt.Errorf("file with invalid size. want: (%d), got: (%d)", size, len(body))
 	}
 
 	digest := sha512.Sum512(body)
 	hexDigest := hex.EncodeToString(digest[:32])
 	if hexDigest != hash {
-		return fmt.Errorf("ignoring file with invalid hash. want: %s (%d), got: %s (%d)", hash, size, hexDigest, len(body))
+		return fmt.Errorf("file with invalid hash. want: %s (%d), got: %s (%d)", hash, size, hexDigest, len(body))
 	}
 
 	return nil
