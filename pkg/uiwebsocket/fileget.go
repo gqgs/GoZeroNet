@@ -27,7 +27,7 @@ type (
 
 	fileGetResponse struct {
 		required
-		Result string `json:"result"`
+		Result *string `json:"result"`
 	}
 )
 
@@ -67,9 +67,11 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
-		if params.Format != "base64" {
-			writer.Write([]byte("{}"))
-		}
+	}
+
+	var result *string
+	if r := reader.String(); len(r) > 0 {
+		result = &r
 	}
 
 	return w.conn.WriteJSON(fileGetResponse{
@@ -78,6 +80,6 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 			ID:  w.ID(),
 			To:  message.ID,
 		},
-		reader.String(),
+		result,
 	})
 }

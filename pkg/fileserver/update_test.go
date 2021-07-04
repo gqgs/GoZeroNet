@@ -32,12 +32,12 @@ func Test_Update(t *testing.T) {
 	defer conn.Close()
 
 	const site = "site"
-	const innerPath = "innerPath"
+	const innerPath = "smallfile"
 	resp, err := Update(conn, site, innerPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, "response", resp.CMD)
-	assert.True(t, resp.Ok)
+	assert.Equal(t, "Thanks, file smallfile updated!", resp.Ok)
 }

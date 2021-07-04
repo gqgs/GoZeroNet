@@ -1,9 +1,14 @@
 package fileserver
 
 import (
+	"fmt"
 	"net"
+	"os"
+	"path"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/event"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -22,20 +27,25 @@ type (
 	updateResponse struct {
 		CMD   string `msgpack:"cmd"`
 		To    int64  `msgpack:"to"`
-		Ok    bool   `msgpack:"ok"`
+		Ok    string `msgpack:"ok"`
 		Error string `msgpack:"error,omitempty" json:"error,omitempty"`
 	}
 )
 
 func Update(conn net.Conn, site, innerPath string) (*updateResponse, error) {
-	// TODO: include content.json body + diffs
+	filePath := path.Join(config.DataDir, site, safe.CleanPath(innerPath))
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
 	encoded, err := msgpack.Marshal(&updateRequest{
 		CMD:   "update",
 		ReqID: counter(),
 		Params: updateParams{
 			Site:      site,
 			InnerPath: innerPath,
-			Body:      []byte(`{"modified": 0}`),
+			Body:      content,
 		},
 	})
 	if err != nil {
@@ -65,7 +75,7 @@ func (s *server) updateHandler(conn net.Conn, decoder requestDecoder) error {
 	data, err := msgpack.Marshal(&updateResponse{
 		CMD: "response",
 		To:  r.ReqID,
-		Ok:  true,
+		Ok:  fmt.Sprintf("Thanks, file %s updated!", r.Params.InnerPath),
 	})
 	if err != nil {
 		return err

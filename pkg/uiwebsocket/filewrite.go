@@ -2,17 +2,14 @@ package uiwebsocket
 
 import (
 	"encoding/base64"
+	"errors"
 	"strings"
 )
 
 type (
 	fileWriteRequest struct {
 		required
-		Params fileWriteParams `json:"params"`
-	}
-	fileWriteParams struct {
-		InnerPath     string `json:"inner_path"`
-		ContentBase64 string `json:"content_base64"`
+		Params []string `json:"params"`
 	}
 
 	fileWriteResponse struct {
@@ -27,8 +24,15 @@ func (w *uiWebsocket) fileWrite(rawMessage []byte, message Message) error {
 		return err
 	}
 
-	reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(payload.Params.ContentBase64))
-	if err := w.site.FileWrite(payload.Params.InnerPath, reader); err != nil {
+	if len(payload.Params) < 2 {
+		return errors.New("invalid request")
+	}
+
+	innerPath := payload.Params[0]
+	contentBase64 := payload.Params[1]
+
+	reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(contentBase64))
+	if err := w.site.FileWrite(innerPath, reader); err != nil {
 		return err
 	}
 

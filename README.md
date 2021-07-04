@@ -41,7 +41,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [x] ping
     - [x] siteInfo
     - [x] siteList
-    - [ ] sitePublish
+    - [x] sitePublish
     - [ ] siteReload
     - [ ] siteSign
     - [x] siteUpdate

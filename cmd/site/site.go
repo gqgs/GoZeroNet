@@ -156,5 +156,5 @@ func sign(addr, innerPath string) error {
 		return err
 	}
 
-	return site.Sign(innerPath, string(privateKey))
+	return site.Sign(innerPath, string(privateKey), nil)
 }

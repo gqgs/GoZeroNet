@@ -22,6 +22,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
+	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/parser"
@@ -301,7 +302,7 @@ func (s *Site) Verify(innerPath string) error {
 }
 
 // Sign signs a content.json file.
-func (s *Site) Sign(innerPath, privateKey string) error {
+func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 	s.log.WithField("inner_path", innerPath).Debug("signing file")
 
 	if !strings.HasSuffix(innerPath, "content.json") {
@@ -398,6 +399,14 @@ func (s *Site) Sign(innerPath, privateKey string) error {
 	c.Modified = float64(time.Now().Unix())
 	c.Files = files
 	c.FilesOptional = filesOptional
+	c.Address = s.addr
+	c.InnerPath = innerPath
+
+	if user != nil {
+		c.CertAuthType = user.Certs[s.addr].AuthType
+		c.CertSign = user.Certs[s.addr].CertSign
+		c.CertUserID = user.CertUserID(s.addr)
+	}
 
 	contentJSON, err := json.Marshal(c)
 	if err != nil {
@@ -418,6 +427,10 @@ func (s *Site) Sign(innerPath, privateKey string) error {
 		return err
 	}
 
+	if signs == nil {
+		signs = make(map[string]string)
+	}
+
 	signs[address] = sign
 
 	c.Signs = signs
@@ -427,4 +440,34 @@ func (s *Site) Sign(innerPath, privateKey string) error {
 		return err
 	}
 	return os.WriteFile(filePath, content, os.ModePerm)
+}
+
+func (s *Site) Publish(innerPath string) error {
+	published := make(map[string]struct{})
+
+	if !strings.HasSuffix(innerPath, "content.json") {
+		return errors.New("can only update content.json files")
+	}
+
+	for i := 0; i < 10; i++ {
+		connected, err := s.peerManager.GetConnected(s.ctx)
+		if err != nil {
+			return err
+		}
+
+		if _, alreadyPublished := published[connected.ID()]; alreadyPublished {
+			continue
+		}
+
+		logger := s.log.WithField("peer", connected)
+		logger.Info("publishing update")
+		resp, err := fileserver.Update(connected, s.addr, innerPath)
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		logger.Info("updated published ", resp.Ok)
+		published[connected.ID()] = struct{}{}
+	}
+	return nil
 }
