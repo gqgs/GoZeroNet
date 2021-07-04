@@ -167,6 +167,17 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		info.PieceSize = file.PieceSize
 		info.Piecemap = pieceMap(innerPath, file.Piecemap)
 
+		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
+			InnerPath:    info.InnerPath,
+			Hash:         info.Hash,
+			Size:         info.Size,
+			IsDownloaded: info.IsDownloaded,
+			IsPinned:     info.IsPinned,
+			IsOptional:   info.IsOptional,
+			PieceSize:    info.PieceSize,
+			Piecemap:     info.Piecemap,
+		})
+
 		if err := s.downloadFile(peer, info); err != nil {
 			logger.WithField("inner_path", info.InnerPath).Error(err)
 		}
