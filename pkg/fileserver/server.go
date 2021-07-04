@@ -140,8 +140,16 @@ func (s *server) route(conn net.Conn) error {
 		return s.listModifiedHandler(conn, decoder)
 	case "update":
 		return s.updateHandler(conn, decoder)
-	case "fileHashIdsHandler":
+	case "fileHashIds":
 		return s.findHashIDsHandler(conn, decoder)
+	case "getHashfield":
+		return s.getHashfieldHandler(conn, decoder)
+	case "setHashfield":
+		return s.setHashfieldHandler(conn, decoder)
+	case "getPieceFields":
+		return s.getPieceFieldsHandler(conn, decoder)
+	case "setPieceFields":
+		return s.setPieceFieldsHandler(conn, decoder)
 	default:
 		s.log.WithField("cmd", cmd).Warn("unknown request")
 		return s.unknownHandler(conn, decoder)
