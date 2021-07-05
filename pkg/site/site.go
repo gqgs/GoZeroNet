@@ -485,11 +485,16 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		}
 	}
 
-	return s.contentDB.UpdateContent(s.addr, &event.ContentInfo{
+	if err := s.contentDB.UpdateContent(s.addr, &event.ContentInfo{
 		InnerPath: innerPath,
 		Modified:  int(c.Modified),
 		Size:      len(content),
-	})
+	}); err != nil {
+		return err
+	}
+
+	s.Settings.Modified = int64(c.Modified)
+	return s.SaveSettings()
 }
 
 func (s *Site) Publish(innerPath string) error {
