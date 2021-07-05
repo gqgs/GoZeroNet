@@ -250,7 +250,20 @@ func (s *Site) ListFiles(innerPath string) ([]string, error) {
 
 func (s *Site) FileDelete(innerPath string) error {
 	filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
-	return os.Remove(filePath)
+	err := os.Remove(filePath)
+	if err != nil {
+		return err
+	}
+	info, err := s.contentDB.FileInfo(s.addr, innerPath)
+	if err != nil {
+		if errors.Is(err, database.ErrFileNotFound) {
+			return nil
+		}
+		return err
+	}
+	info.IsDownloaded = false
+	info.DownloadedPercent = 0
+	return s.contentDB.UpdateFile(s.addr, info)
 }
 
 func (s *Site) Update(daysAgo int) error {
