@@ -55,6 +55,7 @@ func (p *peer) Connect() error {
 }
 
 func (p *peer) isBlacklisted() bool {
+	// FIXME: it should consider self remote IP as well
 	return strings.HasSuffix(p.addr, fmt.Sprintf(":%d", config.FileServerPort))
 }
 
