@@ -58,9 +58,6 @@ func (w *worker) run() {
 
 		case *event.FileInfo:
 			w.log.WithField("queue", len(w.queue)).Debug("file info event")
-			if payload.IsDownloaded {
-				go w.site.BroadcastSiteChange("file_done", payload.InnerPath)
-			}
 		case *event.ContentInfo:
 			w.log.WithField("queue", len(w.queue)).Debug("content info event")
 			if payload.Modified > int(w.site.Settings.Modified) {
@@ -124,7 +121,7 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 	}
 	defer w.peerManager.PutConnected(p)
 
-	resp, err := fileserver.FindHashIDs(p, w.site.addr, hashID)
+	resp, err := fileserver.FindHashIDs(p, w.site.addr, int64(hashID))
 	if err != nil {
 		return err
 	}

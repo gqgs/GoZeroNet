@@ -322,6 +322,7 @@ func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
 		PieceSize:    info.PieceSize,
 		Piecemap:     info.Piecemap,
 	})
+	s.BroadcastSiteChange("file_done", info.InnerPath)
 
 	return nil
 }
