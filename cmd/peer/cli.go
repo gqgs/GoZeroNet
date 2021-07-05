@@ -62,8 +62,6 @@ func NewCommand() *cli.Command {
 						c.String("addr"),
 						c.String("site"),
 						c.String("inner_path"),
-						c.Int("location"),
-						c.Int("size"),
 					)
 				},
 				Flags: []cli.Flag{
@@ -74,12 +72,6 @@ func NewCommand() *cli.Command {
 					&cli.StringFlag{
 						Name:     "inner_path",
 						Required: true,
-					},
-					&cli.IntFlag{
-						Name: "location",
-					},
-					&cli.IntFlag{
-						Name: "size",
 					},
 				},
 			},

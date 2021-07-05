@@ -1,7 +1,7 @@
 package fileserver
 
 import (
-	"bytes"
+	"bufio"
 	"errors"
 	"io"
 	"net"
@@ -58,7 +58,7 @@ func StreamFileFull(conn net.Conn, site, innerPath string, size int) (*getFileRe
 			break
 		}
 		body = append(body, respBody...)
-		location += len(body)
+		location += len(respBody)
 	}
 
 	return &getFileResponse{
@@ -88,16 +88,15 @@ func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*str
 		return nil, nil, err
 	}
 
-	// Msgpack's decoder might read more data than it needs to decode
-	// the contents of the message. Return the buffered data to include
-	// any extraneous content that was read by the decoder.
+	// By default msgpack's decoder might read more data than it needs to decode
+	// the contents of the message. A io.ByteScanner is given to the decode to
+	// prevent this behavior.
 	result := new(streamFileResponse)
-	buffer := new(bytes.Buffer)
-	decoder := msgpack.NewDecoder(io.TeeReader(conn, buffer))
+	reader := bufio.NewReader(conn)
+	decoder := msgpack.NewDecoder(reader)
 	if err = decoder.Decode(result); err != nil {
 		return nil, nil, err
 	}
-	reader := io.MultiReader(buffer, conn)
 	return result, io.LimitReader(reader, int64(result.StreamBytes)), nil
 }
 

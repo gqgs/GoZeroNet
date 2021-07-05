@@ -235,7 +235,7 @@ func (s *Site) verifyFile(peer peer.Peer, body []byte, info *event.FileInfo) err
 		return err
 	}
 
-	pieceResp, err := fileserver.GetFileFull(peer, s.addr, pieceInfo.InnerPath, info.Size)
+	pieceResp, err := fileserver.StreamFileFull(peer, s.addr, pieceInfo.InnerPath, info.Size)
 	if err != nil {
 		return err
 	}
@@ -285,7 +285,7 @@ func (s *Site) verifyDownload(body []byte, size int, hash string) error {
 }
 
 func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
-	resp, err := fileserver.GetFileFull(peer, s.addr, info.InnerPath, info.Size)
+	resp, err := fileserver.StreamFileFull(peer, s.addr, info.InnerPath, info.Size)
 	if err != nil {
 		return err
 	}

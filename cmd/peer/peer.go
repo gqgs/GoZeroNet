@@ -3,7 +3,6 @@ package peer
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/connection"
@@ -59,25 +58,18 @@ func getFile(addr, site, innerPath string, location, size int) error {
 	return err
 }
 
-func streamFile(addr, site, innerPath string, location, size int) error {
+func streamFile(addr, site, innerPath string) error {
 	conn, err := connection.NewConnection(addr)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	resp, stream, err := fileserver.StreamFile(conn, site, innerPath, location, size)
+	resp, err := fileserver.StreamFileFull(conn, site, innerPath, 0)
 	if err != nil {
 		return err
 	}
 	jsonDump(resp)
-
-	file, err := io.ReadAll(stream)
-	jsonDump(struct {
-		File []byte
-	}{
-		File: file,
-	})
 	return err
 }
 
