@@ -33,7 +33,7 @@ type contentDatabase struct {
 func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, error) {
 	const query = `
 		SELECT f.inner_path FROM file f INNER JOIN site s USING(site_id)
-		WHERE s.address = ? AND f.time_added >= ?
+		WHERE s.address = ? AND f.time_added >= ? AND f.is_downloaded = 1
 		UNION
 		SELECT c.inner_path FROM content c INNER JOIN SITE s USING(site_id)
 		WHERE s.address = ? AND c.time_added >= ?
