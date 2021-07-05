@@ -1,8 +1,10 @@
 # GoZeroNet
 Go implementation of the [ZeroNet](http://zeronet.io/) network.
 
-This aims to be compatible with the the _core_ of the [original](https://github.com/HelloZeroNet/ZeroNet) Python implementation.
+This aims to be as compatible with the the _core_ of the [original](https://github.com/HelloZeroNet/ZeroNet) Python implementation with the exception of some minor changes. These changes are listed bellow.
 
+- `dbQuery` returns an error if it tries to select multiple columns with the same name. This behavior can be disabled by setting `validate_database_queries` to false in `zeronet.toml`.
+- The regular expressions defined in content.json files must be accepted by the [parser used in the Go standard library](https://golang.org/pkg/regexp/). That means a number of features are not supported to guarantee a linear time complexity. For more details read the [RE2 syntax definition](https://github.com/google/re2/wiki/Syntax).
 
 ### Status
 
@@ -60,7 +62,7 @@ This aims to be compatible with the the _core_ of the [original](https://github.
     - [x] Optional
     - [x] Big (download)
     - [ ] Big (upload)
-- [ ] UPnP
+- [ ] ~~UPnP~~
 - [ ] Hidden service
 - [ ] TLS
 - [ ] Namecoin
