@@ -112,7 +112,7 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 		return err
 	}
 
-	s.log.Debug("path, body, size, location: ", r.Params.InnerPath, len(body), size, location)
+	s.log.Debugf("read %s %d, %d/%d ", r.Params.InnerPath, len(body), size, location)
 
 	data, err := msgpack.Marshal(&streamFileResponse{
 		CMD:         "response",
@@ -155,6 +155,9 @@ func (s *server) readChunk(site, innerPath string, location int) (body []byte, s
 			return nil, 0, 0, nil
 		}
 		return nil, 0, 0, err
+	}
+	if !info.IsDownloaded {
+		return nil, 0, 0, nil
 	}
 	body, err = readChunk(site, innerPath, location)
 	if err != nil {
