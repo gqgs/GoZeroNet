@@ -163,16 +163,8 @@ func (s *Site) DecodeJSON(filename string, v interface{}) error {
 	return json.NewDecoder(file).Decode(v)
 }
 
-func (s *Site) FileNeed(innerPath string) error {
-	path := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
-	if _, err := os.Stat(path); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{InnerPath: innerPath})
-			return nil
-		}
-		return err
-	}
-	return nil
+func (s *Site) FileNeed(innerPath string) {
+	event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{InnerPath: innerPath})
 }
 
 func (s *Site) FileWrite(innerPath string, reader io.Reader) error {

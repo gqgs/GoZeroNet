@@ -138,7 +138,6 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 					w.log.Warn(err)
 					continue
 				}
-				defer w.peerManager.PutConnected(newPeer)
 
 				w.log.Debugf("downloading file %s from %s", fileNeed.InnerPath, newPeer)
 				if err := w.site.downloadFile(newPeer, info); err != nil {

@@ -226,23 +226,49 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	return nil
 }
 
-func (s *Site) verifyFile(peer peer.Peer, body []byte, info *event.FileInfo) error {
-	isBigFile := info.PieceSize > 0
-	if !isBigFile {
-		return s.verifyDownload(body, info.Size, info.Hash)
+func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
+	if !info.IsBigFile() {
+		resp, err := fileserver.StreamFileFull(peer, s.addr, info.InnerPath, info.Size)
+		if err != nil {
+			return err
+		}
+		if err := s.verifyDownload(resp.Body, info.Size, info.Hash); err != nil {
+			return err
+		}
+
+		filePath := path.Join(config.DataDir, s.addr, info.InnerPath)
+		if err := os.WriteFile(filePath, resp.Body, os.ModePerm); err != nil {
+			return err
+		}
+
+		info.IsDownloaded = true
+		info.DownloadedPercent = 100
+		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
+		return nil
 	}
+
+	// Download and verify piece info
 
 	pieceInfo, err := s.contentDB.FileInfo(s.addr, info.Piecemap)
 	if err != nil {
 		return err
 	}
 
-	pieceResp, err := fileserver.StreamFileFull(peer, s.addr, pieceInfo.InnerPath, info.Size)
+	pieceResp, err := fileserver.StreamFileFull(peer, s.addr, pieceInfo.InnerPath, pieceInfo.Size)
 	if err != nil {
 		return err
 	}
 
 	if err := s.verifyDownload(pieceResp.Body, pieceInfo.Size, pieceInfo.Hash); err != nil {
+		return err
+	}
+
+	pieceInfo.IsDownloaded = true
+	pieceInfo.DownloadedPercent = 100
+	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, pieceInfo)
+
+	filePath := path.Join(config.DataDir, s.addr, pieceInfo.InnerPath)
+	if err := os.WriteFile(filePath, pieceResp.Body, os.ModePerm); err != nil {
 		return err
 	}
 
@@ -256,19 +282,41 @@ func (s *Site) verifyFile(peer peer.Peer, body []byte, info *event.FileInfo) err
 		return err
 	}
 
-	var pieces [][]byte
-	for len(body) > info.PieceSize {
-		pieces = append(pieces, body[:info.PieceSize])
-		body = body[info.PieceSize:]
-	}
-	pieces = append(pieces, body)
+	// Create disk file
 
-	for i, piece := range pieces {
-		if err := s.verifyDownload(pieces[i], len(piece), hashes[i]); err != nil {
+	filePath = path.Join(config.DataDir, s.addr, info.InnerPath)
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if err := file.Truncate(int64(info.Size)); err != nil {
+		return err
+	}
+
+	// Download and verify file pieces
+	// TODO: use piecefield avoid downloading chunks that have already been downloaded
+	// https://zeronet.io/docs/help_zeronet/network_protocol/#bigfile-piecefield
+	var downloaded int
+	for i, hash := range hashes {
+		resp, err := fileserver.StreamAtMost(peer, s.addr, info.InnerPath, i*info.PieceSize, info.PieceSize, info.Size)
+		if err != nil {
 			return err
 		}
-	}
+		if err := s.verifyDownload(resp.Body, len(resp.Body), hash); err != nil {
+			return err
+		}
 
+		if _, err := file.WriteAt(resp.Body, int64(i*info.PieceSize)); err != nil {
+			return err
+		}
+
+		downloaded += len(resp.Body)
+		info.DownloadedPercent = (float64(downloaded) / float64(info.Size)) * 100.0
+		info.IsDownloaded = info.DownloadedPercent == 100.0
+		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
+	}
 	return nil
 }
 
@@ -287,44 +335,19 @@ func (s *Site) verifyDownload(body []byte, size int, hash string) error {
 }
 
 func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
-	resp, err := fileserver.StreamFileFull(peer, s.addr, info.InnerPath, info.Size)
-	if err != nil {
-		return err
-	}
-
-	if err := s.verifyFile(peer, resp.Body, info); err != nil {
-		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
-		return err
-	}
-
-	s.Settings.BytesRecv += info.Size
-
 	filePath := path.Join(config.DataDir, s.addr, info.InnerPath)
 	if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(filePath, resp.Body, os.ModePerm); err != nil {
+	if err := s.downloadChunks(peer, info); err != nil {
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 		return err
 	}
 
 	s.log.WithField("inner_path", info.InnerPath).Info("downloaded file!")
 
-	digest := sha512.Sum512(resp.Body)
-	hexDigest := hex.EncodeToString(digest[:32])
-
 	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
-	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-		InnerPath:         info.InnerPath,
-		Hash:              hexDigest,
-		Size:              len(resp.Body),
-		IsDownloaded:      true,
-		IsPinned:          info.IsPinned,
-		IsOptional:        info.IsOptional,
-		PieceSize:         info.PieceSize,
-		Piecemap:          info.Piecemap,
-		DownloadedPercent: 100.0,
-	})
 	s.BroadcastSiteChange("file_done", info.InnerPath)
 
 	return nil

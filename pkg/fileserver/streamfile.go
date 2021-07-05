@@ -39,6 +39,40 @@ type (
 	}
 )
 
+// StreamAtMost requests and concatenates at most `limit` bytes of the file
+// starting at the specified location.
+func StreamAtMost(conn net.Conn, site, innerPath string, location, limit, size int) (*getFileResponse, error) {
+	var body []byte
+
+	for {
+		_, reader, err := StreamFile(conn, site, innerPath, location, size)
+		if err != nil {
+			return nil, err
+		}
+		respBody, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(respBody) == 0 {
+			break
+		}
+		body = append(body, respBody...)
+		location += len(respBody)
+
+		if len(body) >= limit {
+			body = body[:limit]
+		}
+	}
+
+	return &getFileResponse{
+		CMD:      "response",
+		Body:     body,
+		Location: location,
+		Size:     len(body),
+	}, nil
+}
+
 // StreamFileFull requests and concatenates all chunks of the file
 func StreamFileFull(conn net.Conn, site, innerPath string, size int) (*getFileResponse, error) {
 	var body []byte

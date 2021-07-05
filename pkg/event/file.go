@@ -13,6 +13,10 @@ type FileInfo struct {
 	DownloadedPercent float64 `json:"downloaded_percent"`
 }
 
+func (e *FileInfo) IsBigFile() bool {
+	return e.PieceSize > 0
+}
+
 func (e *FileInfo) String() string {
 	return "fileInfo"
 }

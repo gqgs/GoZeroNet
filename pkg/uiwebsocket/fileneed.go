@@ -25,9 +25,7 @@ func (w *uiWebsocket) fileNeed(rawMessage []byte, message Message) error {
 		return err
 	}
 
-	if err := w.site.FileNeed(strings.TrimSuffix(payload.Params.InnerPath, "|all")); err != nil {
-		return err
-	}
+	w.site.FileNeed(strings.TrimSuffix(payload.Params.InnerPath, "|all"))
 
 	return w.conn.WriteJSON(fileNeedResponse{
 		required{
