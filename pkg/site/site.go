@@ -338,6 +338,7 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		if err != nil {
 			return err
 		}
+		c.ZeronetVersion = config.Version
 	}
 
 	files := make(map[string]File)
