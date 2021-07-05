@@ -123,7 +123,8 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 			piece_size = excluded.piece_size,
 			piecemap = excluded.piecemap,
 			time_added = CURRENT_TIMESTAMP,
-			hash = excluded.hash
+			hash = excluded.hash,
+			size = excluded.size
 		`,
 		site,
 		info.InnerPath,
