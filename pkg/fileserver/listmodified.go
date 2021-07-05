@@ -48,7 +48,6 @@ func ListModified(conn net.Conn, site string, since int64) (*listModifiedRespons
 }
 
 func (s *server) listModifiedHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new list modified request")
 	var r listModifiedRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

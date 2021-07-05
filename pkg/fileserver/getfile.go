@@ -83,7 +83,6 @@ func GetFile(conn net.Conn, site, innerPath string, location, size int) (*getFil
 }
 
 func (s *server) getFileHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new get file request")
 	var r getFileRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

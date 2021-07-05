@@ -61,7 +61,6 @@ func Update(conn net.Conn, site, innerPath string) (*updateResponse, error) {
 }
 
 func (s *server) updateHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new update request")
 	var r updateRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

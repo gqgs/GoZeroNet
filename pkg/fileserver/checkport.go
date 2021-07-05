@@ -47,7 +47,6 @@ func CheckPort(conn net.Conn, port int) (*checkPortResponse, error) {
 }
 
 func (s *server) checkPortHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new check port request")
 	var r checkPortRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

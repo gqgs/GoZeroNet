@@ -39,7 +39,6 @@ func Ping(conn net.Conn) (*pingResponse, error) {
 }
 
 func (s *server) pingHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new ping request")
 	var r pingRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

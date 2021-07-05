@@ -1,6 +1,7 @@
 package fileserver
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net"
@@ -91,16 +92,16 @@ func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*str
 	// the contents of the message. Return the buffered data to include
 	// any extraneous content that was read by the decoder.
 	result := new(streamFileResponse)
-	decoder := msgpack.NewDecoder(conn)
+	buffer := new(bytes.Buffer)
+	decoder := msgpack.NewDecoder(io.TeeReader(conn, buffer))
 	if err = decoder.Decode(result); err != nil {
 		return nil, nil, err
 	}
-	reader := io.MultiReader(decoder.Buffered(), conn)
+	reader := io.MultiReader(buffer, conn)
 	return result, io.LimitReader(reader, int64(result.StreamBytes)), nil
 }
 
 func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new streamFile request")
 	var r streamFileRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

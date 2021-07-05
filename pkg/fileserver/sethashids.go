@@ -14,7 +14,7 @@ type (
 	}
 	setHashfieldParams struct {
 		Site         string `msgpack:"site"`
-		HashfieldRaw string `msgpack:"hashfield_raw"`
+		HashfieldRaw []byte `msgpack:"hashfield_raw"`
 	}
 
 	setHashfieldResponse struct {
@@ -25,7 +25,6 @@ type (
 )
 
 func (s *server) setHashfieldHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new setHashfield file request")
 	var r setHashfieldRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

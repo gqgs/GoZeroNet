@@ -120,11 +120,13 @@ func (s *server) handleConn(conn net.Conn) {
 }
 
 func (s *server) route(conn net.Conn) error {
-	decoder := msgpack.NewDecoder(conn)
-	cmd, err := decodeKey(decoder, "cmd")
+	decoder := new(msgpack.Decoder)
+	cmd, err := decodeKey(conn, decoder, "cmd")
 	if err != nil {
 		return err
 	}
+
+	s.log.WithField("conn", conn.RemoteAddr()).Debug("cmd: ", cmd)
 
 	switch cast.ToString(cmd) {
 	case "ping":
@@ -166,10 +168,10 @@ type requestDecoder interface {
 	Query(query string) ([]interface{}, error)
 }
 
-func decodeKey(decoder requestDecoder, key string) (interface{}, error) {
-	var buffer bytes.Buffer
-	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))
-	defer decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
+func decodeKey(reader io.Reader, decoder requestDecoder, key string) (interface{}, error) {
+	buffer := new(bytes.Buffer)
+	decoder.Reset(io.TeeReader(reader, buffer))
+	defer decoder.Reset(io.MultiReader(buffer, reader))
 	query, err := decoder.Query(key)
 	if err != nil {
 		return "", err

@@ -25,7 +25,6 @@ type (
 )
 
 func (s *server) setPieceFieldsHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new setPieceFields file request")
 	var r setPieceFieldsRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

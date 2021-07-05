@@ -14,8 +14,8 @@ type unknownResponse struct {
 }
 
 func (s *server) unknownHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new unknown request")
-	reqID, err := decodeKey(decoder, "req_id")
+	s.log.Debug("unknown request")
+	reqID, err := decodeKey(conn, decoder, "req_id")
 	if err != nil {
 		return err
 	}

@@ -13,8 +13,8 @@ type (
 		Params findHashIDsParams `msgpack:"params"`
 	}
 	findHashIDsParams struct {
-		Site    string `msgpack:"site"`
-		HashIDs []int  `msgpack:"hash_ids"`
+		Site    string  `msgpack:"site"`
+		HashIDs []int64 `msgpack:"hash_ids"`
 	}
 
 	findHashIDsResponse struct {
@@ -26,7 +26,7 @@ type (
 	}
 )
 
-func FindHashIDs(conn net.Conn, site string, hashIDs ...int) (*findHashIDsResponse, error) {
+func FindHashIDs(conn net.Conn, site string, hashIDs ...int64) (*findHashIDsResponse, error) {
 	encoded, err := msgpack.Marshal(&findHashIDsRequest{
 		CMD:   "findHashIds",
 		ReqID: counter(),
@@ -48,11 +48,11 @@ func FindHashIDs(conn net.Conn, site string, hashIDs ...int) (*findHashIDsRespon
 }
 
 func (s *server) findHashIDsHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new findHashIds request")
 	var r findHashIDsRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
+
 	data, err := msgpack.Marshal(&findHashIDsResponse{
 		CMD:        "response",
 		To:         r.ReqID,

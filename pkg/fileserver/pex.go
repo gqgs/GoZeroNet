@@ -54,7 +54,6 @@ func Pex(conn net.Conn, site string, need int) (*pexResponse, error) {
 }
 
 func (s *server) pexHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new pex request")
 	var r pexRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

@@ -82,7 +82,6 @@ func Handshake(conn net.Conn, addr string) (*handshakeResponse, error) {
 }
 
 func (s *server) handshakeHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new handshake request")
 	var r handshakeRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err

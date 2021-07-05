@@ -135,13 +135,13 @@ func jsonDump(v interface{}) {
 }
 
 func findHashIDs(addr, site string, hashList ...string) error {
-	ids := make([]int, len(hashList))
+	ids := make([]int64, len(hashList))
 	for i, hash := range hashList {
 		id, err := crypto.HashID(hash)
 		if err != nil {
 			return err
 		}
-		ids[i] = id
+		ids[i] = int64(id)
 	}
 
 	conn, err := connection.NewConnection(addr)
