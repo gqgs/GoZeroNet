@@ -168,14 +168,15 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		info.Piecemap = pieceMap(innerPath, file.Piecemap)
 
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-			InnerPath:    info.InnerPath,
-			Hash:         info.Hash,
-			Size:         info.Size,
-			IsDownloaded: info.IsDownloaded,
-			IsPinned:     info.IsPinned,
-			IsOptional:   info.IsOptional,
-			PieceSize:    info.PieceSize,
-			Piecemap:     info.Piecemap,
+			InnerPath:         info.InnerPath,
+			Hash:              info.Hash,
+			Size:              info.Size,
+			IsDownloaded:      info.IsDownloaded,
+			IsPinned:          info.IsPinned,
+			IsOptional:        info.IsOptional,
+			PieceSize:         info.PieceSize,
+			Piecemap:          info.Piecemap,
+			DownloadedPercent: info.DownloadedPercent,
 		})
 
 		if err := s.downloadFile(peer, info); err != nil {
@@ -204,14 +205,15 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		}
 
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-			InnerPath:    relPath,
-			Hash:         file.Sha512,
-			Size:         file.Size,
-			IsDownloaded: info.IsDownloaded,
-			IsPinned:     info.IsPinned,
-			IsOptional:   true,
-			PieceSize:    file.PieceSize,
-			Piecemap:     pieceMap(innerPath, file.Piecemap),
+			InnerPath:         relPath,
+			Hash:              file.Sha512,
+			Size:              file.Size,
+			IsDownloaded:      info.IsDownloaded,
+			IsPinned:          info.IsPinned,
+			IsOptional:        true,
+			PieceSize:         file.PieceSize,
+			Piecemap:          pieceMap(innerPath, file.Piecemap),
+			DownloadedPercent: info.DownloadedPercent,
 		})
 	}
 
@@ -313,14 +315,15 @@ func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
 
 	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-		InnerPath:    info.InnerPath,
-		Hash:         hexDigest,
-		Size:         len(resp.Body),
-		IsDownloaded: true,
-		IsPinned:     info.IsPinned,
-		IsOptional:   info.IsOptional,
-		PieceSize:    info.PieceSize,
-		Piecemap:     info.Piecemap,
+		InnerPath:         info.InnerPath,
+		Hash:              hexDigest,
+		Size:              len(resp.Body),
+		IsDownloaded:      true,
+		IsPinned:          info.IsPinned,
+		IsOptional:        info.IsOptional,
+		PieceSize:         info.PieceSize,
+		Piecemap:          info.Piecemap,
+		DownloadedPercent: 100.0,
 	})
 	s.BroadcastSiteChange("file_done", info.InnerPath)
 

@@ -89,7 +89,7 @@ func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*str
 	}
 
 	// By default msgpack's decoder might read more data than it needs to decode
-	// the contents of the message. A io.ByteScanner is given to the decode to
+	// the contents of the message. An io.ByteScanner is given to the decode to
 	// prevent this behavior.
 	result := new(streamFileResponse)
 	reader := bufio.NewReader(conn)
@@ -97,6 +97,7 @@ func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*str
 	if err = decoder.Decode(result); err != nil {
 		return nil, nil, err
 	}
+
 	return result, io.LimitReader(reader, int64(result.StreamBytes)), nil
 }
 

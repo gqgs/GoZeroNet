@@ -1,15 +1,16 @@
 package event
 
 type FileInfo struct {
-	InnerPath    string `json:"inner_path"`
-	Hash         string `json:"hash"`
-	Size         int    `json:"size"`
-	IsDownloaded bool   `json:"is_downloaded"`
-	IsPinned     bool   `json:"is_pinned"`
-	IsOptional   bool   `json:"is_optional"`
-	Uploaded     int    `json:"uploaded"`
-	PieceSize    int    `json:"piece_size"`
-	Piecemap     string `json:"piecemap"`
+	InnerPath         string  `json:"inner_path"`
+	Hash              string  `json:"hash"`
+	Size              int     `json:"size"`
+	IsDownloaded      bool    `json:"is_downloaded"`
+	IsPinned          bool    `json:"is_pinned"`
+	IsOptional        bool    `json:"is_optional"`
+	Uploaded          int     `json:"uploaded"`
+	PieceSize         int     `json:"piece_size"`
+	Piecemap          string  `json:"piecemap"`
+	DownloadedPercent float64 `json:"downloaded_percent"`
 }
 
 func (e *FileInfo) String() string {

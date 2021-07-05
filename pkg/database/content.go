@@ -58,7 +58,7 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
 	query := `
-		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap
+		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap, f.downloaded_percent
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`
@@ -80,6 +80,7 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 			&info.Uploaded,
 			&info.PieceSize,
 			&info.Piecemap,
+			&info.DownloadedPercent,
 		); err != nil {
 			return nil, err
 		}
@@ -112,8 +113,8 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional, uploaded, piece_size, piecemap)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional, uploaded, piece_size, piecemap, downloaded_percent)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (site_id, inner_path) DO
 		UPDATE SET
 			is_downloaded = excluded.is_downloaded,
@@ -124,7 +125,8 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 			piecemap = excluded.piecemap,
 			time_added = CURRENT_TIMESTAMP,
 			hash = excluded.hash,
-			size = excluded.size
+			size = excluded.size,
+			downloaded_percent = excluded.downloaded_percent
 		`,
 		site,
 		info.InnerPath,
@@ -136,6 +138,7 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 		info.Uploaded,
 		info.PieceSize,
 		info.Piecemap,
+		info.DownloadedPercent,
 	); err != nil {
 		return err
 	}
