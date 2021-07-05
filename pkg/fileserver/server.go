@@ -101,20 +101,19 @@ func (s *server) Listen() {
 }
 
 func (s *server) handleConn(conn net.Conn) {
-	s.log.
+	logger := s.log.
 		WithField("local", conn.LocalAddr()).
-		WithField("remote", conn.RemoteAddr()).
-		Debug("new connection")
+		WithField("remote", conn.RemoteAddr())
+	logger.Debug("new connection")
 
 	defer conn.Close()
-	// conn.SetDeadline(time.Now().Add(config.FileServerDeadline))
 
 	for {
 		if err := s.route(conn); err != nil {
 			if errors.Is(err, io.EOF) {
 				return
 			}
-			s.log.Error(err)
+			logger.Error(err)
 			return
 		}
 	}
@@ -170,6 +169,7 @@ type requestDecoder interface {
 func decodeKey(decoder requestDecoder, key string) (interface{}, error) {
 	var buffer bytes.Buffer
 	decoder.Reset(io.TeeReader(decoder.Buffered(), &buffer))
+	defer decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
 	query, err := decoder.Query(key)
 	if err != nil {
 		return "", err
@@ -177,7 +177,6 @@ func decodeKey(decoder requestDecoder, key string) (interface{}, error) {
 	if len(query) != 1 {
 		return "", errors.New("file: invalid cmd value")
 	}
-	decoder.Reset(io.MultiReader(&buffer, decoder.Buffered()))
 	return query[0], nil
 }
 
