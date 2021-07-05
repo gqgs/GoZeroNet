@@ -469,14 +469,20 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		return err
 	}
 
-	for _, fileInfo := range fileInfos {
-		if err := s.contentDB.UpdateFile(s.addr, fileInfo); err != nil {
+	if err := s.OpenDB(); err != nil {
+		return err
+	}
+
+	if s.hasDB() {
+		if err := s.db.Update(innerPaths...); err != nil {
 			return err
 		}
 	}
 
-	if err := s.db.Update(innerPaths...); err != nil {
-		return err
+	for _, fileInfo := range fileInfos {
+		if err := s.contentDB.UpdateFile(s.addr, fileInfo); err != nil {
+			return err
+		}
 	}
 
 	return s.contentDB.UpdateContent(s.addr, &event.ContentInfo{

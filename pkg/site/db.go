@@ -49,3 +49,7 @@ func (s *Site) UpdateDB(since time.Time) error {
 	}
 	return s.db.Update(updated...)
 }
+
+func (s *Site) hasDB() bool {
+	return s.db.Exists()
+}
