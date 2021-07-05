@@ -50,9 +50,7 @@ func (w *uiWebsocket) sitePublish(rawMessage []byte, message Message) error {
 		}
 	}
 
-	if err := w.site.Publish(payload.Params.InnerPath); err != nil {
-		return err
-	}
+	go w.site.Publish(payload.Params.InnerPath)
 
 	return w.conn.WriteJSON(sitePublishResponse{
 		required{

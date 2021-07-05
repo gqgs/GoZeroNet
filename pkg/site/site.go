@@ -498,6 +498,7 @@ func (s *Site) Publish(innerPath string) error {
 		if err != nil {
 			return err
 		}
+		defer s.peerManager.PutConnected(connected)
 
 		if _, alreadyPublished := published[connected.String()]; alreadyPublished {
 			continue
