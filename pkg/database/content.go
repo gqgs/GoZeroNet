@@ -290,13 +290,13 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE UNIQUE INDEX IF NOT EXISTS peer_key ON peer (site_id, address)`,
 
 		// File
-		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, piece_size INTEGER, piecemap TEXT)`,
+		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, downloaded_percent REAL DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, piece_size INTEGER, piecemap TEXT)`,
 		`CREATE INDEX IF NOT EXISTS file_path ON file (inner_path)`,
 		`CREATE INDEX IF NOT EXISTS file_hash ON file (hash)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path)`,
 
 		// Content
-		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
+		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, time_downloaded INTEGER DEFAULT 0,time_accessed INTEGER DEFAULT 0)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS content_key ON content (site_id, inner_path)`,
 		`CREATE INDEX IF NOT EXISTS content_modified ON content (site_id, modified)`,
 	}
