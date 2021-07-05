@@ -56,6 +56,18 @@ func NewCommand() *cli.Command {
 					},
 				},
 			},
+			{
+				Name: "publish",
+				Action: func(c *cli.Context) error {
+					return publish(c.String("site"), c.String("inner_path"))
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "inner_path",
+						Required: true,
+					},
+				},
+			},
 		},
 	}
 }
