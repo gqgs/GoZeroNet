@@ -261,8 +261,7 @@ func (s *Site) FileDelete(innerPath string) error {
 		}
 		return err
 	}
-	info.IsDownloaded = false
-	info.DownloadedPercent = 0
+	info.Downloaded = 0
 	return s.contentDB.UpdateFile(s.addr, info)
 }
 
@@ -403,7 +402,7 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		fileInfo, _ := s.contentDB.FileInfo(s.addr, innerPath)
 		fileInfo.Hash = hash
 		fileInfo.Size = len(fileData)
-		fileInfo.IsDownloaded = true
+		fileInfo.Downloaded = fileInfo.Size
 		fileInfo.InnerPath = innerPath
 
 		if optionalRegex.MatchString(relativePath) {

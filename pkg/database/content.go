@@ -33,7 +33,7 @@ type contentDatabase struct {
 func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, error) {
 	const query = `
 		SELECT f.inner_path FROM file f INNER JOIN site s USING(site_id)
-		WHERE s.address = ? AND f.time_added >= ? AND f.is_downloaded = 1
+		WHERE s.address = ? AND f.time_added >= ? AND f.downloaded = f.size
 		UNION
 		SELECT c.inner_path FROM content c INNER JOIN SITE s USING(site_id)
 		WHERE s.address = ? AND c.time_added >= ?
@@ -58,7 +58,7 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
 	query := `
-		SELECT f.inner_path, f.hash, f.size, f.is_downloaded, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap, f.downloaded_percent
+		SELECT f.inner_path, f.hash, f.size, f.downloaded = f.size, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap, f.downloaded, (f.downloaded / f.size) * 100
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`
@@ -80,6 +80,7 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 			&info.Uploaded,
 			&info.PieceSize,
 			&info.Piecemap,
+			&info.Downloaded,
 			&info.DownloadedPercent,
 		); err != nil {
 			return nil, err
@@ -113,11 +114,10 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO file (site_id, inner_path, hash, size, is_downloaded, is_pinned, is_optional, uploaded, piece_size, piecemap, downloaded_percent)
+		INSERT INTO file (site_id, inner_path, hash, size, is_pinned, is_optional, uploaded, piece_size, piecemap, downloaded)
 		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (site_id, inner_path) DO
 		UPDATE SET
-			is_downloaded = excluded.is_downloaded,
 			is_pinned = excluded.is_pinned,
 			is_optional = excluded.is_optional,
 			uploaded = excluded.uploaded,
@@ -126,19 +126,18 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 			time_added = CURRENT_TIMESTAMP,
 			hash = excluded.hash,
 			size = excluded.size,
-			downloaded_percent = excluded.downloaded_percent
+			downloaded = excluded.downloaded
 		`,
 		site,
 		info.InnerPath,
 		info.Hash,
 		info.Size,
-		info.IsDownloaded,
 		info.IsPinned,
 		info.IsOptional,
 		info.Uploaded,
 		info.PieceSize,
 		info.Piecemap,
-		info.DownloadedPercent,
+		info.Downloaded,
 	); err != nil {
 		return err
 	}
@@ -293,13 +292,13 @@ func NewContentDatabase() (*contentDatabase, error) {
 		`CREATE UNIQUE INDEX IF NOT EXISTS peer_key ON peer (site_id, address)`,
 
 		// File
-		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, is_downloaded INTEGER DEFAULT 0, downloaded_percent REAL DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, piece_size INTEGER, piecemap TEXT)`,
+		`CREATE TABLE IF NOT EXISTS file (file_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER NOT NULL REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, hash TEXT, size INTEGER, peer INTEGER DEFAULT 0, uploaded INTEGER DEFAULT 0, downloaded INTEGER DEFAULT 0, is_pinned INTEGER DEFAULT 0, is_optional INTEGER DEFAULT 0, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, piece_size INTEGER, piecemap TEXT)`,
 		`CREATE INDEX IF NOT EXISTS file_path ON file (inner_path)`,
 		`CREATE INDEX IF NOT EXISTS file_hash ON file (hash)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS file_path_hash ON file (site_id, inner_path)`,
 
 		// Content
-		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, time_downloaded INTEGER DEFAULT 0,time_accessed INTEGER DEFAULT 0)`,
+		`CREATE TABLE IF NOT EXISTS content (content_id INTEGER PRIMARY KEY UNIQUE NOT NULL, site_id INTEGER REFERENCES site (site_id) ON DELETE CASCADE, inner_path TEXT, modified INTEGER, size INTEGER, time_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP, time_downloaded INTEGER DEFAULT 0, time_accessed INTEGER DEFAULT 0)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS content_key ON content (site_id, inner_path)`,
 		`CREATE INDEX IF NOT EXISTS content_modified ON content (site_id, modified)`,
 	}

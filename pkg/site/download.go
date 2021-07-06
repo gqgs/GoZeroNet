@@ -168,15 +168,14 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		info.Piecemap = pieceMap(innerPath, file.Piecemap)
 
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-			InnerPath:         info.InnerPath,
-			Hash:              info.Hash,
-			Size:              info.Size,
-			IsDownloaded:      info.IsDownloaded,
-			IsPinned:          info.IsPinned,
-			IsOptional:        info.IsOptional,
-			PieceSize:         info.PieceSize,
-			Piecemap:          info.Piecemap,
-			DownloadedPercent: info.DownloadedPercent,
+			InnerPath:  info.InnerPath,
+			Hash:       info.Hash,
+			Size:       info.Size,
+			IsPinned:   info.IsPinned,
+			IsOptional: info.IsOptional,
+			PieceSize:  info.PieceSize,
+			Piecemap:   info.Piecemap,
+			Downloaded: info.Downloaded,
 		})
 
 		if err := s.downloadFile(peer, info); err != nil {
@@ -205,15 +204,14 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		}
 
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, &event.FileInfo{
-			InnerPath:         relPath,
-			Hash:              file.Sha512,
-			Size:              file.Size,
-			IsDownloaded:      info.IsDownloaded,
-			IsPinned:          info.IsPinned,
-			IsOptional:        true,
-			PieceSize:         file.PieceSize,
-			Piecemap:          pieceMap(innerPath, file.Piecemap),
-			DownloadedPercent: info.DownloadedPercent,
+			InnerPath:  relPath,
+			Hash:       file.Sha512,
+			Size:       file.Size,
+			IsPinned:   info.IsPinned,
+			IsOptional: true,
+			PieceSize:  file.PieceSize,
+			Piecemap:   pieceMap(innerPath, file.Piecemap),
+			Downloaded: info.Downloaded,
 		})
 	}
 
@@ -241,8 +239,7 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 			return err
 		}
 
-		info.IsDownloaded = true
-		info.DownloadedPercent = 100
+		info.Downloaded = len(resp.Body)
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
 		return nil
 	}
@@ -263,8 +260,7 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 		return err
 	}
 
-	pieceInfo.IsDownloaded = true
-	pieceInfo.DownloadedPercent = 100
+	pieceInfo.Downloaded = len(pieceResp.Body)
 	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, pieceInfo)
 
 	filePath := path.Join(config.DataDir, s.addr, pieceInfo.InnerPath)
@@ -298,7 +294,6 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 	// Download and verify file pieces
 	// TODO: use piecefield avoid downloading chunks that have already been downloaded
 	// https://zeronet.io/docs/help_zeronet/network_protocol/#bigfile-piecefield
-	var downloaded int
 	for i, hash := range hashes {
 		resp, err := fileserver.StreamAtMost(peer, s.addr, info.InnerPath, i*info.PieceSize, info.PieceSize, info.Size)
 		if err != nil {
@@ -312,9 +307,7 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 			return err
 		}
 
-		downloaded += len(resp.Body)
-		info.DownloadedPercent = (float64(downloaded) / float64(info.Size)) * 100.0
-		info.IsDownloaded = info.DownloadedPercent == 100.0
+		info.Downloaded += len(resp.Body)
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
 	}
 	return nil

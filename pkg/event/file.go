@@ -10,6 +10,7 @@ type FileInfo struct {
 	Uploaded          int     `json:"uploaded"`
 	PieceSize         int     `json:"piece_size"`
 	Piecemap          string  `json:"piecemap"`
+	Downloaded        int     `json:"downloaded"`
 	DownloadedPercent float64 `json:"downloaded_percent"`
 }
 
