@@ -115,7 +115,7 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 
 	if _, err := tx.Exec(`
 		INSERT INTO file (site_id, inner_path, hash, size, is_pinned, is_optional, uploaded, piece_size, piecemap, downloaded)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (site_id, inner_path) DO
 		UPDATE SET
 			is_pinned = excluded.is_pinned,

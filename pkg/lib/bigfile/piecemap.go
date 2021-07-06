@@ -14,6 +14,7 @@ type hash string
 
 var _ msgpack.CustomDecoder = (*hash)(nil)
 
+// Implements DecodeMsgpack interface
 func (h *hash) DecodeMsgpack(dec *msgpack.Decoder) error {
 	var bytes []byte
 	if err := dec.Decode(&bytes); err != nil {
