@@ -388,13 +388,10 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 			return err
 		}
 
-		hasher := sha512.New()
-		if _, err := hasher.Write(fileData); err != nil {
-			return err
-		}
+		digest := sha512.Sum512(fileData)
 
 		// TODO: handle bigfiles
-		hash := hex.EncodeToString(hasher.Sum(nil))[:64]
+		hash := hex.EncodeToString(digest[:])[:64]
 		file := File{
 			Size:   len(fileData),
 			Sha512: hash,
