@@ -2,9 +2,9 @@ package site
 
 import (
 	"encoding/binary"
-	"fmt"
 	"sync"
 
+	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
@@ -73,6 +73,10 @@ func (w *worker) run() {
 			}()
 		case *event.FileNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("file need event")
+			if payload.Tries >= config.MaxDownloadTries {
+				w.log.WithField("inner_path", payload.InnerPath).Error("failed to download file")
+				continue
+			}
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -150,7 +154,10 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 		}
 	}
 
-	return fmt.Errorf("could not download file: %s", fileNeed.InnerPath)
+	fileNeed.Tries++
+	event.BroadcastFileNeed(w.site.addr, w.site.pubsubManager, fileNeed)
+
+	return nil
 }
 
 func (w *worker) Close() {

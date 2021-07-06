@@ -26,6 +26,7 @@ type config struct {
 	FileNeedDeadline        duration `toml:"file_need_deadline"`
 	FileServerAddress       string   `toml:"fileserver_address"`
 	UIServerAddress         string   `toml:"uiserver_address"`
+	MaxDownloadTries        int      `toml:"max_download_tries"`
 }
 
 func init() {
@@ -58,6 +59,7 @@ func init() {
 		LogLevel = c.LogLevel
 		FileServerAddress = c.FileServerAddress
 		UIServerAddress = c.UIServerAddress
+		MaxDownloadTries = c.MaxDownloadTries
 
 		if err := os.MkdirAll(path.Dir(DataDir), os.ModePerm); err != nil {
 			panic(err)
@@ -100,6 +102,7 @@ var (
 	FileNeedDeadline        time.Duration
 	FileServerAddress       string
 	UIServerAddress         string
+	MaxDownloadTries        int
 
 	FileServerHost = "127.0.0.1"
 	FileServerPort = 0
