@@ -136,7 +136,7 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 		if id == hashID {
 			for _, addr := range addresses {
 				parsed := ip.ParseIPv4(addr, binary.LittleEndian)
-				w.log.Debug("connection to new new peer ", parsed)
+				w.log.Debug("connection to new peer ", parsed)
 				newPeer := peer.NewPeer(parsed)
 				if err := newPeer.Connect(); err != nil {
 					w.log.Warn(err)
