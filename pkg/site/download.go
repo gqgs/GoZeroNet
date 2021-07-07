@@ -246,6 +246,7 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 
 	// Parse and verify piece info
 
+PiecemapFound:
 	pieceInfo, err := s.contentDB.FileInfo(s.addr, info.Piecemap)
 	if err != nil {
 		return err
@@ -257,22 +258,27 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 	}
 
 	if len(pieceBody) == 0 {
-		pieceResp, err := fileserver.StreamFileFull(peer, s.addr, pieceInfo.InnerPath, pieceInfo.Size)
-		if err != nil {
-			return err
-		}
-		pieceBody = pieceResp.Body
+		msgCh := s.pubsubManager.Register("piece_needed", config.DefaultChannelSize)
+		defer s.pubsubManager.Unregister(msgCh)
 
-		if err := s.verifyDownload(pieceBody, pieceInfo.Size, pieceInfo.Hash); err != nil {
-			return err
-		}
+		event.BroadcastFileNeed(s.addr, s.pubsubManager, &event.FileNeed{
+			InnerPath: pieceInfo.InnerPath,
+		})
 
-		pieceInfo.Downloaded = len(pieceBody)
-		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, pieceInfo)
-
-		filePath := path.Join(config.DataDir, s.addr, pieceInfo.InnerPath)
-		if err := os.WriteFile(filePath, pieceBody, os.ModePerm); err != nil {
-			return err
+		for {
+			select {
+			case msg := <-msgCh:
+				if s.addr != msg.Site() {
+					continue
+				}
+				if updated, ok := msg.Event().(*event.FileInfo); ok {
+					if updated.InnerPath == pieceInfo.InnerPath && updated.Size == updated.Downloaded {
+						goto PiecemapFound
+					}
+				}
+			case <-time.After(time.Minute):
+				return errors.New("piecemap not found")
+			}
 		}
 	}
 

@@ -215,7 +215,7 @@ func (s *Site) broadcastFileNeed(ctx context.Context, innerPath string, download
 				continue
 			}
 			if updated, ok := msg.Event().(*event.FileInfo); ok {
-				if updated.InnerPath == innerPath && updated.IsDownloaded {
+				if updated.InnerPath == innerPath && updated.Downloaded == updated.Size {
 					return downloadCallback()
 				}
 			}
