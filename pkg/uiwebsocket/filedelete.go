@@ -1,9 +1,11 @@
 package uiwebsocket
 
+import "encoding/json"
+
 type (
 	fileDeleteRequest struct {
 		required
-		Params fileDeleteParams `json:"params"`
+		Params json.RawMessage `json:"params"`
 	}
 	fileDeleteParams struct {
 		InnerPath string `json:"inner_path"`
@@ -21,7 +23,14 @@ func (w *uiWebsocket) fileDelete(rawMessage []byte, message Message) error {
 		return err
 	}
 
-	if err := w.site.FileDelete(payload.Params.InnerPath); err != nil {
+	params := new(fileDeleteParams)
+	if err := jsonUnmarshal(payload.Params, params); err != nil {
+		if err := jsonUnmarshal(payload.Params, &params.InnerPath); err != nil {
+			return err
+		}
+	}
+
+	if err := w.site.FileDelete(params.InnerPath); err != nil {
 		return err
 	}
 

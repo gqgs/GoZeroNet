@@ -23,7 +23,6 @@ type Settings struct {
 		pieceFieldsMutex sync.Mutex
 		Piecefields      map[string]bigfile.PieceField `json:"piecefields"`
 	} `json:"cache"`
-	PieceFields               map[string]string `json:"piecefields"`
 	HasBigFile                bool              `json:"has_bigfile"`
 	Downloaded                int64             `json:"downloaded"`
 	Modified                  int64             `json:"modified"`

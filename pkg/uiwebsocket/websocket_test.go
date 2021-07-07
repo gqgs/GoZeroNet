@@ -25,7 +25,6 @@ func Benchmark_decode(b *testing.B) {
 		require.Equal(b, "fileGet", result.CMD)
 	}
 }
-
 func Test_decode(t *testing.T) {
 	tests := []struct {
 		name    string

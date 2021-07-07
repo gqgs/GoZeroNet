@@ -250,8 +250,7 @@ func (s *Site) ListFiles(innerPath string) ([]string, error) {
 
 func (s *Site) FileDelete(innerPath string) error {
 	filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
-	err := os.Remove(filePath)
-	if err != nil {
+	if err := os.Remove(filePath); err != nil {
 		return err
 	}
 	info, err := s.contentDB.FileInfo(s.addr, innerPath)
