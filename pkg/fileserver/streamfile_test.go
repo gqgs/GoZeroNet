@@ -63,7 +63,7 @@ func Test_StreamFile(t *testing.T) {
 			}
 			defer conn.Close()
 
-			resp, reader, err := StreamFile(conn, tt.site, tt.innerPath, 0, 0)
+			resp, reader, err := StreamFile(conn, tt.site, tt.innerPath, 0, 0, 0)
 			if err != nil {
 				t.Fatal(err)
 			}

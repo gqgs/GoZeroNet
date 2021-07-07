@@ -26,6 +26,7 @@ type (
 		Site      string `msgpack:"site"`
 		InnerPath string `msgpack:"inner_path"`
 		Location  int    `msgpack:"location"` // offset location for range requests
+		BytesRead int    `msgpack:"read_bytes"`
 		FileSize  int    `msgpack:"file_size,omitempty"`
 	}
 
@@ -42,27 +43,13 @@ type (
 // StreamAtMost requests and concatenates at most `limit` bytes of the file
 // starting at the specified location.
 func StreamAtMost(conn net.Conn, site, innerPath string, location, limit, size int) (*getFileResponse, error) {
-	var body []byte
-
-	for {
-		_, reader, err := StreamFile(conn, site, innerPath, location, size)
-		if err != nil {
-			return nil, err
-		}
-		respBody, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(respBody) == 0 {
-			break
-		}
-		body = append(body, respBody...)
-		location += len(respBody)
-
-		if len(body) >= limit {
-			body = body[:limit]
-		}
+	_, reader, err := StreamFile(conn, site, innerPath, location, size, limit)
+	if err != nil {
+		return nil, err
+	}
+	body, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
 	}
 
 	return &getFileResponse{
@@ -79,7 +66,7 @@ func StreamFileFull(conn net.Conn, site, innerPath string, size int) (*getFileRe
 	var location int
 
 	for {
-		_, reader, err := StreamFile(conn, site, innerPath, location, size)
+		_, reader, err := StreamFile(conn, site, innerPath, location, size, config.FileGetSizeLimit)
 		if err != nil {
 			return nil, err
 		}
@@ -103,7 +90,7 @@ func StreamFileFull(conn net.Conn, site, innerPath string, size int) (*getFileRe
 	}, nil
 }
 
-func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*streamFileResponse, io.Reader, error) {
+func StreamFile(conn net.Conn, site, innerPath string, location, size, bytesRead int) (*streamFileResponse, io.Reader, error) {
 	encoded, err := msgpack.Marshal(&streamFileRequest{
 		CMD:   "streamFile",
 		ReqID: counter(),
@@ -112,6 +99,7 @@ func StreamFile(conn net.Conn, site, innerPath string, location, size int) (*str
 			InnerPath: innerPath,
 			Location:  location,
 			FileSize:  size,
+			BytesRead: bytesRead,
 		},
 	})
 	if err != nil {
