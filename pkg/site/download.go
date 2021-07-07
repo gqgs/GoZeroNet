@@ -252,11 +252,7 @@ PiecemapFound:
 		return err
 	}
 
-	var pieceBody []byte
-	if pieceInfo.IsDownloaded {
-		pieceBody, _ = os.ReadFile(path.Join(config.DataDir, s.addr, pieceInfo.InnerPath))
-	}
-
+	pieceBody, _ := os.ReadFile(path.Join(config.DataDir, s.addr, pieceInfo.InnerPath))
 	if len(pieceBody) == 0 {
 		msgCh := s.pubsubManager.Register("piece_needed", config.DefaultChannelSize)
 		defer s.pubsubManager.Unregister(msgCh)
