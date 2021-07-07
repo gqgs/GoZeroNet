@@ -299,7 +299,10 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 	if err != nil {
 		return err
 	}
+
+	var invalidateCache bool
 	if stat.Size() != int64(info.Size) {
+		invalidateCache = true
 		if err := file.Truncate(int64(info.Size)); err != nil {
 			return err
 		}
@@ -316,8 +319,12 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 	if s.Settings.Cache.Piecefields == nil {
 		s.Settings.Cache.Piecefields = make(map[string]bigfile.PieceField)
 	}
+	if invalidateCache {
+		s.Settings.Cache.Piecefields[info.Hash] = bigfile.PackPieceField(piecemap)
+	}
 	s.Settings.Cache.pieceFieldsMutex.Unlock()
 
+	// TODO: query peer piecefield to avoid requests pieces that it doesn't have
 	for i, hash := range hashes {
 		if piecemap[i] == '1' {
 			continue
@@ -325,14 +332,17 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 
 		resp, err := fileserver.StreamAtMost(peer, s.addr, info.InnerPath, i*info.PieceSize, info.PieceSize, info.Size)
 		if err != nil {
-			return err
+			s.log.Warn(err)
+			continue
 		}
 		if err := s.verifyDownload(resp.Body, len(resp.Body), hash); err != nil {
-			return err
+			s.log.Warn(err)
+			continue
 		}
 
 		if _, err := file.WriteAt(resp.Body, int64(i*info.PieceSize)); err != nil {
-			return err
+			s.log.Warn(err)
+			continue
 		}
 
 		piecemap = piecemap[:i] + "1" + piecemap[i+1:]
@@ -343,6 +353,13 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 		info.Downloaded += len(resp.Body)
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
 	}
+
+	for _, p := range piecemap {
+		if p == '0' {
+			return errors.New("failed to download file")
+		}
+	}
+
 	return nil
 }
 
