@@ -139,7 +139,9 @@ func parsePeers(peerList []byte, skipNotConnectable bool) ([]string, error) {
 
 // Announce announces to all possible destinations
 func (s *Site) Announce(fn ...func()) {
-	if time.Since(s.lastAnnounce) < time.Second*30 {
+	skip := time.Since(s.lastAnnounce) < time.Second*30
+	s.log.WithField("skip", skip).Debug("annouce called")
+	if skip {
 		return
 	}
 	s.lastAnnounce = time.Now()
