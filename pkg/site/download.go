@@ -240,6 +240,7 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 		}
 
 		info.Downloaded = len(resp.Body)
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
 		return nil
 	}
@@ -357,6 +358,7 @@ PiecemapFound:
 		s.Settings.Cache.pieceFieldsMutex.Unlock()
 
 		info.Downloaded += len(resp.Body)
+		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
 	}
 
@@ -388,13 +390,10 @@ func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
 	}
 
 	if err := s.downloadChunks(peer, info); err != nil {
-		event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 		return err
 	}
 
 	s.log.WithField("inner_path", info.InnerPath).Info("downloaded file!")
-
-	event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: 1})
 	s.BroadcastSiteChange("file_done", info.InnerPath)
 
 	return nil
