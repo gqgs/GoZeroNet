@@ -312,7 +312,11 @@ PiecemapFound:
 
 	// Download and verify file pieces
 
-	piecemap := bigfile.UnpackPieceField(s.Settings.Cache.Piecefields[info.Hash])
+	s.Settings.Cache.pieceFieldsMutex.RLock()
+	cachedPiecemap := s.Settings.Cache.Piecefields[info.Hash]
+	s.Settings.Cache.pieceFieldsMutex.RUnlock()
+
+	piecemap := bigfile.UnpackPieceField(cachedPiecemap)
 	if len(piecemap) != len(hashes) {
 		piecemap = strings.Repeat("0", len(hashes))
 	}

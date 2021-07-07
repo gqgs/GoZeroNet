@@ -20,7 +20,7 @@ type Settings struct {
 	Cache     struct {
 		BadFiles         map[string]int `json:"bad_files"`
 		Hashfield        string         `json:"hashfield"`
-		pieceFieldsMutex sync.Mutex
+		pieceFieldsMutex sync.RWMutex
 		Piecefields      map[string]bigfile.PieceField `json:"piecefields"`
 	} `json:"cache"`
 	HasBigFile                bool              `json:"has_bigfile"`
