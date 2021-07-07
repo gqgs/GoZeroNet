@@ -114,6 +114,10 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 		return err
 	}
 
+	if info.IsDownloaded {
+		return nil
+	}
+
 	hashID, err := crypto.HashID(info.Hash)
 	if err != nil {
 		return err
