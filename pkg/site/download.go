@@ -356,10 +356,8 @@ PiecemapFound:
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)
 	}
 
-	for _, p := range piecemap {
-		if p == '0' {
-			return errors.New("failed to download file")
-		}
+	if strings.ContainsRune(piecemap, '0') {
+		return errors.New("failed to download file")
 	}
 
 	return nil
