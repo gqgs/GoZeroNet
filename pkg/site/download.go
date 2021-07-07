@@ -244,31 +244,39 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 		return nil
 	}
 
-	// Download and verify piece info
+	// Parse and verify piece info
 
 	pieceInfo, err := s.contentDB.FileInfo(s.addr, info.Piecemap)
 	if err != nil {
 		return err
 	}
 
-	pieceResp, err := fileserver.StreamFileFull(peer, s.addr, pieceInfo.InnerPath, pieceInfo.Size)
-	if err != nil {
-		return err
+	var pieceBody []byte
+	if pieceInfo.IsDownloaded {
+		pieceBody, _ = os.ReadFile(path.Join(config.DataDir, s.addr, pieceInfo.InnerPath))
 	}
 
-	if err := s.verifyDownload(pieceResp.Body, pieceInfo.Size, pieceInfo.Hash); err != nil {
-		return err
+	if len(pieceBody) == 0 {
+		pieceResp, err := fileserver.StreamFileFull(peer, s.addr, pieceInfo.InnerPath, pieceInfo.Size)
+		if err != nil {
+			return err
+		}
+		pieceBody = pieceResp.Body
+
+		if err := s.verifyDownload(pieceBody, pieceInfo.Size, pieceInfo.Hash); err != nil {
+			return err
+		}
+
+		pieceInfo.Downloaded = len(pieceBody)
+		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, pieceInfo)
+
+		filePath := path.Join(config.DataDir, s.addr, pieceInfo.InnerPath)
+		if err := os.WriteFile(filePath, pieceBody, os.ModePerm); err != nil {
+			return err
+		}
 	}
 
-	pieceInfo.Downloaded = len(pieceResp.Body)
-	event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, pieceInfo)
-
-	filePath := path.Join(config.DataDir, s.addr, pieceInfo.InnerPath)
-	if err := os.WriteFile(filePath, pieceResp.Body, os.ModePerm); err != nil {
-		return err
-	}
-
-	pieceMap, err := bigfile.ParsePieceMap(bytes.NewReader(pieceResp.Body))
+	pieceMap, err := bigfile.ParsePieceMap(bytes.NewReader(pieceBody))
 	if err != nil {
 		return err
 	}
@@ -280,21 +288,41 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 
 	// Create disk file
 
-	filePath = path.Join(config.DataDir, s.addr, info.InnerPath)
-	file, err := os.Create(filePath)
+	filePath := path.Join(config.DataDir, s.addr, info.InnerPath)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	if err := file.Truncate(int64(info.Size)); err != nil {
+	stat, err := file.Stat()
+	if err != nil {
 		return err
+	}
+	if stat.Size() != int64(info.Size) {
+		if err := file.Truncate(int64(info.Size)); err != nil {
+			return err
+		}
 	}
 
 	// Download and verify file pieces
-	// TODO: use piecefield avoid downloading chunks that have already been downloaded
-	// https://zeronet.io/docs/help_zeronet/network_protocol/#bigfile-piecefield
+
+	piecemap := bigfile.UnpackPieceField(s.Settings.Cache.Piecefields[info.Hash])
+	if len(piecemap) != len(hashes) {
+		piecemap = strings.Repeat("0", len(hashes))
+	}
+
+	s.Settings.Cache.pieceFieldsMutex.Lock()
+	if s.Settings.Cache.Piecefields == nil {
+		s.Settings.Cache.Piecefields = make(map[string]bigfile.PieceField)
+	}
+	s.Settings.Cache.pieceFieldsMutex.Unlock()
+
 	for i, hash := range hashes {
+		if piecemap[i] == '1' {
+			continue
+		}
+
 		resp, err := fileserver.StreamAtMost(peer, s.addr, info.InnerPath, i*info.PieceSize, info.PieceSize, info.Size)
 		if err != nil {
 			return err
@@ -306,6 +334,11 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 		if _, err := file.WriteAt(resp.Body, int64(i*info.PieceSize)); err != nil {
 			return err
 		}
+
+		piecemap = piecemap[:i] + "1" + piecemap[i+1:]
+		s.Settings.Cache.pieceFieldsMutex.Lock()
+		s.Settings.Cache.Piecefields[info.Hash] = bigfile.PackPieceField(piecemap)
+		s.Settings.Cache.pieceFieldsMutex.Unlock()
 
 		info.Downloaded += len(resp.Body)
 		event.BroadcastFileInfoUpdate(s.addr, s.pubsubManager, info)

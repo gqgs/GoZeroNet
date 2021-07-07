@@ -261,7 +261,13 @@ func (s *Site) FileDelete(innerPath string) error {
 		}
 		return err
 	}
+
 	info.Downloaded = 0
+
+	s.Settings.Cache.pieceFieldsMutex.Lock()
+	delete(s.Settings.Cache.Piecefields, info.Hash)
+	s.Settings.Cache.pieceFieldsMutex.Unlock()
+
 	return s.contentDB.UpdateFile(s.addr, info)
 }
 

@@ -58,7 +58,7 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
 	query := `
-		SELECT f.inner_path, f.hash, f.size, f.downloaded = f.size, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap, f.downloaded, (f.downloaded / f.size) * 100
+		SELECT f.inner_path, f.hash, f.size, f.downloaded = f.size, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap, f.downloaded, (f.downloaded * 1.0 / f.size) * 100
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`

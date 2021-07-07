@@ -5,8 +5,10 @@ import (
 	"errors"
 	"os"
 	"path"
+	"sync"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/bigfile"
 )
 
 type Settings struct {
@@ -16,8 +18,10 @@ type Settings struct {
 	BytesRecv int    `json:"bytes_recv"`
 	BytesSent int    `json:"bytes_sent"`
 	Cache     struct {
-		BadFiles  map[string]int `json:"bad_files"`
-		Hashfield string         `json:"hashfield"`
+		BadFiles         map[string]int `json:"bad_files"`
+		Hashfield        string         `json:"hashfield"`
+		pieceFieldsMutex sync.Mutex
+		Piecefields      map[string]bigfile.PieceField `json:"piecefields"`
 	} `json:"cache"`
 	PieceFields               map[string]string `json:"piecefields"`
 	HasBigFile                bool              `json:"has_bigfile"`
