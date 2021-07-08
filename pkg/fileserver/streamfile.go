@@ -2,12 +2,14 @@ package fileserver
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"net"
 	"os"
 	"path"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -125,16 +127,21 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 		return err
 	}
 
+	var fileDownloaded bool
 	info, err := s.contentDB.Info(r.Params.Site, r.Params.InnerPath)
 	if err != nil {
-		return err
+		if !errors.Is(err, database.ErrFileNotFound) {
+			return err
+		}
+	} else {
+		fileDownloaded = info.GetIsDownloaded()
 	}
 
 	var streamBytes int
 	var location int
 	var size int
 
-	if info.GetIsDownloaded() {
+	if fileDownloaded {
 		s.log.Debugf("streaming file %s at %d/%d", r.Params.InnerPath, r.Params.Location, r.Params.FileSize)
 
 		filePath := path.Join(config.DataDir, r.Params.Site, safe.CleanPath(r.Params.InnerPath))
