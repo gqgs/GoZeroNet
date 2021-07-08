@@ -2,16 +2,12 @@ package fileserver
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"net"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
-	"github.com/gqgs/go-zeronet/pkg/database"
-	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -128,19 +124,47 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 	if err := decoder.Decode(&r); err != nil {
 		return err
 	}
-	s.log.Debugf("streaming file %s at %d/%d", r.Params.InnerPath, r.Params.Location, r.Params.FileSize)
 
-	body, size, location, err := s.readChunk(r.Params.Site, r.Params.InnerPath, r.Params.Location)
+	info, err := s.contentDB.FileInfo(r.Params.Site, r.Params.InnerPath)
 	if err != nil {
 		return err
 	}
 
-	s.log.Debugf("read %s %d, %d/%d ", r.Params.InnerPath, len(body), size, location)
+	var streamBytes int
+	var location int
+	var size int
+
+	if info.IsDownloaded {
+		s.log.Debugf("streaming file %s at %d/%d", r.Params.InnerPath, r.Params.Location, r.Params.FileSize)
+
+		filePath := path.Join(config.DataDir, r.Params.Site, safe.CleanPath(r.Params.InnerPath))
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		if _, err = file.Seek(int64(r.Params.Location), 0); err != nil {
+			return err
+		}
+
+		streamBytes = r.Params.BytesRead
+
+		if info.Size-r.Params.Location < streamBytes {
+			streamBytes = info.Size - r.Params.Location
+		}
+		location = r.Params.Location + streamBytes
+		size = info.Size
+
+		reader := io.LimitReader(file, int64(streamBytes))
+		defer io.Copy(conn, reader)
+	}
 
 	data, err := msgpack.Marshal(&streamFileResponse{
 		CMD:         "response",
 		To:          r.ReqID,
-		StreamBytes: len(body),
+		StreamBytes: streamBytes,
 		Location:    location,
 		Size:        size,
 	})
@@ -148,61 +172,6 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 		return err
 	}
 
-	if _, err = conn.Write(data); err != nil {
-		return err
-	}
-
-	_, err = conn.Write(body)
+	_, err = conn.Write(data)
 	return err
-}
-
-func (s *server) readChunk(site, innerPath string, location int) (body []byte, size, newLocation int, err error) {
-	if strings.HasSuffix(innerPath, "content.json") {
-		info, err := s.contentDB.ContentInfo(site, innerPath)
-		if err != nil {
-			if errors.Is(err, database.ErrFileNotFound) {
-				return nil, 0, 0, nil
-			}
-			return nil, 0, 0, err
-		}
-		body, err = readChunk(site, innerPath, location)
-		if err != nil {
-			return nil, 0, 0, err
-		}
-		return body, info.Size, location + len(body), nil
-	}
-
-	info, err := s.contentDB.FileInfo(site, innerPath)
-	if err != nil {
-		if errors.Is(err, database.ErrFileNotFound) {
-			return nil, 0, 0, nil
-		}
-		return nil, 0, 0, err
-	}
-	if !info.IsDownloaded {
-		return nil, 0, 0, nil
-	}
-	body, err = readChunk(site, innerPath, location)
-	if err != nil {
-		return nil, 0, 0, err
-	}
-	info.Uploaded += len(body)
-	event.BroadcastFileInfoUpdate(site, s.pubsubManager, info)
-	return body, info.Size, location + len(body), nil
-}
-
-func readChunk(site, innerPath string, location int) (body []byte, err error) {
-	innerPath = path.Join(config.DataDir, site, safe.CleanPath(innerPath))
-	file, err := os.Open(innerPath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	body = make([]byte, config.FileGetSizeLimit)
-	read, err := file.ReadAt(body, int64(location))
-	if err != nil && err != io.EOF {
-		return nil, err
-	}
-	return body[:read], nil
 }
