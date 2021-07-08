@@ -2,6 +2,7 @@ package site
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
@@ -223,7 +224,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 	return nil
 }
 
-func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
+func (s *Site) downloadChunks(ctx context.Context, peer peer.Peer, info *event.FileInfo) error {
 	if !info.IsBigFile() {
 		resp, err := fileserver.StreamFileFull(peer, s.addr, info.InnerPath, info.Size)
 		if err != nil {
@@ -253,8 +254,8 @@ func (s *Site) downloadChunks(peer peer.Peer, info *event.FileInfo) error {
 
 	pieceBody, _ := os.ReadFile(path.Join(config.DataDir, s.addr, pieceInfo.InnerPath))
 	if len(pieceBody) == 0 {
-		return s.broadcastFileNeed(s.ctx, pieceInfo.InnerPath, func() error {
-			return s.downloadChunks(peer, info)
+		return s.broadcastFileNeed(ctx, pieceInfo.InnerPath, func() error {
+			return s.downloadChunks(ctx, peer, info)
 		})
 	}
 
@@ -368,7 +369,10 @@ func (s *Site) downloadFile(peer peer.Peer, info *event.FileInfo) error {
 		return err
 	}
 
-	if err := s.downloadChunks(peer, info); err != nil {
+	ctx, cancel := context.WithTimeout(s.ctx, time.Minute)
+	defer cancel()
+
+	if err := s.downloadChunks(ctx, peer, info); err != nil {
 		return err
 	}
 
