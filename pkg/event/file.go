@@ -12,6 +12,7 @@ type FileInfo struct {
 	Piecemap          string  `json:"piecemap"`
 	Downloaded        int     `json:"downloaded"`
 	DownloadedPercent float64 `json:"downloaded_percent"`
+	Peer              int     `json:"peer"`
 }
 
 func (e *FileInfo) AddUploaded(uploaded int) {

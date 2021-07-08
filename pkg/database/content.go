@@ -74,7 +74,7 @@ func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, 
 
 func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, error) {
 	query := `
-		SELECT f.inner_path, f.hash, f.size, f.downloaded = f.size, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap, f.downloaded, (f.downloaded * 1.0 / f.size) * 100
+		SELECT f.inner_path, f.hash, f.size, f.downloaded = f.size, f.is_pinned, f.is_optional, f.uploaded, f.piece_size, f.piecemap, f.downloaded, (f.downloaded * 1.0 / f.size) * 100, f.peer
 		FROM file f INNER JOIN site s USING(site_id)
 		WHERE f.inner_path = ? AND s.address = ?
 	`
@@ -98,6 +98,7 @@ func (c *contentDatabase) FileInfo(site, innerPath string) (*event.FileInfo, err
 			&info.Piecemap,
 			&info.Downloaded,
 			&info.DownloadedPercent,
+			&info.Peer,
 		); err != nil {
 			return nil, err
 		}
@@ -130,8 +131,8 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 	}
 
 	if _, err := tx.Exec(`
-		INSERT INTO file (site_id, inner_path, hash, size, is_pinned, is_optional, uploaded, piece_size, piecemap, downloaded)
-		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO file (site_id, inner_path, hash, size, is_pinned, is_optional, uploaded, piece_size, piecemap, downloaded, peer)
+		VALUES ((SELECT site_id FROM site WHERE address = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (site_id, inner_path) DO
 		UPDATE SET
 			is_pinned = excluded.is_pinned,
@@ -142,7 +143,8 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 			time_added = CURRENT_TIMESTAMP,
 			hash = excluded.hash,
 			size = excluded.size,
-			downloaded = excluded.downloaded
+			downloaded = excluded.downloaded,
+			peer = excluded.peer
 		`,
 		site,
 		info.InnerPath,
@@ -154,6 +156,7 @@ func (c *contentDatabase) UpdateFile(site string, info *event.FileInfo) error {
 		info.PieceSize,
 		info.Piecemap,
 		info.Downloaded,
+		info.Peer,
 	); err != nil {
 		return err
 	}

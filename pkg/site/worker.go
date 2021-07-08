@@ -138,6 +138,8 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 	for id, addresses := range resp.Peers {
 		w.log.Debug(id, len(addresses), id, hashID)
 		if id == hashID {
+			info.Peer = len(addresses)
+			event.BroadcastFileInfoUpdate(w.site.addr, w.site.pubsubManager, info)
 			for _, addr := range addresses {
 				parsed := ip.ParseIPv4(addr, binary.LittleEndian)
 				w.log.Debug("connection to new peer ", parsed)
