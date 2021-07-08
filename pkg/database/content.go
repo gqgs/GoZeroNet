@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -13,6 +14,13 @@ import (
 )
 
 var ErrFileNotFound = fmt.Errorf("content: %w", os.ErrNotExist)
+
+type Info interface {
+	Update(site string, broadcaster event.Broadcaster)
+	GetSize() int
+	GetIsDownloaded() bool
+	AddUploaded(uploaded int)
+}
 
 type ContentDatabase interface {
 	io.Closer
@@ -24,10 +32,18 @@ type ContentDatabase interface {
 	UpdatedContent(site string, since time.Time) (map[string]int, error)
 	Peers(site string, need int) ([]string, error)
 	ContentInfo(site, innerPath string) (*event.ContentInfo, error)
+	Info(site, innerPath string) (Info, error)
 }
 
 type contentDatabase struct {
 	storage storage.Storage
+}
+
+func (c *contentDatabase) Info(site, innerPath string) (Info, error) {
+	if strings.HasSuffix(innerPath, "content.json") {
+		return c.ContentInfo(site, innerPath)
+	}
+	return c.FileInfo(site, innerPath)
 }
 
 func (c *contentDatabase) UpdatedFiles(site string, since time.Time) ([]string, error) {

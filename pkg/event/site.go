@@ -9,7 +9,7 @@ func (e *SiteChanged) String() string {
 	return "siteChanged"
 }
 
-func BroadcastSiteChanged(site string, broadcaster EventBroadcaster, siteChanged *SiteChanged) {
+func BroadcastSiteChanged(site string, broadcaster Broadcaster, siteChanged *SiteChanged) {
 	go broadcaster.Broadcast(site, siteChanged)
 }
 
@@ -22,6 +22,6 @@ func (e *SiteUpdate) String() string {
 	return "siteUpdate"
 }
 
-func BroadcastSiteUpdate(site string, broadcaster EventBroadcaster, siteUpdate *SiteUpdate) {
+func BroadcastSiteUpdate(site string, broadcaster Broadcaster, siteUpdate *SiteUpdate) {
 	go broadcaster.Broadcast(site, siteUpdate)
 }

@@ -4,6 +4,6 @@ type Event interface {
 	String() string
 }
 
-type EventBroadcaster interface {
+type Broadcaster interface {
 	Broadcast(site string, event Event)
 }

@@ -10,7 +10,7 @@ func (e *PeerInfo) String() string {
 	return "peerInfo"
 }
 
-func BroadcastPeerInfoUpdate(site string, broadcaster EventBroadcaster, peerInfo *PeerInfo) {
+func BroadcastPeerInfoUpdate(site string, broadcaster Broadcaster, peerInfo *PeerInfo) {
 	go broadcaster.Broadcast(site, peerInfo)
 }
 
@@ -23,7 +23,7 @@ func (e *PeerCandidate) String() string {
 	return "peerCandidate"
 }
 
-func BroadcastPeerCandidate(site string, broadcaster EventBroadcaster, peerCandidate *PeerCandidate) {
+func BroadcastPeerCandidate(site string, broadcaster Broadcaster, peerCandidate *PeerCandidate) {
 	go broadcaster.Broadcast(site, peerCandidate)
 }
 
@@ -34,6 +34,6 @@ func (e *PeersNeed) String() string {
 	return "peersNeed"
 }
 
-func BroadcastPeersNeed(site string, broadcaster EventBroadcaster, peersNeed *PeersNeed) {
+func BroadcastPeersNeed(site string, broadcaster Broadcaster, peersNeed *PeersNeed) {
 	go broadcaster.Broadcast(site, peersNeed)
 }

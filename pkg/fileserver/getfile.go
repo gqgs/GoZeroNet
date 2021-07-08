@@ -6,11 +6,9 @@ import (
 	"net"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/database"
-	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -118,38 +116,25 @@ func (s *server) getFileHandler(conn net.Conn, decoder requestDecoder) error {
 }
 
 func (s *server) readChunk(site, innerPath string, location int) (body []byte, size, newLocation int, err error) {
-	if strings.HasSuffix(innerPath, "content.json") {
-		info, err := s.contentDB.ContentInfo(site, innerPath)
-		if err != nil {
-			if errors.Is(err, database.ErrFileNotFound) {
-				return nil, 0, 0, nil
-			}
-			return nil, 0, 0, err
-		}
-		body, err = readChunk(site, innerPath, location)
-		if err != nil {
-			return nil, 0, 0, err
-		}
-		return body, info.Size, location + len(body), nil
-	}
-
-	info, err := s.contentDB.FileInfo(site, innerPath)
+	info, err := s.contentDB.Info(site, innerPath)
 	if err != nil {
 		if errors.Is(err, database.ErrFileNotFound) {
 			return nil, 0, 0, nil
 		}
 		return nil, 0, 0, err
 	}
-	if !info.IsDownloaded {
+
+	if !info.GetIsDownloaded() {
 		return nil, 0, 0, nil
 	}
 	body, err = readChunk(site, innerPath, location)
 	if err != nil {
 		return nil, 0, 0, err
 	}
-	info.Uploaded += len(body)
-	event.BroadcastFileInfoUpdate(site, s.pubsubManager, info)
-	return body, info.Size, location + len(body), nil
+
+	info.AddUploaded(len(body))
+	info.Update(site, s.pubsubManager)
+	return body, info.GetSize(), location + len(body), nil
 }
 
 func readChunk(site, innerPath string, location int) (body []byte, err error) {

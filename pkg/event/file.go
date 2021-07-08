@@ -14,6 +14,22 @@ type FileInfo struct {
 	DownloadedPercent float64 `json:"downloaded_percent"`
 }
 
+func (e *FileInfo) AddUploaded(uploaded int) {
+	e.Uploaded += uploaded
+}
+
+func (e *FileInfo) Update(site string, broadcaster Broadcaster) {
+	go broadcaster.Broadcast(site, e)
+}
+
+func (e *FileInfo) GetSize() int {
+	return e.Size
+}
+
+func (e *FileInfo) GetIsDownloaded() bool {
+	return e.IsDownloaded
+}
+
 func (e *FileInfo) IsBigFile() bool {
 	return e.PieceSize > 0
 }
@@ -22,7 +38,7 @@ func (e *FileInfo) String() string {
 	return "fileInfo"
 }
 
-func BroadcastFileInfoUpdate(site string, broadcaster EventBroadcaster, fileInfo *FileInfo) {
+func BroadcastFileInfoUpdate(site string, broadcaster Broadcaster, fileInfo *FileInfo) {
 	go broadcaster.Broadcast(site, fileInfo)
 }
 
@@ -35,6 +51,6 @@ func (e *FileNeed) String() string {
 	return "fileNeed"
 }
 
-func BroadcastFileNeed(site string, broadcaster EventBroadcaster, fileNeed *FileNeed) {
+func BroadcastFileNeed(site string, broadcaster Broadcaster, fileNeed *FileNeed) {
 	go broadcaster.Broadcast(site, fileNeed)
 }

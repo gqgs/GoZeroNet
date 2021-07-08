@@ -125,7 +125,7 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 		return err
 	}
 
-	info, err := s.contentDB.FileInfo(r.Params.Site, r.Params.InnerPath)
+	info, err := s.contentDB.Info(r.Params.Site, r.Params.InnerPath)
 	if err != nil {
 		return err
 	}
@@ -134,7 +134,7 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 	var location int
 	var size int
 
-	if info.IsDownloaded {
+	if info.GetIsDownloaded() {
 		s.log.Debugf("streaming file %s at %d/%d", r.Params.InnerPath, r.Params.Location, r.Params.FileSize)
 
 		filePath := path.Join(config.DataDir, r.Params.Site, safe.CleanPath(r.Params.InnerPath))
@@ -150,12 +150,15 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 		}
 
 		streamBytes = r.Params.BytesRead
+		size = info.GetSize()
 
-		if info.Size-r.Params.Location < streamBytes {
-			streamBytes = info.Size - r.Params.Location
+		if size-r.Params.Location < streamBytes {
+			streamBytes = size - r.Params.Location
 		}
 		location = r.Params.Location + streamBytes
-		size = info.Size
+
+		info.AddUploaded(streamBytes)
+		info.Update(r.Params.Site, s.pubsubManager)
 
 		reader := io.LimitReader(file, int64(streamBytes))
 		defer io.Copy(conn, reader)
