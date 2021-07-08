@@ -86,13 +86,12 @@ func (m *manager) processPeerCandidates() {
 			cancel()
 			return
 		case msg := <-m.msgCh:
+			if msg.Site() != m.site {
+				continue
+			}
 			switch candidate := msg.Event().(type) {
 			case *event.PeerCandidate:
-				if msg.Site() != m.site {
-					continue
-				}
 				m.log.WithField("queue", len(m.msgCh)).Debug("new peer candidate event")
-
 				go func() {
 					select {
 					case <-ctx.Done():
