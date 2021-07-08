@@ -141,9 +141,8 @@ func (s *server) streamFileHandler(conn net.Conn, decoder requestDecoder) error 
 	var location int
 	var size int
 
+	s.log.Debugf("stream request for %s at %d/%d %v", r.Params.InnerPath, r.Params.Location, r.Params.FileSize, fileDownloaded)
 	if fileDownloaded {
-		s.log.Debugf("streaming file %s at %d/%d", r.Params.InnerPath, r.Params.Location, r.Params.FileSize)
-
 		filePath := path.Join(config.DataDir, r.Params.Site, safe.CleanPath(r.Params.InnerPath))
 
 		file, err := os.Open(filePath)
