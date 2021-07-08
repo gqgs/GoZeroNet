@@ -103,6 +103,7 @@ func (s *Site) SaveSettings() error {
 		return err
 	}
 
+	s.Settings.Peers = len(s.peers)
 	settings[s.addr] = s.Settings
 
 	encoded, err := json.MarshalIndent(settings, "", " ")

@@ -36,7 +36,6 @@ func (s *Site) Download(since time.Time) error {
 		}
 
 		s.Settings.Downloaded = time.Now().Unix()
-		s.Settings.Peers = len(s.peers)
 		s.Settings.Serving = true
 
 		if err := s.SaveSettings(); err != nil {
