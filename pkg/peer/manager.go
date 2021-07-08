@@ -3,7 +3,6 @@ package peer
 import (
 	"context"
 	"errors"
-	"sync/atomic"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
@@ -27,7 +26,7 @@ type manager struct {
 	log           log.Logger
 	pubsubManager pubsub.Manager
 	site          string
-	connected     int64
+	connectedSem  chan struct{}
 	connectedCh   chan *peer
 	msgCh         <-chan pubsub.Message
 	closeCh       chan struct{}
@@ -38,6 +37,7 @@ func NewManager(pubsubManager pubsub.Manager, site string) *manager {
 		log:           log.New("peer_manager"),
 		site:          site,
 		pubsubManager: pubsubManager,
+		connectedSem:  make(chan struct{}, config.MaxConnectedPeers),
 		connectedCh:   make(chan *peer, config.MaxConnectedPeers),
 		msgCh:         pubsubManager.Register("peer_manager", config.MaxConnectedPeers),
 		closeCh:       make(chan struct{}),
@@ -55,7 +55,7 @@ func (m *manager) GetConnected(ctx context.Context) (*peer, error) {
 			return connected, nil
 		}
 		connected.Close()
-		atomic.AddInt64(&m.connected, -1)
+		<-m.connectedSem
 	case <-time.After(waitForconnectedTimeout):
 		event.BroadcastPeersNeed(m.site, m.pubsubManager, &event.PeersNeed{})
 		time.Sleep(time.Second * 5)
@@ -68,7 +68,7 @@ func (m *manager) PutConnected(p *peer) {
 	case m.connectedCh <- p:
 	default:
 		p.Close()
-		atomic.AddInt64(&m.connected, -1)
+		<-m.connectedSem
 	}
 }
 
@@ -79,9 +79,11 @@ func (m *manager) Close() {
 }
 
 func (m *manager) processPeerCandidates() {
+	ctx, cancel := context.WithCancel(context.Background())
 	for {
 		select {
 		case <-m.closeCh:
+			cancel()
 			return
 		case msg := <-m.msgCh:
 			switch candidate := msg.Event().(type) {
@@ -89,27 +91,24 @@ func (m *manager) processPeerCandidates() {
 				if msg.Site() != m.site {
 					continue
 				}
-
 				m.log.WithField("queue", len(m.msgCh)).Debug("new peer candidate event")
-				if int(atomic.LoadInt64(&m.connected)) >= config.MaxConnectedPeers {
-					event.BroadcastPeerInfoUpdate(m.site, m.pubsubManager, &event.PeerInfo{
-						Address: candidate.Address,
-					})
-					continue
-				}
-				atomic.AddInt64(&m.connected, 1)
 
 				go func() {
-					peer := NewPeer(candidate.Address)
-					logger := m.log.WithField("peer", peer)
-					if err := peer.Connect(); err != nil {
-						logger.Warn(err)
-						atomic.AddInt64(&m.connected, -1)
-						return
-					}
+					select {
+					case <-ctx.Done():
+					case <-time.After(time.Minute):
+					case m.connectedSem <- struct{}{}:
+						peer := NewPeer(candidate.Address)
+						logger := m.log.WithField("peer", peer)
+						if err := peer.Connect(); err != nil {
+							logger.Warn(err)
+							<-m.connectedSem
+							return
+						}
 
-					logger.Info("new connected peer: ", peer)
-					m.connectedCh <- peer
+						logger.Info("new connected peer: ", peer)
+						m.connectedCh <- peer
+					}
 				}()
 			}
 		}
