@@ -16,7 +16,7 @@ websocket_buffer_size = 50
 max_connected_peers = 10
 max_download_tries = 5
 
-connection_deadline = "10s"
+connection_timeout = "10s"
 fileserver_deadline = "10s"
 file_need_deadline = "30s"
 
