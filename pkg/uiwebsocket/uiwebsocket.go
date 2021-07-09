@@ -48,6 +48,7 @@ func NewUIWebsocket(ctx context.Context, conn websocket.Conn, siteManager site.M
 			plugin.NewNewsFeed(counter),
 			plugin.NewOptionalManager(counter),
 			plugin.NewContentFilter(counter),
+			plugin.NewBigFile(counter),
 		},
 		ID:               counter,
 		waitingResponses: make(map[int64]func([]byte) error),
