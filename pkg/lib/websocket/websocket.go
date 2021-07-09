@@ -43,6 +43,8 @@ func (c *conn) WriteJSON(v interface{}) error {
 }
 
 func (c *conn) Write(msg []byte) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.internalConn.WriteMessage(websocket.TextMessage, msg)
 }
 
