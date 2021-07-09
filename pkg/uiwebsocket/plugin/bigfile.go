@@ -1,8 +1,6 @@
 package plugin
 
 import (
-	"encoding/json"
-
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
@@ -58,7 +56,7 @@ type (
 
 func (n *bigFilePlugin) bigfileUploadInit(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(bigfileUploadInitRequest)
-	if err := json.Unmarshal(message, request); err != nil {
+	if err := jsonUnmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(bigfileUploadInitResponse{

@@ -3,7 +3,7 @@ package uiwebsocket
 import (
 	"errors"
 
-	"github.com/bytedance/sonic"
+	"github.com/gqgs/go-zeronet/pkg/lib/unmarshal"
 )
 
 type Message struct {
@@ -20,7 +20,7 @@ type required struct {
 	To  int64  `json:"to"`
 }
 
-var jsonUnmarshal = sonic.Unmarshal
+var jsonUnmarshal = unmarshal.JSON
 
 type wsHandlerFunc func(rawMessage []byte, message Message) error
 

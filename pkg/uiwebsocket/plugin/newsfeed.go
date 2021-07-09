@@ -1,8 +1,6 @@
 package plugin
 
 import (
-	"encoding/json"
-
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
@@ -60,7 +58,7 @@ type (
 
 func (n *newsFeedPlugin) feedQuery(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(feedQueryRequest)
-	if err := json.Unmarshal(message, request); err != nil {
+	if err := jsonUnmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(feedQueryResponse{

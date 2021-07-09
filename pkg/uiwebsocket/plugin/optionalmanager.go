@@ -1,7 +1,6 @@
 package plugin
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/gqgs/go-zeronet/pkg/database"
@@ -64,7 +63,7 @@ type (
 
 func (o *optionalManager) optionalLimitStats(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(optionalLimitStatsRequest)
-	if err := json.Unmarshal(message, request); err != nil {
+	if err := jsonUnmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(optionalLimitStatsResponse{
@@ -97,7 +96,7 @@ type (
 
 func (o *optionalManager) optionalFileInfo(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(optionalFileInfoRequest)
-	if err := json.Unmarshal(message, request); err != nil {
+	if err := jsonUnmarshal(message, request); err != nil {
 		return err
 	}
 
@@ -130,7 +129,7 @@ type (
 
 func (o *optionalManager) optionalHelpList(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(optionalHelpListRequest)
-	if err := json.Unmarshal(message, request); err != nil {
+	if err := jsonUnmarshal(message, request); err != nil {
 		return err
 	}
 
