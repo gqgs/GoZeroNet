@@ -11,6 +11,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.4
 	github.com/fasthttp/websocket v1.4.3
 	github.com/go-chi/chi v1.5.4
+	github.com/go-chi/cors v1.2.0
 	github.com/golang/mock v1.3.1
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/minio/simdjson-go v0.2.2

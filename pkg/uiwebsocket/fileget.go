@@ -69,6 +69,10 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 		}
 	}
 
+	if closer, ok := writer.(io.Closer); ok {
+		closer.Close()
+	}
+
 	var result *string
 	if r := reader.String(); len(r) > 0 {
 		result = &r

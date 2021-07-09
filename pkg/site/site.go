@@ -55,6 +55,8 @@ type Site struct {
 	lastUpdate               time.Time
 	loading                  bool
 	postmessageNonceSecurity bool
+	uploadMutex              sync.Mutex
+	uploads                  map[string]Upload
 }
 
 func (s *Site) Peers() map[string]peer.Peer {

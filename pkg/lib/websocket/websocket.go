@@ -12,11 +12,15 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 type Conn interface {
 	ReadMessage() (messageType int, message []byte, err error)
 	WriteJSON(v interface{}) error
+	Write([]byte) error
 }
 
 type conn struct {
@@ -36,6 +40,10 @@ func (c *conn) WriteJSON(v interface{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.internalConn.WriteMessage(websocket.TextMessage, data)
+}
+
+func (c *conn) Write(msg []byte) error {
+	return c.internalConn.WriteMessage(websocket.TextMessage, msg)
 }
 
 func (c *conn) ReadMessage() (messageType int, message []byte, err error) {

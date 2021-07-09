@@ -7,16 +7,20 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/pubsub"
+	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/lib/websocket"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/gqgs/go-zeronet/pkg/uimedia"
@@ -72,8 +76,125 @@ func NewServer(ctx context.Context, addr string, siteManager site.Manager, fileS
 	})
 	r.Route("/ZeroNet-Internal", func(r chi.Router) {
 		r.Get("/Websocket", s.websocketHandler)
+		r.Group(func(r chi.Router) {
+			r.Use(cors.Handler(cors.Options{
+				AllowedOrigins:   []string{"null"},
+				AllowCredentials: true,
+			}))
+			r.Post("/BigfileUpload", s.bigfileUpload)
+		})
+		r.Get("/BigfileUploadWebsocket", s.bigfileUploadWebsocket)
 	})
 	return s, nil
+}
+
+func (s *server) bigfileUpload(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(config.MultipartFormMaxMemory); err != nil {
+		s.log.Error(err)
+		return
+	}
+
+	if r.MultipartForm == nil || len(r.MultipartForm.File) == 0 {
+		return
+	}
+
+	uploadNonce := r.Form.Get("upload_nonce")
+	upload, err := s.siteManager.FindPendingUpload(uploadNonce)
+	if err != nil {
+		s.log.Error(err)
+		return
+	}
+
+	filePath := path.Join(config.DataDir, upload.Site, safe.CleanPath(upload.InnerPath))
+	if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
+		s.log.Error(err)
+		return
+	}
+	file, err := os.Create(filePath)
+	if err != nil {
+		s.log.Error(err)
+		return
+	}
+	defer file.Close()
+
+	for _, formFiles := range r.MultipartForm.File {
+		if len(formFiles) == 0 {
+			return
+		}
+		formFile := formFiles[0]
+		if formFile.Size != int64(upload.Size) {
+			s.log.Error("incorrect size")
+			return
+		}
+		f, err := formFile.Open()
+		if err != nil {
+			s.log.Error(err)
+			return
+		}
+		defer f.Close()
+		if _, err := io.Copy(file, f); err != nil {
+			s.log.Error(err)
+		}
+
+		return
+	}
+}
+
+func (s *server) bigfileUploadWebsocket(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.log.Error(err)
+		return
+	}
+	uploadNonce := r.Form.Get("upload_nonce")
+	upload, err := s.siteManager.FindPendingUpload(uploadNonce)
+	if err != nil {
+		s.log.Error(err)
+		return
+	}
+
+	filePath := path.Join(config.DataDir, upload.Site, safe.CleanPath(upload.InnerPath))
+	if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
+		s.log.Error(err)
+		return
+	}
+	file, err := os.Create(filePath)
+	if err != nil {
+		s.log.Error(err)
+		return
+	}
+	defer file.Close()
+
+	conn, err := websocket.Upgrade(w, r)
+	if err != nil {
+		s.log.Error(err)
+		return
+	}
+
+	var read int
+	for {
+		if err := conn.Write([]byte("poll")); err != nil {
+			s.log.Error(err)
+			break
+		}
+
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			s.log.Error(err)
+			break
+		}
+
+		read += len(message)
+
+		if _, err := file.Write(message); err != nil {
+			s.log.Error(err)
+			break
+		}
+
+		if read >= upload.Size {
+			conn.Write([]byte("done"))
+			break
+		}
+	}
 }
 
 func (s *server) websocketHandler(w http.ResponseWriter, r *http.Request) {

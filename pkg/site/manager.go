@@ -24,6 +24,7 @@ type Manager interface {
 	SiteByWrapperKey(wrapperKey string) *Site
 	SiteList() ([]*Info, error)
 	NewSite(addr string) (*Site, error)
+	FindPendingUpload(nonce string) (*Upload, error)
 	Close()
 }
 
@@ -62,6 +63,7 @@ func NewManager(ctx context.Context, pubsubManager pubsub.Manager, userManager u
 		site.contentDB = contentDB
 		site.peerManager = peer.NewManager(pubsubManager, addr)
 		site.workerManager = site.NewWorker()
+		site.uploads = make(map[string]Upload)
 		site.ctx = ctx
 
 		if err := user.AddSite(addr); err != nil {
@@ -100,6 +102,7 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.peerManager = peer.NewManager(m.pubsubManager, addr)
 	site.workerManager = site.NewWorker()
 	site.Settings.Added = time.Now().Unix()
+	site.uploads = make(map[string]Upload)
 
 	site.Settings.AjaxKey = random.HexString(64)
 	site.Settings.AuthKey = random.HexString(64)
@@ -205,6 +208,21 @@ func (m *manager) RenderIndex(siteAddress, indexFilename string, dst io.Writer) 
 	}
 
 	return template.Wrapper.ExecuteHTML(dst, vars)
+}
+
+func (m *manager) FindPendingUpload(nonce string) (*Upload, error) {
+	for _, site := range m.sites {
+		site.uploadMutex.Lock()
+		defer site.uploadMutex.Unlock()
+
+		if upload, ok := site.uploads[nonce]; ok {
+			if ok {
+				delete(m.sites, nonce)
+				return &upload, nil
+			}
+		}
+	}
+	return nil, errors.New("nonce not found")
 }
 
 func (m *manager) ReadFile(site, innerPath string, dst io.Writer) error {
