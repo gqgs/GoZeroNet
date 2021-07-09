@@ -22,7 +22,7 @@ func (c *conn) Read(b []byte) (n int, err error) {
 	return c.Conn.Read(b)
 }
 
-// Creates and returns a new connection to the address.
+// NewConnection creates and returns a new connection to the address.
 // If the returned error is nil the client must close the
 // connection after using it.
 func NewConnection(addr string) (net.Conn, error) {
@@ -31,21 +31,19 @@ func NewConnection(addr string) (net.Conn, error) {
 		return nil, err
 	}
 
-	c := &conn{
-		Conn: netConn,
-	}
-
-	if config.Debug {
-		return &traceConn{
-			Conn: c,
-			log:  log.New("connection"),
-		}, nil
-	}
-
-	return c, nil
+	return Wrap(netConn), nil
 }
 
-func NewTraceConn(conn net.Conn) *traceConn {
+// Wrap wraps a net.Conn to return another net.Coon
+// with properly configured deadlines and trace levels.
+func Wrap(c net.Conn) net.Conn {
+	if config.Debug {
+		return newTraceConn(c)
+	}
+	return &conn{c}
+}
+
+func newTraceConn(conn net.Conn) *traceConn {
 	return &traceConn{
 		conn,
 		log.New("connection"),

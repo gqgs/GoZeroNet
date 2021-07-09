@@ -92,11 +92,7 @@ func (s *server) Listen() {
 			s.log.Error(e)
 			continue
 		}
-		if config.Debug {
-			go s.handleConn(connection.NewTraceConn(conn))
-			continue
-		}
-		go s.handleConn(conn)
+		go s.handleConn(connection.Wrap(conn))
 	}
 }
 
