@@ -24,7 +24,6 @@ type (
 )
 
 func (s *server) getPieceFieldsHandler(conn net.Conn, decoder requestDecoder) error {
-	s.log.Debug("new getPieceFields file request")
 	var r getPieceFieldsRequest
 	if err := decoder.Decode(&r); err != nil {
 		return err
