@@ -3,6 +3,8 @@ package uiwebsocket
 import (
 	"errors"
 	"fmt"
+
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 type (
@@ -31,7 +33,7 @@ type (
 
 func (w *uiWebsocket) certSelect(rawMessage []byte, message Message) error {
 	payload := new(certSelectRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
@@ -73,7 +75,7 @@ func (w *uiWebsocket) certSelect(rawMessage []byte, message Message) error {
 			Cert string `json:"result"`
 		}
 		payload := new(request)
-		if err := jsonUnmarshal(rawMessage, payload); err != nil {
+		if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 			return err
 		}
 		if err := user.UpdateCert(w.site.Address(), payload.Cert); err != nil {

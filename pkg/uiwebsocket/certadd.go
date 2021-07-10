@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"strings"
 
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 	"github.com/gqgs/go-zeronet/pkg/user"
 )
 
@@ -39,7 +40,7 @@ func init() {
 
 func (w *uiWebsocket) certAdd(rawMessage []byte, message Message) error {
 	payload := new(certAddRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
@@ -106,7 +107,7 @@ func (w *uiWebsocket) certAdd(rawMessage []byte, message Message) error {
 				Choice int `json:"result"`
 			}
 			payload := new(request)
-			if err := jsonUnmarshal(rawMessage, payload); err != nil {
+			if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 				return err
 			}
 			if payload.Choice == 1 {

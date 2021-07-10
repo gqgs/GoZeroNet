@@ -2,6 +2,8 @@ package uiwebsocket
 
 import (
 	"errors"
+
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 type (
@@ -20,7 +22,7 @@ type (
 
 func (w *uiWebsocket) siteSetLimit(rawMessage []byte, message Message) error {
 	request := new(siteSetLimitRequest)
-	if err := jsonUnmarshal(rawMessage, request); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, request); err != nil {
 		return err
 	}
 

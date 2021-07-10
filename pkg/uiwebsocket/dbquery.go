@@ -2,6 +2,8 @@ package uiwebsocket
 
 import (
 	"errors"
+
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 type (
@@ -18,7 +20,7 @@ type (
 
 func (w *uiWebsocket) dbQuery(rawMessage []byte, message Message) error {
 	payload := new(dbQueryRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

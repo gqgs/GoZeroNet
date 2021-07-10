@@ -1,11 +1,8 @@
 package plugin
 
 import (
-	"github.com/gqgs/go-zeronet/pkg/lib/unmarshal"
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
-
-var jsonUnmarshal = unmarshal.JSON
 
 type pluginWriter interface {
 	WriteJSON(v interface{}) error

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 type (
@@ -33,13 +34,13 @@ type (
 
 func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 	payload := new(fileGetRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
 	params := new(fileGetParams)
-	if err := jsonUnmarshal(payload.Params, params); err != nil {
-		if err := jsonUnmarshal(payload.Params, &params.InnerPath); err != nil {
+	if err := serialize.JSONUnmarshal(payload.Params, params); err != nil {
+		if err := serialize.JSONUnmarshal(payload.Params, &params.InnerPath); err != nil {
 			return err
 		}
 	}

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/bytedance/sonic"
 	"github.com/fasthttp/websocket"
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,7 +33,7 @@ func IsCloseError(err error) bool {
 }
 
 func (c *conn) WriteJSON(v interface{}) error {
-	data, err := sonic.Marshal(v)
+	data, err := serialize.JSONMarshal(v)
 	if err != nil {
 		return err
 	}

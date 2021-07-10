@@ -1,6 +1,10 @@
 package uiwebsocket
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
+)
 
 type (
 	sitePublishRequest struct {
@@ -21,7 +25,7 @@ type (
 
 func (w *uiWebsocket) sitePublish(rawMessage []byte, message Message) error {
 	payload := new(sitePublishRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

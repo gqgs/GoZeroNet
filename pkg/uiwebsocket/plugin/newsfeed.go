@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
@@ -58,7 +59,7 @@ type (
 
 func (n *newsFeedPlugin) feedQuery(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(feedQueryRequest)
-	if err := jsonUnmarshal(message, request); err != nil {
+	if err := serialize.JSONUnmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(feedQueryResponse{

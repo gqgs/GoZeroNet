@@ -2,6 +2,8 @@ package uiwebsocket
 
 import (
 	"encoding/json"
+
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 type (
@@ -23,13 +25,13 @@ type (
 
 func (w *uiWebsocket) channelJoin(rawMessage []byte, message Message) error {
 	payload := new(channelJoinRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
 	var params channelJoinParams
-	if err := jsonUnmarshal(payload.Params, &params); err != nil {
-		if err := jsonUnmarshal(payload.Params, &params.Channels); err != nil {
+	if err := serialize.JSONUnmarshal(payload.Params, &params); err != nil {
+		if err := serialize.JSONUnmarshal(payload.Params, &params.Channels); err != nil {
 			return err
 		}
 	}

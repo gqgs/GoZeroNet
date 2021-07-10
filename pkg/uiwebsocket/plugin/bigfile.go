@@ -8,6 +8,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 	"github.com/gqgs/go-zeronet/pkg/site"
 	"github.com/spf13/cast"
 )
@@ -60,7 +61,7 @@ type (
 
 func (n *bigFilePlugin) bigfileUploadInit(w pluginWriter, s *site.Site, message []byte) error {
 	r := new(bigfileUploadInitRequest)
-	if err := jsonUnmarshal(message, r); err != nil {
+	if err := serialize.JSONUnmarshal(message, r); err != nil {
 		return err
 	}
 

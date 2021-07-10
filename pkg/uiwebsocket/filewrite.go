@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"strings"
+
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 type (
@@ -20,7 +22,7 @@ type (
 
 func (w *uiWebsocket) fileWrite(rawMessage []byte, message Message) error {
 	payload := new(fileWriteRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

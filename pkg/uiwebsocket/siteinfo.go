@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
@@ -25,7 +26,7 @@ type (
 
 func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
 	payload := new(siteInfoRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 
@@ -35,8 +36,8 @@ func (w *uiWebsocket) siteInfo(rawMessage []byte, message Message) error {
 	}
 
 	params := new(siteInfoParams)
-	if err := jsonUnmarshal(payload.Params, params); err != nil {
-		if err := jsonUnmarshal(payload.Params, &params.FileStatus); err != nil {
+	if err := serialize.JSONUnmarshal(payload.Params, params); err != nil {
+		if err := serialize.JSONUnmarshal(payload.Params, &params.FileStatus); err != nil {
 			return err
 		}
 	}

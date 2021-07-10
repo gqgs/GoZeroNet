@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
@@ -52,7 +53,7 @@ type (
 
 func (c *contentFilter) filterIncludeList(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(filterIncludeListRequest)
-	if err := jsonUnmarshal(message, request); err != nil {
+	if err := serialize.JSONUnmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(filterIncludeListResponse{

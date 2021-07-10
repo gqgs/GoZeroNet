@@ -3,7 +3,7 @@ package uiwebsocket
 import (
 	"errors"
 
-	"github.com/gqgs/go-zeronet/pkg/lib/unmarshal"
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 )
 
 type Message struct {
@@ -19,8 +19,6 @@ type required struct {
 	ID  int64  `json:"id"`
 	To  int64  `json:"to"`
 }
-
-var jsonUnmarshal = unmarshal.JSON
 
 type wsHandlerFunc func(rawMessage []byte, message Message) error
 
@@ -112,7 +110,7 @@ func (w *uiWebsocket) route(rawMessage []byte, message Message) error {
 
 func decode(payload []byte) (Message, error) {
 	var message Message
-	err := jsonUnmarshal(payload, &message)
+	err := serialize.JSONUnmarshal(payload, &message)
 	return message, err
 }
 

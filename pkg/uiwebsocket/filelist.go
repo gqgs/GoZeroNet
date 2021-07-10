@@ -1,5 +1,7 @@
 package uiwebsocket
 
+import "github.com/gqgs/go-zeronet/pkg/lib/serialize"
+
 type (
 	fileListRequest struct {
 		required
@@ -19,7 +21,7 @@ type (
 
 func (w *uiWebsocket) fileList(rawMessage []byte, message Message) error {
 	payload := new(fileListRequest)
-	if err := jsonUnmarshal(rawMessage, payload); err != nil {
+	if err := serialize.JSONUnmarshal(rawMessage, payload); err != nil {
 		return err
 	}
 

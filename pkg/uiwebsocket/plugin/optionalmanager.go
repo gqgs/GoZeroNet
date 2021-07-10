@@ -5,6 +5,7 @@ import (
 
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
+	"github.com/gqgs/go-zeronet/pkg/lib/serialize"
 	"github.com/gqgs/go-zeronet/pkg/site"
 )
 
@@ -63,7 +64,7 @@ type (
 
 func (o *optionalManager) optionalLimitStats(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(optionalLimitStatsRequest)
-	if err := jsonUnmarshal(message, request); err != nil {
+	if err := serialize.JSONUnmarshal(message, request); err != nil {
 		return err
 	}
 	return w.WriteJSON(optionalLimitStatsResponse{
@@ -96,7 +97,7 @@ type (
 
 func (o *optionalManager) optionalFileInfo(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(optionalFileInfoRequest)
-	if err := jsonUnmarshal(message, request); err != nil {
+	if err := serialize.JSONUnmarshal(message, request); err != nil {
 		return err
 	}
 
@@ -129,7 +130,7 @@ type (
 
 func (o *optionalManager) optionalHelpList(w pluginWriter, site *site.Site, message []byte) error {
 	request := new(optionalHelpListRequest)
-	if err := jsonUnmarshal(message, request); err != nil {
+	if err := serialize.JSONUnmarshal(message, request); err != nil {
 		return err
 	}
 
