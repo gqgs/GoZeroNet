@@ -81,6 +81,7 @@ const (
 	UseBinType             = true
 	FileGetSizeLimit       = 512 * 1024
 	MultipartFormMaxMemory = 1024 * 1024 * 10
+	PieceSize              = 1024 * 1024
 
 	RandomIPv4Addr = "127.0.0.1:"
 	UpdateSite     = "1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf" // TODO: ZN updater. We would need a new zite for this.

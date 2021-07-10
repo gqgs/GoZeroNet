@@ -3,8 +3,6 @@ package site
 import (
 	"bytes"
 	"context"
-	"crypto/sha512"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -254,7 +252,9 @@ func (s *Site) ListFiles(innerPath string) ([]string, error) {
 func (s *Site) FileDelete(innerPath string) error {
 	filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
 	if err := os.Remove(filePath); err != nil {
-		return err
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
 	}
 	info, err := s.contentDB.FileInfo(s.addr, innerPath)
 	if err != nil {
@@ -270,7 +270,15 @@ func (s *Site) FileDelete(innerPath string) error {
 	delete(s.Settings.Cache.Piecefields, info.Hash)
 	s.Settings.Cache.pieceFieldsMutex.Unlock()
 
-	return s.contentDB.UpdateFile(s.addr, info)
+	if err := s.contentDB.UpdateFile(s.addr, info); err != nil {
+		return err
+	}
+
+	if info.PieceSize > 0 {
+		return s.FileDelete(info.Piecemap)
+	}
+
+	return nil
 }
 
 func (s *Site) Update(daysAgo int) error {
@@ -326,7 +334,8 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 	if !strings.HasSuffix(innerPath, "content.json") {
 		return errors.New("can only verifiy content.json files")
 	}
-	filePath := path.Join(config.DataDir, s.addr, safe.CleanPath(innerPath))
+	innerPath = safe.CleanPath(innerPath)
+	filePath := path.Join(config.DataDir, s.addr, innerPath)
 	contentFile, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -369,8 +378,8 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 	var innerPaths []string
 	var fileInfos []*event.FileInfo
 
-	siteRoot := filepath.Join(config.DataDir, s.addr)
 	root := filepath.Dir(filePath)
+	innerPathDir := filepath.Dir(innerPath)
 
 	err = filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
@@ -390,38 +399,41 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 			return nil
 		}
 
-		fileData, err := os.ReadFile(path)
+		fileReader, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer fileReader.Close()
+
+		hashedFiles, err := Hash(fileReader, root, relativePath)
 		if err != nil {
 			return err
 		}
 
-		digest := sha512.Sum512(fileData)
+		for relativePath, file := range hashedFiles {
+			innerPath := filepath.Join(innerPathDir, relativePath)
+			innerPaths = append(innerPaths, innerPath)
+			fileInfo, _ := s.contentDB.FileInfo(s.addr, innerPath)
+			fileInfo.Hash = file.Sha512
+			fileInfo.Size = file.Size
+			fileInfo.Downloaded = file.Size
+			fileInfo.InnerPath = innerPath
 
-		// TODO: handle bigfiles
-		hash := hex.EncodeToString(digest[:])[:64]
-		file := File{
-			Size:   len(fileData),
-			Sha512: hash,
+			if file.PieceSize > 0 {
+				fileInfo.PieceSize = file.PieceSize
+				fileInfo.Piecemap = filepath.Join(innerPathDir, file.Piecemap)
+			}
+
+			if optionalRegex.MatchString(relativePath) {
+				filesOptional[relativePath] = file
+				fileInfo.IsOptional = true
+			} else {
+				files[relativePath] = file
+				fileInfo.IsOptional = false
+			}
+
+			fileInfos = append(fileInfos, fileInfo)
 		}
-
-		innerPath := strings.TrimPrefix(path, siteRoot)
-		innerPath = strings.TrimLeft(innerPath, "/")
-		innerPaths = append(innerPaths, innerPath)
-		fileInfo, _ := s.contentDB.FileInfo(s.addr, innerPath)
-		fileInfo.Hash = hash
-		fileInfo.Size = len(fileData)
-		fileInfo.Downloaded = fileInfo.Size
-		fileInfo.InnerPath = innerPath
-
-		if optionalRegex.MatchString(relativePath) {
-			filesOptional[relativePath] = file
-			fileInfo.IsOptional = true
-		} else {
-			files[relativePath] = file
-			fileInfo.IsOptional = false
-		}
-
-		fileInfos = append(fileInfos, fileInfo)
 
 		return nil
 	})

@@ -78,7 +78,7 @@ func (n *bigFilePlugin) bigfileUploadInit(w pluginWriter, s *site.Site, message 
 	}
 
 	nonce := random.HexString(64)
-	pieceSize := 1024 * 1024
+	pieceSize := config.PieceSize
 	innerPath = safe.CleanPath(innerPath)
 	relativePath := path.Join(config.DataDir, s.Address(), innerPath)
 

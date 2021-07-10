@@ -3,8 +3,6 @@ package site
 import (
 	"bytes"
 	"context"
-	"crypto/sha512"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,6 +17,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/bigfile"
+	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 	"github.com/gqgs/go-zeronet/pkg/lib/safe"
 	"github.com/gqgs/go-zeronet/pkg/peer"
 )
@@ -354,8 +353,7 @@ func (s *Site) verifyDownload(body []byte, size int, hash string) error {
 		return fmt.Errorf("file with invalid size. want: (%d), got: (%d)", size, len(body))
 	}
 
-	digest := sha512.Sum512(body)
-	hexDigest := hex.EncodeToString(digest[:32])
+	hexDigest := crypto.Sha512_256(body)
 	if hexDigest != hash {
 		return fmt.Errorf("file with invalid hash. want: %s (%d), got: %s (%d)", hash, size, hexDigest, len(body))
 	}

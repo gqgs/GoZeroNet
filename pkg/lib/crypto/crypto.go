@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -230,4 +231,10 @@ func hashID(hexDigest string, length int) (int, error) {
 		return 0, err
 	}
 	return int(res), nil
+}
+
+// Sha512_256 returns a SHA512 hex digest truncated to the first 256 bits
+func Sha512_256(data []byte) string {
+	digest := sha512.Sum512(data)
+	return hex.EncodeToString(digest[:])[:64]
 }

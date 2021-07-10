@@ -46,3 +46,17 @@ func ParsePieceMap(r io.Reader) (*PieceMap, error) {
 	pieceMap := new(PieceMap)
 	return pieceMap, msgpack.NewDecoder(r).Decode(&pieceMap)
 }
+
+// MarshalPieceMap creates a msgpack encoded piecemap.
+func MarshalPieceMap(filename string, hashes []string) ([]byte, error) {
+	p := make(map[string]map[string][][]byte)
+	p[filename] = make(map[string][][]byte)
+	for _, hash := range hashes {
+		digest, err := hex.DecodeString(hash)
+		if err != nil {
+			return nil, err
+		}
+		p[filename]["sha512_pieces"] = append(p[filename]["sha512_pieces"], digest)
+	}
+	return msgpack.Marshal(p)
+}

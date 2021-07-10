@@ -1,6 +1,7 @@
 package bigfile
 
 import (
+	"bytes"
 	"os"
 	"reflect"
 	"testing"
@@ -40,4 +41,21 @@ func TestParsePieceMap(t *testing.T) {
 			require.True(t, reflect.DeepEqual(pieceMap, tt.want))
 		})
 	}
+}
+
+func Test_MarshalPieceMap(t *testing.T) {
+	hashes := []string{
+		"9925a54fe7fe03488e4bbdeddef906f9353b763f7a1f483653360901b6c7e5bb",
+		"a148621b234397a6b347f1e84c3b6094e13094e356942e87a1dc7cc647595216",
+	}
+	result, err := MarshalPieceMap("3ff9dd82ccd831865973a943642ff07ee32d8344.jpg", hashes)
+	require.NoError(t, err)
+
+	piecemap, err := ParsePieceMap(bytes.NewReader(result))
+	require.NoError(t, err)
+
+	pieceHashes, err := piecemap.Hashes("3ff9dd82ccd831865973a943642ff07ee32d8344.jpg")
+	require.NoError(t, err)
+
+	require.True(t, reflect.DeepEqual(hashes, pieceHashes))
 }
