@@ -12,7 +12,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 )
 
-func Hash(reader io.Reader, dir, relativePath string) (map[string]File, error) {
+func hash(reader io.Reader, dir, relativePath string) (map[string]File, error) {
 	var size int
 	var hashes []string
 	files := make(map[string]File)

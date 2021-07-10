@@ -411,7 +411,7 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 		}
 		defer fileReader.Close()
 
-		hashedFiles, err := Hash(fileReader, root, relativePath)
+		hashedFiles, err := hash(fileReader, root, relativePath)
 		if err != nil {
 			return err
 		}
