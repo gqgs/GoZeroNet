@@ -61,7 +61,12 @@ This aims to be as compatible with the the _core_ of the [original](https://gith
     - [x] Required
     - [x] Optional
     - [x] Big (download)
-    - [ ] Big (upload)
+    - [x] Big (upload)
+- DBSchema mappings
+    - [x] to_table (string array)
+    - [ ] to_table (object array)
+    - [x] to_json_table
+    - [ ] to_keyvalue
 - [ ] ~~UPnP~~
 - [ ] Hidden service
 - [ ] TLS
