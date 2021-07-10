@@ -264,6 +264,10 @@ func (s *Site) FileDelete(innerPath string) error {
 		return err
 	}
 
+	if info.Downloaded == 0 {
+		return nil
+	}
+
 	info.Downloaded = 0
 
 	s.Settings.Cache.pieceFieldsMutex.Lock()
