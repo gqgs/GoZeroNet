@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
+	"math"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,6 +22,7 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/database"
 	"github.com/gqgs/go-zeronet/pkg/event"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/bigfile"
 	"github.com/gqgs/go-zeronet/pkg/lib/crypto"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/parser"
@@ -426,6 +428,14 @@ func (s *Site) Sign(innerPath, privateKey string, user *user.User) error {
 			if file.PieceSize > 0 {
 				fileInfo.PieceSize = file.PieceSize
 				fileInfo.Piecemap = filepath.Join(innerPathDir, file.Piecemap)
+
+				s.Settings.Cache.pieceFieldsMutex.Lock()
+				if s.Settings.Cache.Piecefields == nil {
+					s.Settings.Cache.Piecefields = make(map[string]bigfile.PieceField)
+				}
+				piecemap := strings.Repeat("1", int(math.Ceil(float64(file.Size)/float64(file.PieceSize))))
+				s.Settings.Cache.Piecefields[file.Sha512] = bigfile.PackPieceField(piecemap)
+				s.Settings.Cache.pieceFieldsMutex.Unlock()
 			}
 
 			if optionalRegex.MatchString(relativePath) {
