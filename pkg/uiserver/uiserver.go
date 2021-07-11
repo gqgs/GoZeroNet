@@ -2,9 +2,10 @@ package uiserver
 
 import (
 	"archive/zip"
-	"bytes"
 	"context"
+	"errors"
 	"io"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
@@ -296,7 +297,7 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 	if i := strings.Index(innerPath, ".zip/"); i > 0 {
 		i += len(".zip/")
 		zipPath, filename := innerPath[:i], innerPath[i:]
-		s.handleZip(w, site, zipPath, filename)
+		s.handleZip(w, r, site, zipPath, filename)
 		return
 	}
 
@@ -325,29 +326,47 @@ func (s *server) waitForContentDownload(site string, msgCh <-chan pubsub.Message
 	}
 }
 
-func (s *server) handleZip(w http.ResponseWriter, site, zipPath, filename string) {
-	zipWriter := new(bytes.Buffer)
-	if err := s.siteManager.ReadFile(site, zipPath, zipWriter, nil); err != nil {
+func (s *server) handleZip(w http.ResponseWriter, r *http.Request, site, zipPath, filename string) {
+	zipHandler := &zipFS{w, r, filename}
+	if err := s.siteManager.ReadFile(site, zipPath, zipHandler, nil); err != nil {
 		s.log.WithField("site", site).WithField("zipPath", zipPath).Warn(err)
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
-	bytesReader := bytes.NewReader(zipWriter.Bytes())
-	zipReader, err := zip.NewReader(bytesReader, bytesReader.Size())
-	if err != nil {
-		s.log.WithField("site", site).WithField("zipPath", zipPath).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+}
+
+type zipFS struct {
+	w        http.ResponseWriter
+	r        *http.Request
+	filename string
+}
+
+type fileReaderAt interface {
+	io.ReaderAt
+	fs.File
+}
+
+// Implements the io.ReaderFrom interface
+func (z *zipFS) ReadFrom(r io.Reader) (n int64, err error) {
+	if file, ok := r.(fileReaderAt); ok {
+		stat, err := file.Stat()
+		if err != nil {
+			return 0, err
+		}
+
+		zipReader, err := zip.NewReader(file, stat.Size())
+		if err != nil {
+			return 0, err
+		}
+
+		z.r.URL.Path = "/" + z.filename
+		http.FileServer(http.FS(zipReader)).ServeHTTP(z.w, z.r)
+		return 0, nil
 	}
-	file, err := zipReader.Open(filename)
-	if err != nil {
-		s.log.WithField("site", site).WithField("zipPath", zipPath).Warn(err)
-		http.Error(w, "not found", http.StatusNotFound)
-		return
-	}
-	defer file.Close()
-	if _, err := io.Copy(w, file); err != nil {
-		s.log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	return 0, errors.New("unexpected reader interface")
+}
+
+// Implements the io.Writer interface
+func (z *zipFS) Write(data []byte) (n int, err error) {
+	return 0, errors.New("unexpected write call")
 }
