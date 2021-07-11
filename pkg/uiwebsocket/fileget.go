@@ -64,7 +64,7 @@ func (w *uiWebsocket) fileGet(rawMessage []byte, message Message) error {
 	ctx, cancel := context.WithTimeout(w.ctx, timeout)
 	defer cancel()
 
-	if err := w.site.ReadFile(ctx, strings.TrimSuffix(params.InnerPath, "|all"), writer); err != nil {
+	if err := w.site.ReadFile(ctx, strings.TrimSuffix(params.InnerPath, "|all"), writer, nil); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
 		}

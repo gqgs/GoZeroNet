@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -187,19 +188,28 @@ func (s *Site) FileWrite(innerPath string, reader io.Reader) error {
 	return err
 }
 
-func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer) error {
+func (s *Site) ReadFile(ctx context.Context, innerPath string, dst io.Writer, r *http.Request) error {
 	innerPath = safe.CleanPath(innerPath)
-	path := path.Join(config.DataDir, s.addr, innerPath)
-	file, err := os.Open(path)
+	filePath := path.Join(config.DataDir, s.addr, innerPath)
+	file, err := os.Open(filePath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return s.broadcastFileNeed(ctx, innerPath, func() error {
-				return s.ReadFile(ctx, innerPath, dst)
+				return s.ReadFile(ctx, innerPath, dst, r)
 			})
 		}
 		return err
 	}
 	defer file.Close()
+
+	if w, ok := dst.(http.ResponseWriter); ok {
+		stat, err := file.Stat()
+		if err != nil {
+			return err
+		}
+		http.ServeContent(w, r, innerPath, stat.ModTime(), file)
+		return nil
+	}
 
 	_, err = io.Copy(dst, file)
 	return err

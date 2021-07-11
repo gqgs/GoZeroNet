@@ -300,7 +300,7 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.siteManager.ReadFile(site, innerPath, w); err != nil {
+	if err := s.siteManager.ReadFile(site, innerPath, w, r); err != nil {
 		s.log.WithField("site", site).WithField("innerPath", innerPath).Warn(err)
 		http.Error(w, "not found", http.StatusNotFound)
 	}
@@ -327,7 +327,7 @@ func (s *server) waitForContentDownload(site string, msgCh <-chan pubsub.Message
 
 func (s *server) handleZip(w http.ResponseWriter, site, zipPath, filename string) {
 	zipWriter := new(bytes.Buffer)
-	if err := s.siteManager.ReadFile(site, zipPath, zipWriter); err != nil {
+	if err := s.siteManager.ReadFile(site, zipPath, zipWriter, nil); err != nil {
 		s.log.WithField("site", site).WithField("zipPath", zipPath).Warn(err)
 		http.Error(w, "not found", http.StatusNotFound)
 		return

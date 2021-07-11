@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
 	"path"
 	"time"
 
@@ -20,7 +21,14 @@ import (
 type Manager interface {
 	Site(addr string) *Site
 	RenderIndex(site, indexFilename string, dst io.Writer) error
-	ReadFile(site, innerPath string, dst io.Writer) error
+	// ReadFile writes to the destination the contents of the requested file.
+	// If the file doesn't exist this function will try downloading it before returning it
+	// and return an error if the download timeouts.
+	// If `dst` implements the http.ResponseWriter interface the request parameter is used to
+	// define the range parameters of the returned content.
+	// Otherwise, the whole requested file will be copied to the destination
+	// and the request parameter is ignored.
+	ReadFile(site, innerPath string, dst io.Writer, r *http.Request) error
 	SiteByWrapperKey(wrapperKey string) *Site
 	SiteList() ([]*Info, error)
 	NewSite(addr string) (*Site, error)
@@ -225,7 +233,7 @@ func (m *manager) FindPendingUpload(nonce string) (*Upload, error) {
 	return nil, errors.New("nonce not found")
 }
 
-func (m *manager) ReadFile(site, innerPath string, dst io.Writer) error {
+func (m *manager) ReadFile(site, innerPath string, dst io.Writer, r *http.Request) error {
 	s, ok := m.sites[site]
 	if !ok {
 		return errors.New("site not found")
@@ -233,7 +241,7 @@ func (m *manager) ReadFile(site, innerPath string, dst io.Writer) error {
 
 	ctx, cancel := context.WithTimeout(m.ctx, config.FileNeedDeadline)
 	defer cancel()
-	return s.ReadFile(ctx, innerPath, dst)
+	return s.ReadFile(ctx, innerPath, dst, r)
 }
 
 func (m *manager) SiteList() ([]*Info, error) {
