@@ -4,7 +4,8 @@ server: build
 build:
 	go build -o go-zeronet
 
-run: server
+run:
+	go run main.go server
 
 docker:
 	docker build -t go-zeronet .
