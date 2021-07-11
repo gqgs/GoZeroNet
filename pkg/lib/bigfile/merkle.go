@@ -10,7 +10,7 @@ type hashFunc = func(b []byte) string
 
 // MerkleRoot calculates the root of the
 // merkle tree given the input hashes.
-// It considers the tree to the generated according to the
+// It considers the tree to be generated according to the
 // documentation bellow:
 // https://github.com/Tierion/merkle-tools#notes
 func MerkleRoot(hashes []string) string {
