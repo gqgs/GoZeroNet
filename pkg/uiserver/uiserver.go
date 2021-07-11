@@ -273,7 +273,7 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}()
 
-		s.waitForContentDownload(msgCh)
+		s.waitForContentDownload(site, msgCh)
 	}
 
 	if innerPath == "" {
@@ -306,10 +306,13 @@ func (s *server) siteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *server) waitForContentDownload(msgCh <-chan pubsub.Message) {
+func (s *server) waitForContentDownload(site string, msgCh <-chan pubsub.Message) {
 	for {
 		select {
 		case msg := <-msgCh:
+			if msg.Site() != site {
+				continue
+			}
 			if payload, ok := msg.Event().(*event.ContentInfo); ok {
 				if payload.InnerPath == "content.json" {
 					s.log.Info("downloaded content.json")
