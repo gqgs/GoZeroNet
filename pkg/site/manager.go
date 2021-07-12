@@ -63,7 +63,7 @@ func NewManager(ctx context.Context, pubsubManager pubsub.Manager, userManager u
 		site.Settings = siteSettings
 		site.addr = addr
 		site.trackers = make(map[string]*AnnouncerStats)
-		site.peers = make(map[string]peer.Peer)
+		site.peers = make(map[string]struct{})
 		site.wrapperNonce = make(map[string]int64)
 		site.pubsubManager = pubsubManager
 		site.user = user
@@ -101,7 +101,7 @@ func (m *manager) NewSite(addr string) (*Site, error) {
 	site.addr = addr
 	site.Settings = new(Settings)
 	site.trackers = make(map[string]*AnnouncerStats)
-	site.peers = make(map[string]peer.Peer)
+	site.peers = make(map[string]struct{})
 	site.wrapperNonce = make(map[string]int64)
 	site.user = m.userManager.User()
 	site.pubsubManager = m.pubsubManager

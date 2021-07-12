@@ -41,7 +41,7 @@ type Site struct {
 	trackersMutex            sync.RWMutex
 	trackers                 map[string]*AnnouncerStats
 	peersMutex               sync.RWMutex
-	peers                    map[string]peer.Peer
+	peers                    map[string]struct{}
 	pubsubManager            pubsub.Manager
 	Settings                 *Settings
 	user                     *user.User
@@ -60,7 +60,7 @@ type Site struct {
 	uploads                  map[string]Upload
 }
 
-func (s *Site) Peers() map[string]peer.Peer {
+func (s *Site) Peers() map[string]struct{} {
 	return s.peers
 }
 

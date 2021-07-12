@@ -20,7 +20,6 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
 	"github.com/gqgs/go-zeronet/pkg/lib/ip"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
-	"github.com/gqgs/go-zeronet/pkg/peer"
 	"github.com/zeebo/bencode"
 )
 
@@ -154,8 +153,7 @@ func (s *Site) Announce(fn ...func()) {
 		}
 	}
 
-	peers := s.Peers()
-	s.log.Infof("found %d peers", len(peers))
+	s.log.Infof("announce done. found %d peers", len(s.Peers()))
 }
 
 // AnnounceTrackers announces to trackers the new peer
@@ -169,7 +167,7 @@ func (s *Site) AnnounceTrackers() {
 		numWant:  50,
 	}
 
-	ctx, cancel := context.WithDeadline(s.ctx, time.Now().Add(time.Second*30))
+	ctx, cancel := context.WithTimeout(s.ctx, config.AnnounceTimeout)
 	defer cancel()
 
 	now := func() float64 {
@@ -216,7 +214,7 @@ func (s *Site) AnnounceTrackers() {
 
 			s.peersMutex.Lock()
 			for _, peerAddress := range peers {
-				s.peers[peerAddress] = peer.NewPeer(peerAddress)
+				s.peers[peerAddress] = struct{}{}
 				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
 					Address: peerAddress,
 				})
@@ -238,29 +236,46 @@ func (s *Site) AnnounceTrackers() {
 
 func (s *Site) AnnouncePex() {
 	s.log.WithField("peers", len(s.peers)).Info("announcing to pex...")
+
+	ctx, cancel := context.WithTimeout(s.ctx, config.AnnounceTimeout)
+	defer cancel()
+
 	var wg sync.WaitGroup
-	wg.Add(len(s.peers))
-	for _, sitePeer := range s.peers {
-		sitePeer := sitePeer
+	for maxPeers := 5; maxPeers > 0; maxPeers-- {
+		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := sitePeer.Connect(); err != nil {
-				s.log.Warn(err)
-				return
-			}
-			resp, err := fileserver.Pex(sitePeer, s.addr, 10)
+			peer, err := s.peerManager.GetConnected(ctx)
 			if err != nil {
 				s.log.Warn(err)
 				return
 			}
-			s.log.WithField("peer", sitePeer).Infof("found %d peers", len(resp.Peers))
+			defer s.peerManager.PutConnected(peer)
+
+			resp, err := fileserver.Pex(peer, s.addr, 10)
+			if err != nil {
+				s.log.Warn(err)
+				return
+			}
+			s.log.WithField("peer", peer).Infof("found %d peers", len(resp.Peers))
 			for _, peerAddr := range resp.Peers {
 				newPeerAddr := ip.ParseIPv4(peerAddr, binary.LittleEndian)
 				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
 					Address: newPeerAddr,
 				})
 				s.peersMutex.Lock()
-				s.peers[newPeerAddr] = peer.NewPeer(newPeerAddr)
+				s.peers[newPeerAddr] = struct{}{}
+				s.peersMutex.Unlock()
+			}
+			s.log.WithField("peer", peer).Infof("found %d onion peers", len(resp.PeersOnion))
+			for _, onion := range resp.PeersOnion {
+				onion := ip.ParseOnion(onion, binary.LittleEndian)
+				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
+					Address: onion,
+					IsOnion: true,
+				})
+				s.peersMutex.Lock()
+				s.peers[onion] = struct{}{}
 				s.peersMutex.Unlock()
 			}
 		}()

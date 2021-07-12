@@ -17,6 +17,7 @@ func BroadcastPeerInfoUpdate(site string, broadcaster Broadcaster, peerInfo *Pee
 // Peers that might be connected to
 type PeerCandidate struct {
 	Address string
+	IsOnion bool
 }
 
 func (e *PeerCandidate) String() string {
