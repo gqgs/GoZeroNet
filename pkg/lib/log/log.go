@@ -72,7 +72,6 @@ func New(scope string) Logger {
 		l.ReportCaller = true
 		l.SetLevel(logrus.TraceLevel)
 	case "debug":
-		l.ReportCaller = true
 		l.SetLevel(logrus.DebugLevel)
 	case "info":
 		l.SetLevel(logrus.InfoLevel)
