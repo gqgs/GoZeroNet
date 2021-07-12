@@ -1,10 +1,12 @@
 package ip
 
 import (
+	"encoding/base32"
 	"encoding/binary"
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 )
 
 func ParseIPv4(addr []byte, byteOrder binary.ByteOrder) string {
@@ -41,4 +43,13 @@ func PackIPv4(ip string, byteOrder binary.ByteOrder) []byte {
 	byteOrder.PutUint16(parsedPort, uint16(i))
 
 	return []byte{parsedHost[0], parsedHost[1], parsedHost[2], parsedHost[3], parsedPort[0], parsedPort[1]}
+}
+
+func ParseOnion(addr []byte, byteOrder binary.ByteOrder) string {
+	if len(addr) < 15 {
+		return ""
+	}
+	host, port := addr[:len(addr)-2], addr[len(addr)-2:]
+	onion := strings.ToLower(base32.HexEncoding.EncodeToString(host))
+	return fmt.Sprintf("%s.onion:%d", onion, byteOrder.Uint16(port))
 }
