@@ -132,6 +132,12 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 	}
 	defer w.peerManager.PutConnected(p)
 
+	w.log.Debugf("downloading file %s from %s", fileNeed.InnerPath, p)
+	if err := w.site.downloadFile(p, info); err == nil {
+		return nil
+	}
+	fileNeed.Tried[p.String()] = struct{}{}
+
 	resp, err := fileserver.FindHashIDs(p, w.site.addr, int64(hashID))
 	if err != nil {
 		return err
