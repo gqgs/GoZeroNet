@@ -87,6 +87,9 @@ func (w *worker) run() {
 					return
 				}
 				w.downloading[payload.InnerPath] = struct{}{}
+				if payload.Tried == nil {
+					payload.Tried = make(map[string]struct{})
+				}
 				w.mu.Unlock()
 
 				if err := w.downloadFile(payload); err != nil {
@@ -142,6 +145,11 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 			event.BroadcastFileInfoUpdate(w.site.addr, w.site.pubsubManager, info)
 			for _, addr := range addresses {
 				parsed := ip.ParseIPv4(addr, binary.LittleEndian)
+				if _, alreadyTried := fileNeed.Tried[parsed]; alreadyTried {
+					continue
+				}
+				fileNeed.Tried[parsed] = struct{}{}
+
 				w.log.Debug("connection to new peer ", parsed)
 				newPeer := peer.NewPeer(parsed)
 				if err := newPeer.Connect(); err != nil {

@@ -46,6 +46,7 @@ func BroadcastFileInfoUpdate(site string, broadcaster Broadcaster, fileInfo *Fil
 type FileNeed struct {
 	InnerPath string `json:"inner_path"`
 	Tries     int    `json:"tries"`
+	Tried     map[string]struct{}
 }
 
 func (e *FileNeed) String() string {
