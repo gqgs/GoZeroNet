@@ -1,4 +1,4 @@
-log_level = "error"
+log_level = "info"
 language = "en"
 data_dir = "./data/"
 site_size_limit = 10

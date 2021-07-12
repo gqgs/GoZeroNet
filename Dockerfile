@@ -7,6 +7,7 @@ RUN go build -ldflags="-extldflags=-static" -o go-zeronet
 FROM scratch
 COPY --from=builder /app/go-zeronet /usr/bin/go-zeronet
 COPY --from=builder /app/zeronet.toml /app/zeronet.toml
+COPY --from=builder /app/zeronet.toml.default /app/zeronet.toml.default
 
 CMD ["/usr/bin/go-zeronet", "server", "--ui_server_addr",  "0.0.0.0:43111", "--file_server_addr", "0.0.0.0:26553"]
 

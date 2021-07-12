@@ -34,16 +34,17 @@ func init() {
 	//nolint:dogsled
 	_, configFilename, _, _ := runtime.Caller(0)
 	root := strings.TrimSuffix(configFilename, "pkg/config/config.go")
-	for _, configFile := range []string{"zeronet.toml", "zeronet.toml.example"} {
+	c := new(config)
+	var found bool
+	for _, configFile := range []string{"zeronet.toml.default", "zeronet.toml"} {
 		filename := path.Join(root, configFile)
 		if _, err := os.Stat(filename); err != nil {
 			continue
 		}
-
-		c := new(config)
 		if _, err := toml.DecodeFile(filename, c); err != nil {
 			panic(err)
 		}
+		found = true
 
 		Language = c.Language
 		DataDir = c.DataDir
@@ -62,15 +63,15 @@ func init() {
 		FileServerAddress = c.FileServerAddress
 		UIServerAddress = c.UIServerAddress
 		MaxDownloadTries = c.MaxDownloadTries
-
-		if err := os.MkdirAll(path.Dir(DataDir), os.ModePerm); err != nil {
-			panic(err)
-		}
-
-		return
 	}
 
-	panic("configuration file `zeronet.toml` not found")
+	if !found {
+		panic("configuration file `zeronet.toml` not found")
+	}
+
+	if err := os.MkdirAll(path.Dir(DataDir), os.ModePerm); err != nil {
+		panic(err)
+	}
 }
 
 const (
