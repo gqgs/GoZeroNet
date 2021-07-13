@@ -28,6 +28,8 @@ type config struct {
 	FileServerAddress       string   `toml:"fileserver_address"`
 	UIServerAddress         string   `toml:"uiserver_address"`
 	MaxDownloadTries        int      `toml:"max_download_tries"`
+	TorEnabled              bool     `toml:"tor_enabled"`
+	TorAddress              string   `toml:"tor_address"`
 }
 
 func init() {
@@ -63,6 +65,8 @@ func init() {
 		FileServerAddress = c.FileServerAddress
 		UIServerAddress = c.UIServerAddress
 		MaxDownloadTries = c.MaxDownloadTries
+		TorEnabled = c.TorEnabled
+		TorAddress = c.TorAddress
 	}
 
 	if !found {
@@ -109,6 +113,8 @@ var (
 	FileServerAddress       string
 	UIServerAddress         string
 	MaxDownloadTries        int
+	TorEnabled              bool
+	TorAddress              string
 
 	FileServerHost = "127.0.0.1"
 	FileServerPort = 0

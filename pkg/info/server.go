@@ -40,8 +40,8 @@ func ServerInfo(admin bool) Server {
 	s := Server{
 		UIIP:              config.UIServerHost,
 		UIPort:            config.UIServerPort,
-		TorEnabled:        false, // TODO: check if Tor is enabled
-		TorStatus:         "Disabled",
+		TorEnabled:        config.TorEnabled,
+		TorStatus:         "Disabled", // TODO: check Tor status
 		TorHasMeekBridges: false,
 		FileserverIP:      "*",
 		FileserverPort:    config.FileServerPort,

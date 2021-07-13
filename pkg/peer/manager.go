@@ -92,8 +92,7 @@ func (m *manager) processPeerCandidates() {
 			switch candidate := msg.Event().(type) {
 			case *event.PeerCandidate:
 				m.log.WithField("queue", len(m.msgCh)).Debug("new peer candidate event")
-				// TODO: connect to onion if possible
-				if candidate.IsOnion {
+				if candidate.IsOnion && !config.TorEnabled {
 					continue
 				}
 

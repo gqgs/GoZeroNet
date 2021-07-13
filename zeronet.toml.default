@@ -23,3 +23,6 @@ file_need_deadline = "30s"
 
 fileserver_address = "0.0.0.0:0"
 uiserver_address = "127.0.0.1:43111"
+
+tor_enabled = false
+tor_address = "127.0.0.1:9050"

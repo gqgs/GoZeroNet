@@ -2,10 +2,12 @@ package connection
 
 import (
 	"net"
+	"strings"
 	"time"
 
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/lib/log"
+	"golang.org/x/net/proxy"
 )
 
 type conn struct {
@@ -26,12 +28,23 @@ func (c *conn) Read(b []byte) (n int, err error) {
 // If the returned error is nil the client must close the
 // connection after using it.
 func NewConnection(addr string) (net.Conn, error) {
-	netConn, err := net.DialTimeout("tcp", addr, config.ConnectionTimeout)
+	netConn, err := dial(addr, config.ConnectionTimeout)
 	if err != nil {
 		return nil, err
 	}
 
 	return Wrap(netConn), nil
+}
+
+func dial(addr string, timeout time.Duration) (net.Conn, error) {
+	if strings.Contains(addr, ".onion") {
+		dialer, err := proxy.SOCKS5("tcp", config.TorAddress, nil, proxy.Direct)
+		if err != nil {
+			return nil, err
+		}
+		return dialer.Dial("tcp", addr)
+	}
+	return net.DialTimeout("tcp", addr, timeout)
 }
 
 // Wrap wraps a net.Conn to return another net.Coon

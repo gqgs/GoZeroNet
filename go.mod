@@ -22,6 +22,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.4
 	github.com/zeebo/bencode v1.0.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 )
 

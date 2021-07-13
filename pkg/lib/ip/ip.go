@@ -46,7 +46,7 @@ func PackIPv4(ip string, byteOrder binary.ByteOrder) []byte {
 }
 
 func ParseOnion(addr []byte, byteOrder binary.ByteOrder) string {
-	if len(addr) < 15 {
+	if len(addr) < 5 {
 		return ""
 	}
 	host, port := addr[:len(addr)-2], addr[len(addr)-2:]
