@@ -167,7 +167,7 @@ func (w *worker) downloadFile(fileNeed *event.FileNeed) error {
 
 				w.log.Debugf("downloading file %s from %s", fileNeed.InnerPath, newPeer)
 				if err := w.site.downloadFile(newPeer, info); err != nil {
-					w.log.WithField("peer", newPeer).Warn(err)
+					newPeer.Warn(err)
 					continue
 				}
 				return nil

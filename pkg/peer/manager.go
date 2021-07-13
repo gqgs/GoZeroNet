@@ -103,14 +103,13 @@ func (m *manager) processPeerCandidates() {
 					case <-time.After(time.Minute):
 					case m.connectedSem <- struct{}{}:
 						peer := NewPeer(candidate.Address)
-						logger := m.log.WithField("peer", peer)
 						if err := peer.Connect(); err != nil {
-							logger.Warn(err)
+							peer.Warn(err)
 							<-m.connectedSem
 							return
 						}
 
-						logger.Info("new connected peer: ", peer)
+						peer.Info("new connected peer: ", peer)
 						m.connectedCh <- peer
 					}
 				}()

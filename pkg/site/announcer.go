@@ -257,7 +257,7 @@ func (s *Site) AnnouncePex() {
 				s.log.Warn(err)
 				return
 			}
-			s.log.WithField("peer", peer).Infof("found %d peers", len(resp.Peers))
+			peer.Infof("found %d peers", len(resp.Peers))
 			for _, peerAddr := range resp.Peers {
 				newPeerAddr := ip.ParseIPv4(peerAddr, binary.LittleEndian)
 				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{
@@ -267,7 +267,7 @@ func (s *Site) AnnouncePex() {
 				s.peers[newPeerAddr] = struct{}{}
 				s.peersMutex.Unlock()
 			}
-			s.log.WithField("peer", peer).Infof("found %d onion peers", len(resp.PeersOnion))
+			peer.Infof("found %d onion peers", len(resp.PeersOnion))
 			for _, onion := range resp.PeersOnion {
 				onion := ip.ParseOnion(onion, binary.LittleEndian)
 				event.BroadcastPeerCandidate(s.addr, s.pubsubManager, &event.PeerCandidate{

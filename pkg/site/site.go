@@ -561,14 +561,13 @@ func (s *Site) Publish(innerPath string) error {
 			continue
 		}
 
-		logger := s.log.WithField("peer", connected).WithField("i", i)
-		logger.Info("publishing update")
+		connected.Info("publishing update")
 		resp, err := fileserver.Update(connected, s.addr, innerPath)
 		if err != nil {
-			logger.Error(err)
+			connected.Error(err)
 			continue
 		}
-		logger.Info("updated published ", resp.Ok)
+		connected.Info("updated published ", resp.Ok)
 		published[connected.String()] = struct{}{}
 	}
 	return nil

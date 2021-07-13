@@ -10,11 +10,13 @@ import (
 	"github.com/gqgs/go-zeronet/pkg/config"
 	"github.com/gqgs/go-zeronet/pkg/connection"
 	"github.com/gqgs/go-zeronet/pkg/fileserver"
+	"github.com/gqgs/go-zeronet/pkg/lib/log"
 	"github.com/gqgs/go-zeronet/pkg/lib/random"
 )
 
 type peer struct {
 	net.Conn
+	log.Logger
 	connected bool
 	addr      string
 	id        string
@@ -23,16 +25,19 @@ type peer struct {
 type Peer interface {
 	fmt.Stringer
 	net.Conn
+	log.Logger
 	Connect() error
 	ID() string
 	CheckConnection() error
 }
 
 func NewPeer(addr string) *peer {
-	return &peer{
+	p := &peer{
 		id:   random.PeerID(),
 		addr: addr,
 	}
+	p.Logger = log.New(fmt.Sprintf("peer (%s)", addr))
+	return p
 }
 
 func (p *peer) Connect() error {

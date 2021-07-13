@@ -31,7 +31,7 @@ func (s *Site) Download(since time.Time) error {
 		err = s.DownloadContentJSON(p, "content.json")
 		s.peerManager.PutConnected(p)
 		if err != nil {
-			s.log.WithField("peer", p).Error(err)
+			p.Error(err)
 			continue
 		}
 
@@ -54,7 +54,7 @@ func (s *Site) DownloadSince(since time.Time) error {
 		err = s.downloadRecent(p, since)
 		s.peerManager.PutConnected(p)
 		if err != nil {
-			s.log.WithField("peer", p).Warn(err)
+			p.Warn(err)
 			continue
 		}
 
@@ -72,7 +72,7 @@ func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
 	for innerPath, modified := range resp.ModifiedFiles {
 		if info, err := s.contentDB.ContentInfo(s.addr, innerPath); err == nil {
 			if modified <= info.Modified {
-				s.log.WithField("peer", peer).Debugf("skipping outdated or same %s: (%d <= %d)", innerPath, modified, info.Modified)
+				peer.Debugf("skipping outdated or same %s: (%d <= %d)", innerPath, modified, info.Modified)
 				continue
 			}
 		}
@@ -84,7 +84,7 @@ func (s *Site) downloadRecent(peer peer.Peer, since time.Time) error {
 			return err
 		}
 		if err := s.DownloadContentJSON(peer, innerPath); err != nil {
-			s.log.WithField("peer", peer).Error(err)
+			peer.Error(err)
 			continue
 		}
 		s.log.Debugf("done: %s", innerPath)
@@ -141,7 +141,6 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		return safe.CleanPath(path.Join(path.Dir(innerPath), pieceMap))
 	}
 
-	logger := s.log.WithField("peer", peer)
 	for _, filename := range sortDownloads(content.Files) {
 		file := content.Files[filename]
 		filename = path.Join(path.Dir(innerPath), filename)
@@ -152,7 +151,7 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		case errors.Is(err, database.ErrFileNotFound):
 		case err == nil:
 		default:
-			logger.Error(err)
+			peer.Error(err)
 			continue
 		}
 
@@ -192,12 +191,12 @@ func (s *Site) DownloadContentJSON(peer peer.Peer, innerPath string) error {
 		case errors.Is(err, database.ErrFileNotFound):
 		case err == nil:
 		default:
-			logger.Error(err)
+			peer.Error(err)
 			continue
 		}
 
 		if len(file.Sha512) != 64 {
-			logger.Errorf("invalid hash id length: %d", len(file.Sha512))
+			peer.Errorf("invalid hash id length: %d", len(file.Sha512))
 			event.BroadcastPeerInfoUpdate(s.addr, s.pubsubManager, &event.PeerInfo{Address: peer.String(), ReputationDelta: -1})
 			continue
 		}
