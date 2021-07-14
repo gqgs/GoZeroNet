@@ -25,6 +25,7 @@ func hash(reader io.Reader, dir, relativePath string) (map[string]File, error) {
 		if err != nil {
 			return nil, err
 		}
+		buf = buf[:n]
 		hashes = append(hashes, crypto.Sha512_256(buf))
 		size += n
 	}
