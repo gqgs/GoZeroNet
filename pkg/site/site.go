@@ -307,13 +307,11 @@ func (s *Site) Update(daysAgo int) error {
 	s.BroadcastSiteChange("updating", true)
 	defer s.BroadcastSiteChange("updated", true)
 
-	if err := s.DownloadSince(now.AddDate(0, 0, -daysAgo)); err != nil {
-		return err
-	}
 	if err := s.OpenDB(); err != nil {
 		return err
 	}
-	return s.UpdateDB(now)
+
+	return s.DownloadSince(now.AddDate(0, 0, -daysAgo))
 }
 
 // Verify verifies a content.json file.

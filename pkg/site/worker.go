@@ -55,14 +55,29 @@ func (w *worker) run() {
 		case *event.PeersNeed:
 			w.log.WithField("queue", len(w.queue)).Debug("peer need event")
 			go w.site.Announce()
-
 		case *event.FileInfo:
 			w.log.WithField("queue", len(w.queue)).Debug("file info event")
+			go func() {
+				if payload.Downloaded != payload.Size || !w.site.hasDB() {
+					return
+				}
+
+				if err := w.site.db.Update(payload.InnerPath); err != nil {
+					w.log.Error(err)
+				}
+			}()
 		case *event.ContentInfo:
 			w.log.WithField("queue", len(w.queue)).Debug("content info event")
 			if payload.Modified > int(w.site.Settings.Modified) {
 				w.site.Settings.Modified = int64(payload.Modified)
 			}
+			go func() {
+				if w.site.hasDB() {
+					if err := w.site.db.Update(payload.InnerPath); err != nil {
+						w.log.Error(err)
+					}
+				}
+			}()
 			go w.site.BroadcastSiteChange("file_done", payload.InnerPath)
 		case *event.SiteUpdate:
 			w.log.WithField("queue", len(w.queue)).WithField("inner_path", payload.InnerPath).Debug("site update event")

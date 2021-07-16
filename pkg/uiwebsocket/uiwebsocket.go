@@ -61,7 +61,6 @@ func (w *uiWebsocket) Serve() {
 	if err := w.site.OpenDB(); err != nil {
 		w.log.Fatal(err)
 	}
-	defer w.site.CloseDB()
 
 	go w.handlePubsub(ctx)
 

@@ -47,16 +47,12 @@ func download(addr string, daysAgo int) error {
 
 	go newSite.Announce()
 
-	now := time.Now()
-	if err = newSite.Download(time.Now().AddDate(0, 0, -daysAgo)); err != nil {
-		return err
-	}
-
 	if err := newSite.OpenDB(); err != nil {
 		return err
 	}
 	defer newSite.CloseDB()
-	return newSite.UpdateDB(now)
+
+	return newSite.Download(time.Now().AddDate(0, 0, -daysAgo))
 }
 
 func downloadRecent(addr string, daysAgo int) error {
