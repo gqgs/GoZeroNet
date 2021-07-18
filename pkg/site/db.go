@@ -43,5 +43,8 @@ func (s *Site) FileInfo(innerPath string) (*event.FileInfo, error) {
 }
 
 func (s *Site) hasDB() bool {
+	if s.db == nil {
+		return false
+	}
 	return s.db.Exists()
 }
