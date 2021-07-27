@@ -258,7 +258,7 @@ func (c *contentDatabase) Peers(site string, need int) ([]string, error) {
 	defer rows.Close()
 
 	var peer string
-	if rows.Next() {
+	for rows.Next() {
 		if err := rows.Scan(&peer); err != nil {
 			return nil, err
 		}
